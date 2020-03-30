@@ -2,8 +2,6 @@ import 'package:endorse/src/rule.dart';
 import 'package:endorse/src/validation_error.dart';
 import 'package:endorse/src/endorse.dart';
 
-import 'package:bottom_line/bottom_line.dart' as _;
-
 class RuleSet {
   RuleSet _next;
 
