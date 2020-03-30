@@ -4,7 +4,7 @@ import 'package:endorse/src/rule_set.dart';
 import 'package:endorse/src/validation.dart';
 import 'package:endorse/src/value.dart';
 
-import 'package:bottom_line/bottom_line.dart' as _;
+import 'package:bottom_line/json_tool.dart' as bl;
 
 abstract class Endorsable {
   static EndorseSchema endorse;
@@ -184,7 +184,7 @@ class EndorseSchema {
     if (r == null)
       throw ArgumentError(
           'RuleSet does not exist in schema for: ${pathToField.toString()}');
-    var v = _.JsonTool(input).toMap().grab(pathToField).value;
+    var v = bl.JsonTool(input).toMap().grab(pathToField).value;
     if (v == null) return null;
     var value = Value(v);
     await value.validate(r);
