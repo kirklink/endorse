@@ -12,10 +12,11 @@ final _checkForEndorseField = const TypeChecker.fromRuntime(EndorseField);
 class EndorseEntityGenerator extends GeneratorForAnnotation<EndorseEntity> {
   @override
   FutureOr<String> generateForAnnotatedElement(
-    Element element, ConstantReader annotation, BuildStep buildStep) {
-      if (element is! ClassElement) {
-        throw ('EndorseEntity must only annotate a class.');
+  Element element, ConstantReader annotation, BuildStep buildStep) {
+    if (element is! ClassElement) {
+      throw ('EndorseEntity must only annotate a class.');
     }
-    return '';
+    print('building');
+    return '// Test';
   }
 }

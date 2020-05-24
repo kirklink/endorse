@@ -1,0 +1,15 @@
+targets:
+    $default:
+      builders:
+        endorse_builder|endorse_entity:
+          enabled: true
+  
+builders:
+    table:
+        target: ":endorse_builder"
+        import: "package:endorse_builder/src/endorse_builder.dart"
+        builder_factories: ["EndorseBuilder"]
+        build_extensions: {".dart": [".endorse.g.part"]}
+        auto_apply: dependents
+        build_to: cache
+        applies_builders: ["source_gen|combining_builder"]
