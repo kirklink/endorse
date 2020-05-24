@@ -1,0 +1,13 @@
+{
+    "name": "server",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "directories": {
+    },
+    "scripts": {
+      "build": "rm -rf build && mkdir build && dart2native bin/main.dart -o build/dart_app"
+    },
+    "author": "",
+    "license": "ISC"
+  }

@@ -1,0 +1,6 @@
+POST http://172.17.0.3:8080/echo
+Content-Type: application/json
+
+{
+    "echo": "ECHO INSIDE"
+}

@@ -1,0 +1,12 @@
+name: arrow_server
+description: "Template for running Arrow server on Google Cloud Run"
+version: 0.0.1
+environment:
+  sdk: '>=2.0.0 <3.0.0'
+dependencies:
+  arrow: ^0.0.15
+  keychain: ^0.0.7
+  models:
+    path: pkg_local/models
+dev_dependencies:
+  test: ^1.3.0

@@ -1,0 +1,13 @@
+name: models
+description: "Data models."
+version: 0.0.1
+environment:
+  sdk: '>=2.0.0 <3.0.0'
+dependencies:
+  json_annotation: ^3.0.1
+  stanza: ^0.0.22
+dev_dependencies:
+  test: ^1.5.2
+  build_runner: any
+  json_serializable: ^3.3.0
+  stanza_builder: ^0.0.22

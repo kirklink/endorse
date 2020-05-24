@@ -1,0 +1,12 @@
+.DS_Store
+.git
+secrets.*
+*.secret
+secret
+*.env
+docker-compose*.*
+*.md
+.packages
+pubspec.lock
+.dart-tool
+.devcontainer

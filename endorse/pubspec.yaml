@@ -1,0 +1,11 @@
+name: endorse
+homepage: "https://github.com/kirklink/endorse"
+description: "Library for validating arbitrary map objects such as API responses."
+version: 0.0.1
+environment:
+  sdk: '>=2.7.0 <3.0.0'
+#dependencies: 
+dev_dependencies:
+  build_runner: any
+  pedantic: any
+  
