@@ -16,48 +16,98 @@ class EndorseEntityGenerator extends GeneratorForAnnotation<EndorseEntity> {
     if (element is! ClassElement) {
       throw ('EndorseEntity must only annotate a class.');
     }
-    var $endorse = (element as ClassElement).getField('\$endorse');
+    
+    final classNamePrefix = '${element.name}';
+
+    final endorseClassName = '${classNamePrefix}Endorse';
+    final $endorse = (element as ClassElement).getField('\$endorse');
     if ($endorse == null || !$endorse.isStatic) {
-      var buf = StringBuffer();
-      var endorseClass = "${element.name}Endorse";
-      buf.writeln(
-          '\nThe EndorseEntity subject class "${element.name}" must have a static field "\$endorse".');
-      buf.writeln(
-          'Add this to ${element.name}: static final \$endorse = \$$endorseClass();');
-      throw EndorseBuilderException(buf.toString());
+      final notReadyBuf = StringBuffer();
+      notReadyBuf.writeln(
+          '\nThe EndorseEntity subject class "$endorseClassName" must have a static field "\$endorse".');
+      notReadyBuf.writeln(
+          'Add this to $endorseClassName: static final \$endorse = \$$endorseClassName;');
+      throw EndorseBuilderException(notReadyBuf.toString());
     }
-    final endorseBuf = StringBuffer();
-    endorseBuf.writeln('class \$${element.name}Endorse {');
-    endorseBuf.writeln('static EndorseSchema schema = EndorseSchema()');
+
+    final pageBuf = StringBuffer();
+    
+    final resultBuf = StringBuffer();
+    final resultContructorBuf = StringBuffer();
+    final validatorBuf = StringBuffer();
+    final validatorReturnBuf = StringBuffer();
+
+    // Set up the result class
+    resultBuf.writeln('class \$${classNamePrefix}ValidationResult implements ValidationResult {');
+    resultBuf.writeln('@override');
+    resultBuf.writeln('final Map<String, Object> values;');
+    resultBuf.writeln('@override');
+    resultBuf.writeln('final bool isValid;');
+    
+    // Set up the validator class
+    validatorBuf.writeln('class \$${classNamePrefix}Validator implements Validator {');
+    validatorBuf.writeln('');
+    validatorBuf.writeln('\$${classNamePrefix}ValidationResult validate(Map<String, Object> input) {');
+    validatorBuf.writeln('final r = <String, ValueResult>{};');
+    validatorBuf.writeln('final v = <String, Object>{};');
+    validatorBuf.writeln('var isValid = true;');
+
+    
+    
+    // For each field
     for (var field in (element as ClassElement).fields) {
       if (field.isStatic) {
         continue;
       }
-      endorseBuf.write("..field('${field.name}')");
+      final fieldName = '${field.name}';
 
-      var prefix = '';
-      if (field.type.isDartCoreString) {
-        prefix = '.string()';
-      } else if (field.type.isDartCoreInt) {
-        prefix = '.integer()';
-      } else if (field.type.isDartCoreDouble) {
-        prefix = '.float()';
-      } else if (field.type.isDartCoreBool) {
-        prefix = '.boolean()';
-      }
+      resultBuf.writeln('final ValueResult $fieldName;');
+      resultContructorBuf.write(', this.$fieldName');
+      validatorBuf.write("r['$fieldName'] = (ValidationRules('$fieldName', input['$fieldName'])");
+      validatorReturnBuf.write(", r['$fieldName']");
 
-      endorseBuf.write(prefix);
       
+
+      
+      
+      // Handle the annotations
       if (_checkForEndorseField.hasAnnotationOfExact(field)) {
-        final reader =
-            ConstantReader(_checkForEndorseField.firstAnnotationOf(field));
-        final stringRules = reader.peek('stringRules').listValue;
-        final numberRules = reader.peek('numberRules').listValue;
-        final booleanRules = reader.peek('boolRules').listValue;
-        final dateRules = reader.peek('dateRules').listValue;
-        final require = reader.peek('required')?.boolValue ?? false;
-        final allRules = [...stringRules, ...numberRules, ...booleanRules, ...dateRules];
-        for (final rule in allRules) {
+        final reader = ConstantReader(_checkForEndorseField.firstAnnotationOf(field));
+        final validations = reader.peek('validations').listValue;
+        final require = reader.peek('require')?.boolValue ?? false;
+        final fromString = reader.peek('fromString')?.boolValue ?? false;
+        
+        
+        
+        var typeRule = '';
+        var castFromString = '';
+        if (fromString) {
+          castFromString = 'fromString: true';
+        }
+        if (field.type.isDartCoreString) {
+          typeRule = '..isString()';
+        } else if (field.type.isDartCoreInt) {
+          typeRule = '..isInt($castFromString)';
+        } else if (field.type.isDartCoreDouble) {
+          typeRule = '..isDouble($castFromString)';
+        } else if (field.type.isDartCoreBool) {
+          typeRule = '..isBoolean($castFromString)';
+        }
+
+        var preRules = '';
+        if (require) {
+          preRules = '..isRequired()$typeRule';
+        } else {
+          preRules = '$typeRule';
+        }
+
+        validatorBuf.write(preRules);
+
+
+
+        // Handle the validations
+        for (final rule in validations) {
+          // Get the right type for the test value
           final t = rule.getField('value')?.type;
           String v;
           if (t == null) {
@@ -66,22 +116,25 @@ class EndorseEntityGenerator extends GeneratorForAnnotation<EndorseEntity> {
             v = "'${rule.getField('value').toStringValue().toString()}'";
           } else if (t.isDartCoreInt) {
             v = rule.getField('value').toIntValue().toString();
+          } else if (t.isDartCoreDouble) {
+            v = rule.getField('value').toDoubleValue().toString();
           }
-          final r = (rule.getField('part').toStringValue()).replaceFirst('@', v);
-          // print(r);
-          endorseBuf.write(r);
-        }
-        if (require) {
-          endorseBuf.write('.required()');
+
+          // Replace the token with a value
+          final r = '..' + (rule.getField('part').toStringValue()).replaceFirst('@', v);
+          validatorBuf.write(r);
         }
       }
+      validatorBuf.writeln(').done();');
+      validatorBuf.writeln("v['$fieldName'] = List.from(r['$fieldName'].errors.map((i) => i.map()));");
+      validatorBuf.writeln("isValid = isValid == false ? false : r['$fieldName'].isValid;");
     }
-    endorseBuf.writeln(';');
-    endorseBuf.writeln('');
-    endorseBuf.writeln('Future<ValidationSchema> validate(Map<String, dynamic> m) async {');
-    endorseBuf.writeln('return await \$${element.name}Endorse.schema.validate(m);');
-    endorseBuf.writeln('}');
-    endorseBuf.writeln('}');
-    return endorseBuf.toString();
+    resultBuf.writeln('\$${classNamePrefix}ValidationResult(this.isValid, this.values${resultContructorBuf.toString()});');
+    resultBuf.writeln('}');
+    validatorBuf.writeln('return \$${classNamePrefix}ValidationResult(isValid, v${validatorReturnBuf.toString()});');
+    validatorBuf.writeln('}');
+    validatorBuf.writeln('}');
+    pageBuf.writeAll([resultBuf, validatorBuf]);
+    return pageBuf.toString();
   }
 }

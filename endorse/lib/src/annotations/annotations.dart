@@ -19,14 +19,12 @@ class EndorseEntity {
 /// [name]: sets an explict name from the object if different than the class field name.
 /// [ignore]: will ignore this field completely; it will not be included in the validation.
 class EndorseField {
-  final List<StringRule> stringRules;
-  final List<NumberRule> numberRules;
-  final List<BoolRule> boolRules;
-  final require;
+  final List<Validation> validations;
+  final bool require;
+  final bool fromString;
   const EndorseField({
-    this.stringRules = const <StringRule>[],
-    this.numberRules = const <NumberRule>[],
-    this.boolRules = const<BoolRule>[],
-    this.require = false
+    this.validations = const <Validation>[],
+    this.require = false,
+    this.fromString
   });
 }
