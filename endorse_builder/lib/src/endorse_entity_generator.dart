@@ -73,6 +73,9 @@ class EndorseEntityGenerator extends GeneratorForAnnotation<EndorseEntity> {
 
       resultContructorBuf.write(', this.$fieldName');
       validatorReturnBuf.write(", r['$fieldName']");
+
+
+      // If it's a list, do this all recursively
       
       // If the field is an EndorseEntity, set the type as it's result
       if (_checkForEndorseEntity.hasAnnotationOfExact(field.type.element)) {
@@ -82,10 +85,15 @@ class EndorseEntityGenerator extends GeneratorForAnnotation<EndorseEntity> {
         validatorBuf.writeln("r['$fieldName'] = ${childClass}.\$endorse.validate(input['$fieldName']);");
       // Otherwise, the type is the result for an instance field
       } else {
+        // if it is a list, make it a ListResult
+        
+        // Otherwise it's a ValueResult
         resultBuf.writeln('final ValueResult $fieldName;');
+        // Queue up the validator
         validatorBuf.write("r['$fieldName'] = (ValidationRules('$fieldName', input['$fieldName'])");
 
-              // Handle the annotations
+        // Validate the field
+        // Handle the annotations
         if (_checkForEndorseField.hasAnnotationOfExact(field)) {
           final reader = ConstantReader(_checkForEndorseField.firstAnnotationOf(field));
           final validations = reader.peek('validate').listValue;
@@ -107,6 +115,14 @@ class EndorseEntityGenerator extends GeneratorForAnnotation<EndorseEntity> {
             typeRule = '..isDouble($castFromString)';
           } else if (field.type.isDartCoreBool) {
             typeRule = '..isBoolean($castFromString)';
+          } else if (field.type.isDartCoreList) {
+            typeRule = '..isList()';
+            final listType = field.type.toString().split('<')[1].split('>')[0];
+            print(listType);
+            switch(listType) {
+              case 'String': typeRule = '$typeRule..ofStrings()';
+              break;
+            }
           }
 
           var preRules = '';
@@ -158,6 +174,14 @@ class EndorseEntityGenerator extends GeneratorForAnnotation<EndorseEntity> {
     resultBuf.writeln('_\$${classNamePrefix}ValidationResult(this.isValid, this.value, this.errors${resultContructorBuf.toString()});');
     resultBuf.writeln('}');
     validatorBuf.writeln('return _\$${classNamePrefix}ValidationResult(isValid, v, e${validatorReturnBuf.toString()});');
+    validatorBuf.writeln('}');
+    validatorBuf.writeln('List<_\$${classNamePrefix}ValidationResult> validateList(List<Object> list) {');
+    validatorBuf.writeln('final result = <_\$${classNamePrefix}ValidationResult>[];');
+    validatorBuf.writeln('list.asMap().forEach((index, value) {');
+    validatorBuf.writeln('final r = validate({index.toString(): value});');
+    validatorBuf.writeln('result.add(r);');
+    validatorBuf.writeln('});');
+    validatorBuf.writeln('return result;');
     validatorBuf.writeln('}');
     validatorBuf.writeln('}');
     pageBuf.writeAll([resultBuf, validatorBuf]);

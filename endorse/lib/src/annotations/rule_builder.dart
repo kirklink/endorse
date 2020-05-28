@@ -73,6 +73,32 @@ class ValueResult implements ResultObject {
 }
 
 
+class ListResult implements ResultObject {
+  final List<ResultObject> value;
+  final List<List<TestError>> _errorList;
+
+  ListResult(this.value, this._errorList);
+
+  bool get isValid {
+    for (final v in value) {
+      if (!v.isValid) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  Object get errors {
+    final result = [];
+    for (final e in _errorList) {
+      result.add(e.map((i) => i.map()).toList());
+    }
+    return result;
+  }
+
+}
+
+
 
 // abstract class ValidationResult implements ResultObject {
 //   Map<String, Object> get values;
@@ -90,20 +116,67 @@ class ValueResult implements ResultObject {
 
 abstract class Validator {
   ResultObject validate(Map<String, Object> input);
+  List<ResultObject> validateList(List<Object> input);
 }
 
-class ValidationRules {
+
+
+
+
+
+// class ApplyRulesToValue extends ApplyRules {}
+
+class ApplyRulesToList {
+  final String _field;
+  final List<Object> _items;
+  final _errors = <List<TestError>>[];
+
+  ApplyRulesToList(this._field, this._items);
+
+  ListResult done() => ListResult(_items, _errors);
+
+  // void _runRule(Rule rule, [Object test = null]) {
+  //   if (_bail && !rule.escapesBail) {
+  //     return;
+  //   }
+  //   if (!rule.restriction(_inputCast)) {
+  //     throw EndorseException('${rule.name} ${rule.restrictionError}.');
+  //   }
+  //   final ruleGot = rule.got(_input, test);
+  //   final got = ruleGot != null ? ruleGot : _input;
+  //   final ruleWant = rule.want(_input, test);
+  //   final want = ruleWant != null ? ruleWant : test;
+  //   if (!rule.pass(_inputCast, test)) {
+  //     _errors.add(TestError(_field, got, rule.name, rule.errorMsg, test, want));
+  //     if (rule.causesBail) {
+  //       _bail = true;
+  //     }
+  //   }
+  // }
+
+  
+
+
+
+}
+
+
+
+class ApplyRulesToField {
   final String _field;
   final Object _input;
   Object _inputCast;
   final _errors = <TestError>[];
   var _bail = false;
 
-  ValidationRules(this._field, this._input) {
+  ApplyRulesToField(this._field, this._input) {
     _inputCast = _input;
   }
 
-  void _runRule(Rule rule, [Object test = null]) {
+  
+  ValueResult done() => ValueResult(_field, _input, _inputCast, _errors);
+
+  void _runRule(ValueRule rule, [Object test = null]) {
     if (_bail && !rule.escapesBail) {
       return;
     }
@@ -122,10 +195,13 @@ class ValidationRules {
     }
   }
 
-  ValueResult done() => ValueResult(_field, _input, _inputCast, _errors);
-
+  
   void isRequired() {
     _runRule(IsRequiredRule());
+  }
+
+  void isList() {
+    _runRule(IsListRule());
   }
 
   void isString() {
@@ -220,6 +296,8 @@ class ValidationRules {
     _runRule(IsFalseRule());
   }
 
+  
+
 
 }
 
@@ -241,42 +319,52 @@ abstract class Rule {
   final String errorMsg = '';
 }
 
-class IsRequiredRule extends Rule {
+abstract class ValueRule extends Rule{}
+
+class IsRequiredRule extends ValueRule {
   final name = 'required';
   final causesBail = true;
   final pass = (input, test) => input != null;
   final errorMsg = 'is required';
 }
 
-class IsStringRule extends Rule {
+class IsListRule extends ValueRule {
+  final name = 'IsList';
+  final causesBail = true;
+  final pass = (input, test) => input is List;
+  final errorMsg = 'must be a List';
+  final got = (input, test) => input.runtimeType;
+}
+
+class IsStringRule extends ValueRule {
   final name = 'IsString';
   final causesBail = true;
   final pass = (input, test) => input is String;
   final errorMsg = 'must be a String';
 }
 
-class IsIntRule extends Rule {
+class IsIntRule extends ValueRule {
   final name = 'IsInt';
   final causesBail = true;
   final pass = (input, test) => input is int;
   final errorMsg = 'must be an integer';
 }
 
-class IsDoubleRule extends Rule {
+class IsDoubleRule extends ValueRule {
   final name = 'IsDouble';
   final causesBail = true;
   final pass = (input, test) => input is double;
   final errorMsg = 'must be a double';
 }
 
-class IsBoolRule extends Rule {
+class IsBoolRule extends ValueRule {
   final name = 'IsBool';
   final causesBail = true;
   final pass = (input, test) => input is bool;
   final errorMsg = 'must be a boolean';  
 }
 
-class MaxLengthRule extends Rule {
+class MaxLengthRule extends ValueRule {
   final name = 'MaxLength';
   final pass = (input, test) => (input as String).length < test;
   final restriction = (input) => input is String;
@@ -285,7 +373,7 @@ class MaxLengthRule extends Rule {
   final errorMsg = 'length must be less than';
 }
 
-class MinLengthRule extends Rule {
+class MinLengthRule extends ValueRule {
   final name = 'MinLength';
   final pass = (input, test) => (input as String).length > test;
   final restriction = (input) => input is String;
@@ -294,7 +382,7 @@ class MinLengthRule extends Rule {
   final errorMsg = 'length must be greater than';
 }
 
-class MatchesRule extends Rule {
+class MatchesRule extends ValueRule {
   final name = 'Matches';
   final pass = (input, test) => (input as String) == test;
   final restriction = (input) => input is String;
@@ -302,7 +390,7 @@ class MatchesRule extends Rule {
   final errorMsg = 'must match:';
 }
 
-class ContainsRule extends Rule {
+class ContainsRule extends ValueRule {
   final name = 'Contains';
   final pass = (input, test) => (input as String).contains(test);
   final restriction = (input) => input is String;
@@ -310,7 +398,7 @@ class ContainsRule extends Rule {
   final errorMsg = 'must contain:';
 }
 
-class StartsWithRule extends Rule {
+class StartsWithRule extends ValueRule {
   final name = 'StartsWith';
   final pass = (input, test) => (input as String).startsWith(test);
   final restriction = (input) => input is String;
@@ -326,7 +414,7 @@ class StartsWithRule extends Rule {
   // final want = (input, test) => '$test';
 }
 
-class EndsWithRule extends Rule {
+class EndsWithRule extends ValueRule {
   final name = 'EndsWith';
   final pass = (input, test) => (input as String).endsWith(test);
   final restriction = (input) => input is String;
@@ -342,7 +430,7 @@ class EndsWithRule extends Rule {
   // final want = (input, test) => '$test';
 }
 
-class IsEqualToRule extends Rule {
+class IsEqualToRule extends ValueRule {
   final name = 'IsEqualTo';
   final pass = (input, test) => input == test;
   final restriction = (input) => input is num;
@@ -350,7 +438,7 @@ class IsEqualToRule extends Rule {
   final errorMsg = 'must equal';
 }
 
-class IsNotEqualToRule extends Rule {
+class IsNotEqualToRule extends ValueRule {
   final name = 'IsNotEqualTo';
   final pass = (input, test) => input != test;
   final restriction = (input) => input is num;
@@ -358,7 +446,7 @@ class IsNotEqualToRule extends Rule {
   final errorMsg = 'must not equal';
 }
 
-class IsLessThanRule extends Rule {
+class IsLessThanRule extends ValueRule {
   final name = 'IsLessThan';
   final pass = (input, test) => input as num < test;
   final restriction = (input) => input is num;
@@ -366,7 +454,7 @@ class IsLessThanRule extends Rule {
   final errorMsg = 'must be less than';
 }
 
-class IsGreaterThanRule extends Rule {
+class IsGreaterThanRule extends ValueRule {
   final name = 'IsGreaterThan';
   final pass = (input, test) => input as num > test;
   final restriction = (input) => input is num;
@@ -374,7 +462,7 @@ class IsGreaterThanRule extends Rule {
   final errorMsg = 'must be greater than';
 }
 
-class IsTrueRule extends Rule {
+class IsTrueRule extends ValueRule {
   final name = 'IsTrue';
   final pass = (input, test) => input as bool == true;
   final restriction = (input) => input is bool;
@@ -383,7 +471,7 @@ class IsTrueRule extends Rule {
   final want = (input, test) => true;
 }
 
-class IsFalseRule extends Rule {
+class IsFalseRule extends ValueRule {
   final name = 'IsFalse';
   final pass = (input, test) => input as bool == false;
   final restriction = (input) => input is bool;
@@ -400,7 +488,6 @@ abstract class Validation {
   final String call = '';
   const Validation();
 }
-
 
 class MaxLength implements Validation {
   final int value;
