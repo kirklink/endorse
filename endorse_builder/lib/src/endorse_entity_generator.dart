@@ -8,6 +8,7 @@ import 'package:endorse/annotations.dart';
 import 'package:endorse_builder/src/endorse_builder_exception.dart';
 
 final _checkForEndorseField = const TypeChecker.fromRuntime(EndorseField);
+final _checkForEndorseEntity = const TypeChecker.fromRuntime(EndorseEntity);
 
 class EndorseEntityGenerator extends GeneratorForAnnotation<EndorseEntity> {
   @override
@@ -48,7 +49,7 @@ class EndorseEntityGenerator extends GeneratorForAnnotation<EndorseEntity> {
     validatorBuf.writeln('class \$${classNamePrefix}Validator implements Validator {');
     validatorBuf.writeln('');
     validatorBuf.writeln('\$${classNamePrefix}ValidationResult validate(Map<String, Object> input) {');
-    validatorBuf.writeln('final r = <String, ValueResult>{};');
+    validatorBuf.writeln('final r = <String, ResultObject>{};');
     validatorBuf.writeln('final v = <String, Object>{};');
     validatorBuf.writeln('var isValid = true;');
 
@@ -59,73 +60,94 @@ class EndorseEntityGenerator extends GeneratorForAnnotation<EndorseEntity> {
       if (field.isStatic) {
         continue;
       }
+
+
+      
       final fieldName = '${field.name}';
+      
 
-      resultBuf.writeln('final ValueResult $fieldName;');
       resultContructorBuf.write(', this.$fieldName');
-      validatorBuf.write("r['$fieldName'] = (ValidationRules('$fieldName', input['$fieldName'])");
       validatorReturnBuf.write(", r['$fieldName']");
-
       
+      // If the field is an EndorseEntity, set the type as it's result
+      if (_checkForEndorseEntity.hasAnnotationOfExact(field.type.element)) {
+        print('EndorseEntity');
+        print(field.type.getDisplayString());
+        final childClass = field.type.getDisplayString();
+        final childResultClass = '${childClass}ValidationResult';
+        resultBuf.writeln('final \$$childResultClass $fieldName;');
+        validatorBuf.writeln("r['$fieldName'] = ${childClass}.\$endorse.validate(input['$fieldName']);");
+      // Otherwise, the type is the result for an instance field
+      } else {
+        resultBuf.writeln('final ValueResult $fieldName;');
+        validatorBuf.write("r['$fieldName'] = (ValidationRules('$fieldName', input['$fieldName'])");
 
-      
-      
-      // Handle the annotations
-      if (_checkForEndorseField.hasAnnotationOfExact(field)) {
-        final reader = ConstantReader(_checkForEndorseField.firstAnnotationOf(field));
-        final validations = reader.peek('validations').listValue;
-        final require = reader.peek('require')?.boolValue ?? false;
-        final fromString = reader.peek('fromString')?.boolValue ?? false;
-        
-        
-        
-        var typeRule = '';
-        var castFromString = '';
-        if (fromString) {
-          castFromString = 'fromString: true';
-        }
-        if (field.type.isDartCoreString) {
-          typeRule = '..isString()';
-        } else if (field.type.isDartCoreInt) {
-          typeRule = '..isInt($castFromString)';
-        } else if (field.type.isDartCoreDouble) {
-          typeRule = '..isDouble($castFromString)';
-        } else if (field.type.isDartCoreBool) {
-          typeRule = '..isBoolean($castFromString)';
-        }
-
-        var preRules = '';
-        if (require) {
-          preRules = '..isRequired()$typeRule';
-        } else {
-          preRules = '$typeRule';
-        }
-
-        validatorBuf.write(preRules);
-
-
-
-        // Handle the validations
-        for (final rule in validations) {
-          // Get the right type for the test value
-          final t = rule.getField('value')?.type;
-          String v;
-          if (t == null) {
-            v = '';
-          } else if (t.isDartCoreString) {
-            v = "'${rule.getField('value').toStringValue().toString()}'";
-          } else if (t.isDartCoreInt) {
-            v = rule.getField('value').toIntValue().toString();
-          } else if (t.isDartCoreDouble) {
-            v = rule.getField('value').toDoubleValue().toString();
+              // Handle the annotations
+        if (_checkForEndorseField.hasAnnotationOfExact(field)) {
+          final reader = ConstantReader(_checkForEndorseField.firstAnnotationOf(field));
+          final validations = reader.peek('validations').listValue;
+          final require = reader.peek('require')?.boolValue ?? false;
+          final fromString = reader.peek('fromString')?.boolValue ?? false;
+          
+          
+          
+          var typeRule = '';
+          var castFromString = '';
+          if (fromString) {
+            castFromString = 'fromString: true';
+          }
+          if (field.type.isDartCoreString) {
+            typeRule = '..isString()';
+          } else if (field.type.isDartCoreInt) {
+            typeRule = '..isInt($castFromString)';
+          } else if (field.type.isDartCoreDouble) {
+            typeRule = '..isDouble($castFromString)';
+          } else if (field.type.isDartCoreBool) {
+            typeRule = '..isBoolean($castFromString)';
           }
 
-          // Replace the token with a value
-          final r = '..' + (rule.getField('part').toStringValue()).replaceFirst('@', v);
-          validatorBuf.write(r);
+          var preRules = '';
+          if (require) {
+            preRules = '..isRequired()$typeRule';
+          } else {
+            preRules = '$typeRule';
+          }
+
+          validatorBuf.write(preRules);
+
+
+
+          // Handle the validations
+          for (final rule in validations) {
+            // Get the right type for the test value
+            final t = rule.getField('value')?.type;
+            String v;
+            if (t == null) {
+              v = '';
+            } else if (t.isDartCoreString) {
+              v = "'${rule.getField('value').toStringValue().toString()}'";
+            } else if (t.isDartCoreInt) {
+              v = rule.getField('value').toIntValue().toString();
+            } else if (t.isDartCoreDouble) {
+              v = rule.getField('value').toDoubleValue().toString();
+            }
+
+            // Replace the token with a value
+            final r = '..' + (rule.getField('part').toStringValue()).replaceFirst('@', v);
+            validatorBuf.write(r);
+          }
         }
+        validatorBuf.writeln(').done();');
+
       }
-      validatorBuf.writeln(').done();');
+            
+      
+
+      
+
+      
+      
+
       validatorBuf.writeln("v['$fieldName'] = List.from(r['$fieldName'].errors.map((i) => i.map()));");
       validatorBuf.writeln("isValid = isValid == false ? false : r['$fieldName'].isValid;");
     }

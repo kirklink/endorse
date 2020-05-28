@@ -46,33 +46,50 @@ class TestError {
 
 }
 
-class ValueResult {
+
+
+
+
+abstract class ResultObject {
+  bool get isValid;
+  Map<String, List<TestError>> get errors;
+}
+
+class ValueResult implements ResultObject {
   final String field;
   final Object value;
   final Object valueCast;
-  final List<TestError> errors;
+  final List<TestError> errorList;
   
-  ValueResult(this.field, this.value, this.valueCast, this.errors);
+  ValueResult(this.field, this.value, this.valueCast, this.errorList);
 
   bool get isValid => errors.isEmpty;
 
-  Map<String, Object> get errorsMap {
-    final list = List.from(errors.map((i) => i.map()));
+  Map<String, List<TestError>> get errors {
+    final list = List.from(errorList.map((i) => i.map()));
     return {field: list};
   }
-
-
 }
 
-abstract class Validator {
-  ValidationResult validate(Map<String, Object> input);
-}
 
-abstract class ValidationResult {
+
+abstract class ValidationResult implements ResultObject {
   Map<String, Object> get values;
   bool get isValid;
 }
 
+
+
+
+
+
+
+
+
+
+abstract class Validator {
+  ValidationResult validate(Map<String, Object> input);
+}
 
 class ValidationRules {
   final String _field;
@@ -92,8 +109,10 @@ class ValidationRules {
     if (!rule.restriction(_inputCast)) {
       throw EndorseException('${rule.name} ${rule.restrictionError}.');
     }
+    final ruleGot = rule.got(_input);
+    final got = ruleGot != null ? ruleGot : _input;
     if (!rule.pass(_inputCast, test)) {
-      _errors.add(TestError(_field, _input, rule.name, rule.errorMsg, testValue: test));
+      _errors.add(TestError(_field, got, rule.name, rule.errorMsg, testValue: test));
       if (rule.causesBail) {
         _bail = true;
       }
@@ -150,6 +169,17 @@ class ValidationRules {
     _runRule(IsBoolRule());
   }
 
+  void maxLength(int test) {
+    _runRule(MaxLengthRule(), test);
+  }
+
+  void minLength(int test) {
+    _runRule(MinLengthRule(), test);
+  }
+
+  void matches(String test) {
+    _runRule(MatchesRule(), test);
+  }
  
   void isEqualTo(num test) {
     _runRule(IsEqualToRule(), test);
@@ -173,6 +203,7 @@ class ValidationRules {
 
 typedef bool PassFuntion(Object input, Object test);
 typedef bool RestrictFunction(Object input);
+typedef Object GotFunction(Object input);
 
 abstract class Rule {
   final String name = '';
@@ -180,6 +211,7 @@ abstract class Rule {
   final bool escapesBail = false;
   final PassFuntion pass = (input, test) => true; 
   final RestrictFunction restriction = (input) => true;
+  final GotFunction got = (input) => null;
   final String  restrictionError = '';
   final String errorMsg = '';
 }
@@ -216,9 +248,36 @@ class IsBoolRule extends Rule {
   final name = 'isBool';
   final causesBail = true;
   final pass = (input, test) => input is bool;
-  final errorMsg = 'must be a boolean';
-  
+  final errorMsg = 'must be a boolean';  
 }
+
+class MaxLengthRule extends Rule {
+  final name = 'maxLength';
+  final pass = (input, test) => (input as String).length < test;
+  final restriction = (input) => input is String;
+  final restrictionError = 'can only be used on Strings';
+  final got = (input) => (input as String).length;
+  final errorMsg = 'length must be less than';
+}
+
+class MinLengthRule extends Rule {
+  final name = 'minLength';
+  final pass = (input, test) => (input as String).length > test;
+  final restriction = (input) => input is String;
+  final restrictionError = 'can only be used on Strings';
+  final got = (input) => (input as String).length;
+  final errorMsg = 'length must be greater than';
+}
+
+class MatchesRule extends Rule {
+  final name = 'matches';
+  final pass = (input, test) => (input as String) == test;
+  final restriction = (input) => input is String;
+  final restrictionError = 'can only be used on Strings';
+  final errorMsg = 'must match';
+}
+
+
 
 class IsEqualToRule extends Rule {
   final name = 'isEqualTo';
@@ -255,44 +314,6 @@ class IsGreaterThanRule extends Rule {
 
 
 
-// final int value;
-//   @override
-//   final String part = 'isEqualTo(@)';
-//   const IsEqualTo(this.value);
-
-// class TestValidationResult implements ValidationResult {
-//   @override
-//   final Map<String, Object> values;
-//   @override
-//   final bool isValid;
-//   final ValueResult i;
-//   TestValidationResult(this.isValid, this.values, this.i);
-// }
-
-// class TestEndorseValidator implements Validator {
-  
-//   TestValidationResult validate(Map<String, Object> input) {
-//     final r = <String, ValueResult>{};
-//     final v = <String, Object>{};
-//     var isValid = true;
-//     r['i'] = (Validate('i', input['i'])..isInt()..isEqualTo(10)).done();
-//     v['i'] = {
-//       'i': List.from(r['i'].errors.map((i) => i.map()))
-//     };
-//     isValid = isValid == false ? false : r['i'].isValid;
-//     return TestValidationResult(isValid, v, r['i']);
-//   }
-
-
-
-
-  
-
-
-  
-
-
-
 
 
 abstract class Validation {
@@ -300,43 +321,20 @@ abstract class Validation {
   const Validation();
 }
 
-// abstract class StringRule extends Validation {
-//   @override
-//   final String part = '';
-//   const StringRule();
-// }
 
-// abstract class NumberRule extends Validation {
-//   @override
-//   final String part = '';
-//   const NumberRule();
-// }
+class MaxLength implements Validation {
+  final int value;
+  @override
+  final String part = 'maxLength(@)';
+  const MaxLength(this.value);
+}
 
-// abstract class BoolRule extends Validation {
-//   @override
-//   final String part = '';
-//   const BoolRule();
-// }
-
-// abstract class DateTimeRule extends Validation {
-//   @override
-//   final String part = '';
-//   const DateTimeRule();
-// }
-
-// class MaxLength extends StringRule {
-//   final int value;
-//   @override
-//   final String part = '.max(@)';
-//   const MaxLength(this.value);
-// }
-
-// class MinLength extends StringRule {
-//   final int value;
-//   @override
-//   final String part = '.min(@)';
-//   const MinLength(this.value);
-// }
+class MinLength implements Validation {
+  final int value;
+  @override
+  final String part = 'minLength(@)';
+  const MinLength(this.value);
+}
 
 // class StartsWith extends StringRule {
 //   final String value;
@@ -359,12 +357,12 @@ abstract class Validation {
 //   const Contains(this.value);
 // }
 
-// class Matches extends StringRule {
-//   final String value;
-//   @override
-//   final String part = '.matches(@)';
-//   const Matches(this.value);
-// }
+class Matches implements Validation {
+  final String value;
+  @override
+  final String part = 'matches(@)';
+  const Matches(this.value);
+}
 
 class IsLessThan implements Validation {
   final num value;
