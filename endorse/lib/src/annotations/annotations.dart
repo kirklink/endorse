@@ -1,4 +1,4 @@
-import 'package:endorse/src/annotations/rule_builder.dart';
+import 'package:endorse/src/annotations/validations.dart';
 
 /// The annotation to convert a Dart class into a Endorse validated object.
 ///

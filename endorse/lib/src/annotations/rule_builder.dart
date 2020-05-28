@@ -75,11 +75,15 @@ class ValueResult implements ResultObject {
 
 class ListResult implements ResultObject {
   final List<ResultObject> value;
-  final List<List<TestError>> _errorList;
+  final List<TestError> _errorList;
+  final ValueResult fieldErrors;
 
-  ListResult(this.value, this._errorList);
+  ListResult(this.fieldErrors, this.value, this._errorList);
 
   bool get isValid {
+    if (!fieldErrors.isValid) {
+      return false;
+    }
     for (final v in value) {
       if (!v.isValid) {
         return false;
@@ -89,10 +93,10 @@ class ListResult implements ResultObject {
   }
 
   Object get errors {
-    final result = [];
-    for (final e in _errorList) {
-      result.add(e.map((i) => i.map()).toList());
-    }
+    final result = {
+      'listErrors': fieldErrors.errors,
+      'itemErrors': _errorList.map((i) => i.map()).toList()
+    };
     return result;
   }
 
@@ -129,11 +133,12 @@ abstract class Validator {
 class ApplyRulesToList {
   final String _field;
   final List<Object> _items;
-  final _errors = <List<TestError>>[];
+  final _errors = <TestError>[];
+  ValueResult _fieldErrors;
 
   ApplyRulesToList(this._field, this._items);
 
-  ListResult done() => ListResult(_items, _errors);
+  ListResult done() => ListResult(_fieldErrors, _items, _errors);
 
   // void _runRule(Rule rule, [Object test = null]) {
   //   if (_bail && !rule.escapesBail) {
@@ -154,7 +159,11 @@ class ApplyRulesToList {
   //   }
   // }
 
-  
+  void isList() {
+    _fieldErrors = (ApplyRulesToField(_field, _items)..isList()).done();
+  }
+
+
 
 
 
@@ -484,92 +493,7 @@ class IsFalseRule extends ValueRule {
 
 
 
-abstract class Validation {
-  final String call = '';
-  const Validation();
-}
 
-class MaxLength implements Validation {
-  final int value;
-  @override
-  final String call = 'maxLength(@)';
-  const MaxLength(this.value);
-}
-
-class MinLength implements Validation {
-  final int value;
-  @override
-  final String call = 'minLength(@)';
-  const MinLength(this.value);
-}
-
-class StartsWith implements Validation {
-  final String value;
-  @override
-  final String call = 'startsWith(@)';
-  const StartsWith(this.value);
-}
-
-class EndsWith implements Validation {
-  final String value;
-  @override
-  final String call = 'endsWith(@)';
-  const EndsWith(this.value);
-}
-
-class Contains implements Validation {
-  final String value;
-  @override
-  final String call = 'contains(@)';
-  const Contains(this.value);
-}
-
-class Matches implements Validation {
-  final String value;
-  @override
-  final String call = 'matches(@)';
-  const Matches(this.value);
-}
-
-class IsLessThan implements Validation {
-  final num value;
-  @override
-  final String call = 'isLessThan(@)';
-  const IsLessThan(this.value);
-}
-
-class IsGreaterThan implements Validation {
-  final num value;
-  @override
-  final String call = 'isGreaterThan(@)';
-  const IsGreaterThan(this.value);
-}
-
-class IsEqualTo implements Validation {
-  final num value;
-  @override
-  final String call = 'isEqualTo(@)';
-  const IsEqualTo(this.value);
-}
-
-class IsNotEqualTo implements Validation {
-  final num value;
-  @override
-  final String call = 'isNotEqualTo(@)';
-  const IsNotEqualTo(this.value);
-}
-
-class IsTrue implements Validation {
-  @override
-  final String call = 'isTrue()';
-  const IsTrue();
-}
-
-class IsFalse implements Validation {
-  @override
-  final String call = 'isFalse()';
-  const IsFalse();
-}
 
 // class IsBefore extends DateTimeRule {
 //   final DateTime value;

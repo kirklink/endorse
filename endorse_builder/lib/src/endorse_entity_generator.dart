@@ -90,7 +90,7 @@ class EndorseEntityGenerator extends GeneratorForAnnotation<EndorseEntity> {
         // Otherwise it's a ValueResult
         resultBuf.writeln('final ValueResult $fieldName;');
         // Queue up the validator
-        validatorBuf.write("r['$fieldName'] = (ValidationRules('$fieldName', input['$fieldName'])");
+        validatorBuf.write("r['$fieldName'] = (ApplyRulesToField('$fieldName', input['$fieldName'])");
 
         // Validate the field
         // Handle the annotations
