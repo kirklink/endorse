@@ -10,18 +10,19 @@ class EndorseException implements Exception {
 class TestError {
   final String field;
   final Object input;
-  final String testruleName;
+  final String ruleName;
   final String msg;
   final Object testValue;
+  final Object wantValue;
   
-  TestError(this.field, this.input, this.testruleName, this.msg, {this.testValue});
+  TestError(this.field, this.input, this.ruleName, this.msg, [this.testValue, this.wantValue]);
   
   @override
   String toString() {
     if (testValue == null) {
-      return '$field $msg.';
+      return '$field $msg';
     } else {
-      return '$field $msg ${testValue.toString()}.';
+      return '$field $msg ${testValue.toString()}';
     }
   } 
   
@@ -29,17 +30,19 @@ class TestError {
     if (testValue == null) {
       return {
         'msg': this.toString(),
-        testruleName: {
+        // 'test': {
+          // 'name': ruleName,
           'got': input.toString()
-        }
+        // }
       };
     } else {
       return {
         'msg': this.toString(),
-        testruleName: {
-          'test': testValue.toString(),
+        // 'test': {
+          // 'name': ruleName,
+          'want': wantValue.toString(),
           'got': input.toString()
-        }
+        // }
       };
     }
   }
@@ -52,31 +55,33 @@ class TestError {
 
 abstract class ResultObject {
   bool get isValid;
-  Map<String, List<TestError>> get errors;
+  Object get errors;
+  Object get value;
 }
 
 class ValueResult implements ResultObject {
   final String field;
   final Object value;
-  final Object valueCast;
-  final List<TestError> errorList;
+  final Object _valueCast;
+  final List<TestError> _errorList;
   
-  ValueResult(this.field, this.value, this.valueCast, this.errorList);
+  ValueResult(this.field, this.value, this._valueCast, this._errorList);
 
-  bool get isValid => errors.isEmpty;
+  bool get isValid => _errorList.isEmpty;
 
-  Map<String, List<TestError>> get errors {
-    final list = List.from(errorList.map((i) => i.map()));
-    return {field: list};
+  Object get errors {
+    final list = {for (var v in _errorList) v.ruleName : v.map()};
+    // return {field: list};
+    return list;
   }
 }
 
 
 
-abstract class ValidationResult implements ResultObject {
-  Map<String, Object> get values;
-  bool get isValid;
-}
+// abstract class ValidationResult implements ResultObject {
+//   Map<String, Object> get values;
+//   // bool get isValid;
+// }
 
 
 
@@ -88,7 +93,7 @@ abstract class ValidationResult implements ResultObject {
 
 
 abstract class Validator {
-  ValidationResult validate(Map<String, Object> input);
+  ResultObject validate(Map<String, Object> input);
 }
 
 class ValidationRules {
@@ -109,10 +114,12 @@ class ValidationRules {
     if (!rule.restriction(_inputCast)) {
       throw EndorseException('${rule.name} ${rule.restrictionError}.');
     }
-    final ruleGot = rule.got(_input);
+    final ruleGot = rule.got(_input, test);
     final got = ruleGot != null ? ruleGot : _input;
+    final ruleWant = rule.want(_input, test);
+    final want = ruleWant != null ? ruleWant : test;
     if (!rule.pass(_inputCast, test)) {
-      _errors.add(TestError(_field, got, rule.name, rule.errorMsg, testValue: test));
+      _errors.add(TestError(_field, got, rule.name, rule.errorMsg, test, want));
       if (rule.causesBail) {
         _bail = true;
       }
@@ -180,6 +187,18 @@ class ValidationRules {
   void matches(String test) {
     _runRule(MatchesRule(), test);
   }
+
+  void contains(String test) {
+    _runRule(ContainsRule(), test);
+  }
+
+  void startsWith(String test) {
+    _runRule(StartsWithRule(), test);
+  }
+
+  void endsWith(String test) {
+    _runRule(EndsWithRule(), test);
+  }
  
   void isEqualTo(num test) {
     _runRule(IsEqualToRule(), test);
@@ -197,13 +216,22 @@ class ValidationRules {
     _runRule(IsLessThanRule(), test);
   }
 
+  void isTrue() {
+    _runRule(IsTrueRule());
+  }
+
+  void isFalse() {
+    _runRule(IsFalseRule());
+  }
+
 
 }
 
 
 typedef bool PassFuntion(Object input, Object test);
 typedef bool RestrictFunction(Object input);
-typedef Object GotFunction(Object input);
+typedef Object GotFunction(Object input, Object test);
+typedef Object WantFunction(Object input, Object test);
 
 abstract class Rule {
   final String name = '';
@@ -211,7 +239,8 @@ abstract class Rule {
   final bool escapesBail = false;
   final PassFuntion pass = (input, test) => true; 
   final RestrictFunction restriction = (input) => true;
-  final GotFunction got = (input) => null;
+  final GotFunction got = (input, test) => null;
+  final WantFunction want = (input, test) => null;
   final String  restrictionError = '';
   final String errorMsg = '';
 }
@@ -224,63 +253,101 @@ class IsRequiredRule extends Rule {
 }
 
 class IsStringRule extends Rule {
-  final name = 'isString';
+  final name = 'IsString';
   final causesBail = true;
   final pass = (input, test) => input is String;
   final errorMsg = 'must be a String';
 }
 
 class IsIntRule extends Rule {
-  final name = 'isInt';
+  final name = 'IsInt';
   final causesBail = true;
   final pass = (input, test) => input is int;
   final errorMsg = 'must be an integer';
 }
 
 class IsDoubleRule extends Rule {
-  final name = 'isDouble';
+  final name = 'IsDouble';
   final causesBail = true;
   final pass = (input, test) => input is double;
   final errorMsg = 'must be a double';
 }
 
 class IsBoolRule extends Rule {
-  final name = 'isBool';
+  final name = 'IsBool';
   final causesBail = true;
   final pass = (input, test) => input is bool;
   final errorMsg = 'must be a boolean';  
 }
 
 class MaxLengthRule extends Rule {
-  final name = 'maxLength';
+  final name = 'MaxLength';
   final pass = (input, test) => (input as String).length < test;
   final restriction = (input) => input is String;
   final restrictionError = 'can only be used on Strings';
-  final got = (input) => (input as String).length;
+  final got = (input, test) => (input as String).length;
   final errorMsg = 'length must be less than';
 }
 
 class MinLengthRule extends Rule {
-  final name = 'minLength';
+  final name = 'MinLength';
   final pass = (input, test) => (input as String).length > test;
   final restriction = (input) => input is String;
   final restrictionError = 'can only be used on Strings';
-  final got = (input) => (input as String).length;
+  final got = (input, test) => (input as String).length;
   final errorMsg = 'length must be greater than';
 }
 
 class MatchesRule extends Rule {
-  final name = 'matches';
+  final name = 'Matches';
   final pass = (input, test) => (input as String) == test;
   final restriction = (input) => input is String;
   final restrictionError = 'can only be used on Strings';
-  final errorMsg = 'must match';
+  final errorMsg = 'must match:';
 }
 
+class ContainsRule extends Rule {
+  final name = 'Contains';
+  final pass = (input, test) => (input as String).contains(test);
+  final restriction = (input) => input is String;
+  final restrictionError = 'can only be used on Strings';
+  final errorMsg = 'must contain:';
+}
 
+class StartsWithRule extends Rule {
+  final name = 'StartsWith';
+  final pass = (input, test) => (input as String).startsWith(test);
+  final restriction = (input) => input is String;
+  final restrictionError = 'can only be used on Strings';
+  final errorMsg = 'must start with:';
+  final got = (input, test) {
+    final i = input as String;
+    final t = test as String;
+    final length = i.length < t.length ? i.length : t.length;
+    final sub = i.substring(0, length);
+    return '$sub';
+  };
+  // final want = (input, test) => '$test';
+}
+
+class EndsWithRule extends Rule {
+  final name = 'EndsWith';
+  final pass = (input, test) => (input as String).endsWith(test);
+  final restriction = (input) => input is String;
+  final restrictionError = 'can only be used on Strings';
+  final errorMsg = 'must end with:';
+  final got = (input, test) {
+    final i = input as String;
+    final t = test as String;
+    final length = i.length < t.length ? i.length : t.length;
+    final sub = i.substring(i.length - length, i.length);
+    return '$sub';
+  };
+  // final want = (input, test) => '$test';
+}
 
 class IsEqualToRule extends Rule {
-  final name = 'isEqualTo';
+  final name = 'IsEqualTo';
   final pass = (input, test) => input == test;
   final restriction = (input) => input is num;
   final restrictionError = 'can only be used on numbers';
@@ -288,7 +355,7 @@ class IsEqualToRule extends Rule {
 }
 
 class IsNotEqualToRule extends Rule {
-  final name = 'isNotEqualTo';
+  final name = 'IsNotEqualTo';
   final pass = (input, test) => input != test;
   final restriction = (input) => input is num;
   final restrictionError = 'can only be used on numbers';
@@ -296,7 +363,7 @@ class IsNotEqualToRule extends Rule {
 }
 
 class IsLessThanRule extends Rule {
-  final name = 'isLessThan';
+  final name = 'IsLessThan';
   final pass = (input, test) => input as num < test;
   final restriction = (input) => input is num;
   final restrictionError = 'can only be used on numbers';
@@ -304,20 +371,37 @@ class IsLessThanRule extends Rule {
 }
 
 class IsGreaterThanRule extends Rule {
-  final name = 'isGreaterThan';
+  final name = 'IsGreaterThan';
   final pass = (input, test) => input as num > test;
   final restriction = (input) => input is num;
   final restrictionError = 'can only be used on numbers';
   final errorMsg = 'must be greater than';
 }
 
+class IsTrueRule extends Rule {
+  final name = 'IsTrue';
+  final pass = (input, test) => input as bool == true;
+  final restriction = (input) => input is bool;
+  final restrictionError = 'can only be used on booleans';
+  final errorMsg = 'must be';
+  final want = (input, test) => true;
+}
+
+class IsFalseRule extends Rule {
+  final name = 'IsFalse';
+  final pass = (input, test) => input as bool == false;
+  final restriction = (input) => input is bool;
+  final restrictionError = 'can only be used on booleans';
+  final errorMsg = 'must be';
+  final want = (input, test) => false;
+}
 
 
 
 
 
 abstract class Validation {
-  final String part = '';
+  final String call = '';
   const Validation();
 }
 
@@ -325,84 +409,84 @@ abstract class Validation {
 class MaxLength implements Validation {
   final int value;
   @override
-  final String part = 'maxLength(@)';
+  final String call = 'maxLength(@)';
   const MaxLength(this.value);
 }
 
 class MinLength implements Validation {
   final int value;
   @override
-  final String part = 'minLength(@)';
+  final String call = 'minLength(@)';
   const MinLength(this.value);
 }
 
-// class StartsWith extends StringRule {
-//   final String value;
-//   @override
-//   final String part = '.startsWith(@)';
-//   const StartsWith(this.value);
-// }
+class StartsWith implements Validation {
+  final String value;
+  @override
+  final String call = 'startsWith(@)';
+  const StartsWith(this.value);
+}
 
-// class EndsWith extends StringRule {
-//   final String value;
-//   @override
-//   final String part = '.endsWith(@)';
-//   const EndsWith(this.value);
-// }
+class EndsWith implements Validation {
+  final String value;
+  @override
+  final String call = 'endsWith(@)';
+  const EndsWith(this.value);
+}
 
-// class Contains extends StringRule {
-//   final String value;
-//   @override
-//   final String part = '.contains(@)';
-//   const Contains(this.value);
-// }
+class Contains implements Validation {
+  final String value;
+  @override
+  final String call = 'contains(@)';
+  const Contains(this.value);
+}
 
 class Matches implements Validation {
   final String value;
   @override
-  final String part = 'matches(@)';
+  final String call = 'matches(@)';
   const Matches(this.value);
 }
 
 class IsLessThan implements Validation {
   final num value;
   @override
-  final String part = 'isLessThan(@)';
+  final String call = 'isLessThan(@)';
   const IsLessThan(this.value);
 }
 
 class IsGreaterThan implements Validation {
   final num value;
   @override
-  final String part = 'isGreaterThan(@)';
+  final String call = 'isGreaterThan(@)';
   const IsGreaterThan(this.value);
 }
 
 class IsEqualTo implements Validation {
   final num value;
   @override
-  final String part = 'isEqualTo(@)';
+  final String call = 'isEqualTo(@)';
   const IsEqualTo(this.value);
 }
 
 class IsNotEqualTo implements Validation {
   final num value;
   @override
-  final String part = 'isNotEqualTo(@)';
+  final String call = 'isNotEqualTo(@)';
   const IsNotEqualTo(this.value);
 }
 
-// class IsTrue extends BoolRule {
-//   @override
-//   final String part = '.isTrue()';
-//   const IsTrue();
-// }
+class IsTrue implements Validation {
+  @override
+  final String call = 'isTrue()';
+  const IsTrue();
+}
 
-// class IsFalse extends BoolRule {
-//   @override
-//   final String part = '.isFalse()';
-//   const IsFalse();
-// }
+class IsFalse implements Validation {
+  @override
+  final String call = 'isFalse()';
+  const IsFalse();
+}
 
 // class IsBefore extends DateTimeRule {
 //   final DateTime value;

@@ -39,18 +39,23 @@ class EndorseEntityGenerator extends GeneratorForAnnotation<EndorseEntity> {
     final validatorReturnBuf = StringBuffer();
 
     // Set up the result class
-    resultBuf.writeln('class \$${classNamePrefix}ValidationResult implements ValidationResult {');
-    resultBuf.writeln('@override');
-    resultBuf.writeln('final Map<String, Object> values;');
+    resultBuf.writeln('class _\$${classNamePrefix}ValidationResult implements ResultObject {');
     resultBuf.writeln('@override');
     resultBuf.writeln('final bool isValid;');
+    resultBuf.writeln('@override');
+    resultBuf.writeln('final Object value;');
+    resultBuf.writeln('@override');
+    resultBuf.writeln('final Object errors;\n');
+    // resultBuf.writeln('');
+    
     
     // Set up the validator class
-    validatorBuf.writeln('class \$${classNamePrefix}Validator implements Validator {');
+    validatorBuf.writeln('class _\$${classNamePrefix}Validator implements Validator {');
     validatorBuf.writeln('');
-    validatorBuf.writeln('\$${classNamePrefix}ValidationResult validate(Map<String, Object> input) {');
+    validatorBuf.writeln('_\$${classNamePrefix}ValidationResult validate(Map<String, Object> input) {');
     validatorBuf.writeln('final r = <String, ResultObject>{};');
     validatorBuf.writeln('final v = <String, Object>{};');
+    validatorBuf.writeln('final e = <String, Object>{};');
     validatorBuf.writeln('var isValid = true;');
 
     
@@ -71,11 +76,9 @@ class EndorseEntityGenerator extends GeneratorForAnnotation<EndorseEntity> {
       
       // If the field is an EndorseEntity, set the type as it's result
       if (_checkForEndorseEntity.hasAnnotationOfExact(field.type.element)) {
-        print('EndorseEntity');
-        print(field.type.getDisplayString());
         final childClass = field.type.getDisplayString();
         final childResultClass = '${childClass}ValidationResult';
-        resultBuf.writeln('final \$$childResultClass $fieldName;');
+        resultBuf.writeln('final _\$$childResultClass $fieldName;');
         validatorBuf.writeln("r['$fieldName'] = ${childClass}.\$endorse.validate(input['$fieldName']);");
       // Otherwise, the type is the result for an instance field
       } else {
@@ -85,7 +88,7 @@ class EndorseEntityGenerator extends GeneratorForAnnotation<EndorseEntity> {
               // Handle the annotations
         if (_checkForEndorseField.hasAnnotationOfExact(field)) {
           final reader = ConstantReader(_checkForEndorseField.firstAnnotationOf(field));
-          final validations = reader.peek('validations').listValue;
+          final validations = reader.peek('validate').listValue;
           final require = reader.peek('require')?.boolValue ?? false;
           final fromString = reader.peek('fromString')?.boolValue ?? false;
           
@@ -133,7 +136,7 @@ class EndorseEntityGenerator extends GeneratorForAnnotation<EndorseEntity> {
             }
 
             // Replace the token with a value
-            final r = '..' + (rule.getField('part').toStringValue()).replaceFirst('@', v);
+            final r = '..' + (rule.getField('call').toStringValue()).replaceFirst('@', v);
             validatorBuf.write(r);
           }
         }
@@ -148,12 +151,13 @@ class EndorseEntityGenerator extends GeneratorForAnnotation<EndorseEntity> {
       
       
 
-      validatorBuf.writeln("v['$fieldName'] = List.from(r['$fieldName'].errors.map((i) => i.map()));");
+      validatorBuf.writeln("v['$fieldName'] = r['$fieldName'].value;");
+      validatorBuf.writeln("if (!r['$fieldName'].isValid) e['$fieldName'] = r['$fieldName'].errors;");
       validatorBuf.writeln("isValid = isValid == false ? false : r['$fieldName'].isValid;");
     }
-    resultBuf.writeln('\$${classNamePrefix}ValidationResult(this.isValid, this.values${resultContructorBuf.toString()});');
+    resultBuf.writeln('_\$${classNamePrefix}ValidationResult(this.isValid, this.value, this.errors${resultContructorBuf.toString()});');
     resultBuf.writeln('}');
-    validatorBuf.writeln('return \$${classNamePrefix}ValidationResult(isValid, v${validatorReturnBuf.toString()});');
+    validatorBuf.writeln('return _\$${classNamePrefix}ValidationResult(isValid, v, e${validatorReturnBuf.toString()});');
     validatorBuf.writeln('}');
     validatorBuf.writeln('}');
     pageBuf.writeAll([resultBuf, validatorBuf]);
