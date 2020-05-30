@@ -183,7 +183,7 @@ main() {
       int v = 1;
       var value = Value(v);
       var s = NumRuleSet();
-      s.isEqualTo(2, map: {'test': false});
+      s.isEqualTo(2, expand: {'test': false});
       await value.validate(s);
       var validation = ValidationValue(value);
       expect(validation.errorMap(), equals({'test': false}));

@@ -1,53 +1,61 @@
-import 'package:endorse/src/endorse/error_object.dart';
+import 'package:endorse/src/endorse/error_expander.dart';
 
 
 abstract class ResultObject {
-  bool get isValid;
-  Object get errors;
   Object get value;
+  Object get errors;
+  bool get isValid;
 }
 
 class ValueResult implements ResultObject {
   final String field;
   final Object value;
-  final Object _valueCast;
-  final List<ErrorObject> _errorList;
+  final List<ErrorExpander> _errorExpanders;
   
-  ValueResult(this.field, this.value, this._valueCast, this._errorList);
+  ValueResult(this.value, this._errorExpanders, [this.field = '']);
 
-  bool get isValid => _errorList.isEmpty;
+  bool get isValid => _errorExpanders.isEmpty;
 
   Object get errors {
-    // final list = {for (var v in _errorList) v.ruleName : v.map()};
-    final list = _errorList.map((i) => i.map()).toList();
+    final list = _errorExpanders.map((i) => i.expand()).toList();
     return list;
   }
 }
 
 
 class ListResult implements ResultObject {
-  final List<ResultObject> value;
-  final List<ErrorObject> _errorList;
-  final ValueResult fieldErrors;
+  final String field;
+  final ValueResult valueResult;
+  final List<ValueResult> _itemResults;
 
-  ListResult(this.fieldErrors, this.value, this._errorList);
+  ListResult(this.valueResult, this._itemResults, [this.field]);
 
   bool get isValid {
-    if (!fieldErrors.isValid) {
+    if (!valueResult.isValid) {
       return false;
     }
-    for (final v in value) {
-      if (!v.isValid) {
+    for (var i in _itemResults) {
+      if (!i.isValid) {
         return false;
       }
     }
     return true;
   }
 
+  Object get value {
+    return _itemResults.map((i) => i.value).toList();
+  }
+
   Object get errors {
+    final itemErrors = <Object>[];
+    for (var item in _itemResults) {
+      print(item.errors);
+      print(item.value);
+      itemErrors.add(item.errors);
+    }
     final result = {
-      'listErrors': fieldErrors.errors,
-      'itemErrors': _errorList.map((i) => i.map()).toList()
+      'list': valueResult.errors,
+      'items': itemErrors
     };
     return result;
   }

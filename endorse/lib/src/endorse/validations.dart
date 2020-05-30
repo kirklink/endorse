@@ -3,6 +3,12 @@ abstract class Validation {
   const Validation();
 }
 
+class IsRequired implements Validation {
+  @override
+  final String call = 'isRequired()';
+  const IsRequired();
+}
+
 class MaxLength implements Validation {
   final int value;
   @override

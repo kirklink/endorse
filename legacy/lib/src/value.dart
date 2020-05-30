@@ -75,7 +75,7 @@ class Value {
     var r = Map<String, dynamic>();
     _errors.forEach((e) {
       if (e != null) {
-        e.map.forEach((k, v) {
+        e.expand.forEach((k, v) {
           r[k] = v;
         });
       }
@@ -90,7 +90,7 @@ class Value {
       var i = Map<String, dynamic>();
       if (e != null) {
         i['msg'] = e.msg;
-        i['map'] = e.map;
+        i['map'] = e.expand;
       }
       if (i.isNotEmpty) r.add(i);
     });

@@ -1,4 +1,4 @@
-class ErrorObject {
+class ErrorExpander {
   final String field;
   final Object input;
   final String ruleName;
@@ -6,7 +6,7 @@ class ErrorObject {
   final Object testValue;
   final Object wantValue;
   
-  ErrorObject(this.field, this.input, this.ruleName, this.msg, [this.testValue, this.wantValue]);
+  ErrorExpander(this.field, this.input, this.ruleName, this.msg, [this.testValue, this.wantValue]);
   
   @override
   String toString() {
@@ -17,7 +17,7 @@ class ErrorObject {
     }
   } 
   
-  Map<String, Object> map() {
+  Map<String, Object> expand() {
     if (testValue == null) {
       return {
         'validation': ruleName,

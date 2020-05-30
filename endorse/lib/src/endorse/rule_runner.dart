@@ -1,15 +1,15 @@
 import 'package:endorse/src/endorse/result_object.dart';
 import 'package:endorse/src/endorse/endorse_exception.dart';
-import 'package:endorse/src/endorse/error_object.dart';
+import 'package:endorse/src/endorse/error_expander.dart';
 import 'package:endorse/src/endorse/rules.dart';
 
 
 
 
 class ApplyRulesToList {
-  final ApplyRulesToField _fieldRules;
-  final ApplyRulesToField _itemRules;
-  ValueResult _fieldErrors;
+  final ApplyRulesToValue _fieldRules;
+  final ApplyRulesToValue _itemRules;
+  ValueResult _fieldResult;
   
 
   // ApplyRulesToList(this._fieldRules, this._itemRules);
@@ -17,14 +17,25 @@ class ApplyRulesToList {
   ApplyRulesToList.fromCore(this._fieldRules, this._itemRules);
 
 
-  ListResult done(List items, [String field = '']) {
-    _fieldErrors = _fieldRules.done(items, field);
-    final result = <ErrorObject>[];
-    for (final item in items) {
-      final r = _itemRules.done(item);
-      result.add(r.errors);
-    }
-    return ListResult(_fieldErrors, items, result);
+  ListResult done(List<Object> items, [String field = '']) {
+    // print(items[1]);
+    _fieldResult = _fieldRules.done(items, field);
+    final result = <ValueResult>[];
+    // items.forEach((element) {print(element);});
+    // final count = items.length;
+    // for (var i = 0; i < count; i++) {
+    //   final r = _itemRules.done(items[i], '[$i]');
+    //   result.add(r);
+    // }
+    items.asMap().forEach((index, item) {
+      // print(index);
+      // print(item);
+      var r = _itemRules.done(item, '[$index]');
+      print(r.value);
+      print(r.errors);
+      result.add(r);
+    });
+    return ListResult(_fieldResult, result);
   }
 
 
@@ -37,13 +48,13 @@ class RuleHolder {
 }
 
 
-class ApplyRulesToField {
-  String _field;
+class ApplyRulesToValue {
+  final rules = <RuleHolder>[];
   Object _input;
   Object _inputCast;
-  final _errors = <ErrorObject>[];
-  final rules = <RuleHolder>[];
+  String _field;
   var _bail = false;
+  final _errors = <ErrorExpander>[];
 
   
   ValueResult done(Object input, [String field = '']) {
@@ -53,7 +64,7 @@ class ApplyRulesToField {
     for (final rule in rules) {
       _runRule(rule.rule, rule.test);
     }
-    return ValueResult(_field, _input, _inputCast, _errors);
+    return ValueResult(_input, _errors, _field);
   }
 
   void _runRule(ValueRule rule, [Object test = null]) {
@@ -68,7 +79,7 @@ class ApplyRulesToField {
     final ruleWant = rule.want(_input, test);
     final want = ruleWant != null ? ruleWant : test;
     if (!rule.pass(_inputCast, test)) {
-      _errors.add(ErrorObject(_field, got, rule.name, rule.errorMsg, test, want));
+      _errors.add(ErrorExpander(_field, got, rule.name, rule.errorMsg, test, want));
       if (rule.causesBail) {
         _bail = true;
       }
@@ -92,7 +103,7 @@ class ApplyRulesToField {
     if (fromString) {
       final cast = int.tryParse(_inputCast);
       if (cast == null) {
-        _errors.add(ErrorObject(_field, _input, 'intFromString', 'Could not cast to int from String'));
+        _errors.add(ErrorExpander(_field, _input, 'intFromString', 'Could not cast to int from String'));
         _bail = true;
       } else {
         _inputCast = cast;
@@ -105,7 +116,7 @@ class ApplyRulesToField {
     if (fromString) {
       final cast = double.tryParse(_inputCast);
       if (cast == null) {
-        _errors.add(ErrorObject(_field, _input, 'doubleFromString', 'Could not cast to double from String'));
+        _errors.add(ErrorExpander(_field, _input, 'doubleFromString', 'Could not cast to double from String'));
         _bail = true;
       } else {
         _inputCast = cast;
@@ -119,7 +130,7 @@ class ApplyRulesToField {
       final isTrue = _inputCast == 'true' ? true : null;
       final isFalse = _inputCast == 'false' ? false : null;
       if (isTrue == null && isFalse == null) {
-        _errors.add(ErrorObject(_field, _input, 'boolFromString', 'Could not cast to bool from String'));
+        _errors.add(ErrorExpander(_field, _input, 'boolFromString', 'Could not cast to bool from String'));
         _bail = true;
       } else {
         _inputCast = isTrue == null ? isFalse : isTrue;

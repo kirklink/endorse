@@ -108,7 +108,7 @@ class EndorseSchema {
         var valueList = _valueLists[k];
         var i = input[k];
         var rs = ListMetaRuleSet()
-          ..isValueList(msg: valueList.errorMsg, map: valueList.errorMap);
+          ..isValueList(msg: valueList.errorMsg, expand: valueList.errorMap);
         var list = Value(i);
         await list.validate(rs);
         if (list.errorMessages().length > 0) {
@@ -129,7 +129,7 @@ class EndorseSchema {
         var objectList = _objectLists[k];
         var i = input[k];
         var rs = ListMetaRuleSet()
-          ..isList(msg: objectList.errorMsg, map: objectList.errorMap);
+          ..isList(msg: objectList.errorMsg, expand: objectList.errorMap);
         var list = Value(i);
         await list.validate(rs);
         if (list.errorMessages().length > 0) {
@@ -147,7 +147,7 @@ class EndorseSchema {
       for (var k in _maps.keys) {
         var m = _maps[k];
         var i = input[k];
-        var rs = MapMetaRuleSet()..isMap(msg: m.errorMsg, map: m.errorMap);
+        var rs = MapMetaRuleSet()..isMap(msg: m.errorMsg, expand: m.errorMap);
         var map = Value(i);
         await map.validate(rs);
         if (map.errorMessages().length > 0) {

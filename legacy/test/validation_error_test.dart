@@ -16,6 +16,6 @@ main() {
     var s = 'Error';
     var m = {'error': true};
     var v = ValidationError(s, m);
-    expect(v.map, equals({'error': true}));
+    expect(v.expand, equals({'error': true}));
   });
 }
