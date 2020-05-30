@@ -131,37 +131,26 @@ abstract class Validator {
 // class ApplyRulesToValue extends ApplyRules {}
 
 class ApplyRulesToList {
-  final String _field;
-  final List<Object> _items;
-  final _errors = <TestError>[];
+  final ApplyRulesToField _fieldRules;
+  final ApplyRulesToField _itemRules;
   ValueResult _fieldErrors;
+  
 
-  ApplyRulesToList(this._field, this._items);
+  ApplyRulesToList(this._fieldRules, this._itemRules);
 
-  ListResult done() => ListResult(_fieldErrors, _items, _errors);
-
-  // void _runRule(Rule rule, [Object test = null]) {
-  //   if (_bail && !rule.escapesBail) {
-  //     return;
-  //   }
-  //   if (!rule.restriction(_inputCast)) {
-  //     throw EndorseException('${rule.name} ${rule.restrictionError}.');
-  //   }
-  //   final ruleGot = rule.got(_input, test);
-  //   final got = ruleGot != null ? ruleGot : _input;
-  //   final ruleWant = rule.want(_input, test);
-  //   final want = ruleWant != null ? ruleWant : test;
-  //   if (!rule.pass(_inputCast, test)) {
-  //     _errors.add(TestError(_field, got, rule.name, rule.errorMsg, test, want));
-  //     if (rule.causesBail) {
-  //       _bail = true;
-  //     }
-  //   }
-  // }
-
-  void isList() {
-    _fieldErrors = (ApplyRulesToField(_field, _items)..isList()).done();
+  ListResult done(List items, [String field = '']) {
+    _fieldErrors = _fieldRules.done(items, field);
+    final result = <TestError>[];
+    for (final item in items) {
+      final r = _itemRules.done(item);
+      result.add(r.errors);
+    }
+    return ListResult(_fieldErrors, items, result);
   }
+
+  // void isList() {
+  //   _fieldErrors = (ApplyRulesToField()..isList()).done(_items, _field);
+  // }
 
 
 
@@ -169,21 +158,35 @@ class ApplyRulesToList {
 
 }
 
+class RuleHolder {
+  final Rule rule;
+  final Object test;
+  RuleHolder(this.rule, [this.test = null]);
+}
 
 
 class ApplyRulesToField {
-  final String _field;
-  final Object _input;
+  String _field;
+  Object _input;
   Object _inputCast;
   final _errors = <TestError>[];
+  final rules = <RuleHolder>[];
   var _bail = false;
 
-  ApplyRulesToField(this._field, this._input) {
-    _inputCast = _input;
-  }
+  // ApplyRulesToField(this._field, this._input) {
+  //   _inputCast = _input;
+  // }
 
   
-  ValueResult done() => ValueResult(_field, _input, _inputCast, _errors);
+  ValueResult done(Object input, [String field = '']) {
+    _input = input;
+    _field = field;
+    _inputCast = input;
+    for (final rule in rules) {
+      _runRule(rule.rule, rule.test);
+    }
+    return ValueResult(_field, _input, _inputCast, _errors);
+  }
 
   void _runRule(ValueRule rule, [Object test = null]) {
     if (_bail && !rule.escapesBail) {
@@ -206,15 +209,17 @@ class ApplyRulesToField {
 
   
   void isRequired() {
-    _runRule(IsRequiredRule());
+    rules.add(RuleHolder(IsRequiredRule()));
+    // rules.add(RuleHolder(IsRequiredRule());
   }
 
   void isList() {
-    _runRule(IsListRule());
+    rules.add(RuleHolder(IsListRule()));
+    // rules.add(RuleHolder(IsListRule());
   }
 
   void isString() {
-    _runRule(IsStringRule());
+    rules.add(RuleHolder(IsStringRule()));
   }
 
   void isInt({bool fromString = false}) {
@@ -227,7 +232,7 @@ class ApplyRulesToField {
         _inputCast = cast;
       }
     }
-    _runRule(IsIntRule());
+    rules.add(RuleHolder(IsIntRule()));
   }
 
   void isDouble({bool fromString = false}) {
@@ -240,7 +245,7 @@ class ApplyRulesToField {
         _inputCast = cast;
       }
     }
-    _runRule(IsDoubleRule());
+    rules.add(RuleHolder(IsDoubleRule()));
   }
 
   void isBoolean({bool fromString = false}) {
@@ -254,55 +259,55 @@ class ApplyRulesToField {
         _inputCast = isTrue == null ? isFalse : isTrue;
       }
     }
-    _runRule(IsBoolRule());
+    rules.add(RuleHolder(IsBoolRule()));
   }
 
   void maxLength(int test) {
-    _runRule(MaxLengthRule(), test);
+    rules.add(RuleHolder(MaxLengthRule(), test));
   }
 
   void minLength(int test) {
-    _runRule(MinLengthRule(), test);
+    rules.add(RuleHolder(MinLengthRule(), test));
   }
 
   void matches(String test) {
-    _runRule(MatchesRule(), test);
+    rules.add(RuleHolder(MatchesRule(), test));
   }
 
   void contains(String test) {
-    _runRule(ContainsRule(), test);
+    rules.add(RuleHolder(ContainsRule(), test));
   }
 
   void startsWith(String test) {
-    _runRule(StartsWithRule(), test);
+    rules.add(RuleHolder(StartsWithRule(), test));
   }
 
   void endsWith(String test) {
-    _runRule(EndsWithRule(), test);
+    rules.add(RuleHolder(EndsWithRule(), test));
   }
  
   void isEqualTo(num test) {
-    _runRule(IsEqualToRule(), test);
+    rules.add(RuleHolder(IsEqualToRule(), test));
   }
 
   void isNotEqualTo(num test) {
-    _runRule(IsNotEqualToRule(), test);
+    rules.add(RuleHolder(IsNotEqualToRule(), test));
   }
 
   void isGreaterThan(num test) {
-    _runRule(IsGreaterThanRule(), test);
+    rules.add(RuleHolder(IsGreaterThanRule(), test));
   }
 
   void isLessThan(num test) {
-    _runRule(IsLessThanRule(), test);
+    rules.add(RuleHolder(IsLessThanRule(), test));
   }
 
   void isTrue() {
-    _runRule(IsTrueRule());
+    rules.add(RuleHolder(IsTrueRule()));
   }
 
   void isFalse() {
-    _runRule(IsFalseRule());
+    rules.add(RuleHolder(IsFalseRule()));
   }
 
   
