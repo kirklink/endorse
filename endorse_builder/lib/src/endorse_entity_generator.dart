@@ -2,9 +2,8 @@ import 'dart:async';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:build/src/builder/build_step.dart';
 import 'package:source_gen/source_gen.dart';
-import 'package:recase/recase.dart';
 
-import 'package:endorse/annotations.dart';
+import 'package:endorse/endorse.dart';
 import 'package:endorse_builder/src/endorse_builder_exception.dart';
 import 'package:endorse_builder/src/field_helper.dart';
 
@@ -81,8 +80,13 @@ class EndorseEntityGenerator extends GeneratorForAnnotation<EndorseEntity> {
         validatorBuf.writeln("r['$fieldName'] = ${childClass}.\$endorse.validate(input['$fieldName']);");
       // Otherwise, the type is the result for an instance field
       } else {
-        
-      resultBuf.writeln('final ValueResult $fieldName;');
+
+      if (field.type.isDartCoreList) {
+        resultBuf.writeln('final ListResult $fieldName;');
+      } else {
+        resultBuf.writeln('final ValueResult $fieldName;');
+      } 
+      
       final fieldBuf = processField(field);
       validatorBuf.writeln(fieldBuf.toString());
       

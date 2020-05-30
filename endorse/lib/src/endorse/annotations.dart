@@ -1,4 +1,5 @@
-import 'package:endorse/src/annotations/validations.dart';
+import 'package:endorse/src/endorse/validations.dart';
+
 
 /// The annotation to convert a Dart class into a Endorse validated object.
 ///
