@@ -3,22 +3,21 @@ class ErrorExpander {
   final Object input;
   final String ruleName;
   final String msg;
-  final Object testValue;
   final Object wantValue;
   
-  ErrorExpander(this.field, this.input, this.ruleName, this.msg, [this.testValue, this.wantValue]);
+  ErrorExpander(this.field, this.input, this.ruleName, this.msg, [this.wantValue]);
   
   @override
   String toString() {
-    if (testValue == null) {
+    if (wantValue == null) {
       return '$field $msg';
     } else {
-      return '$field $msg ${testValue.toString()}';
+      return '$field $msg ${wantValue.toString()}';
     }
   } 
   
   Map<String, Object> expand() {
-    if (testValue == null) {
+    if (wantValue == null) {
       return {
         'validation': ruleName,
         'message': this.toString(),

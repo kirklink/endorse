@@ -10,29 +10,15 @@ class ApplyRulesToList {
   final ApplyRulesToValue _fieldRules;
   final ApplyRulesToValue _itemRules;
   ValueResult _fieldResult;
-  
-
-  // ApplyRulesToList(this._fieldRules, this._itemRules);
 
   ApplyRulesToList.fromCore(this._fieldRules, this._itemRules);
 
 
   ListResult done(List<Object> items, [String field = '']) {
-    // print(items[1]);
     _fieldResult = _fieldRules.done(items, field);
     final result = <ValueResult>[];
-    // items.forEach((element) {print(element);});
-    // final count = items.length;
-    // for (var i = 0; i < count; i++) {
-    //   final r = _itemRules.done(items[i], '[$i]');
-    //   result.add(r);
-    // }
     items.asMap().forEach((index, item) {
-      // print(index);
-      // print(item);
       var r = _itemRules.done(item, '[$index]');
-      print(r.value);
-      print(r.errors);
       result.add(r);
     });
     return ListResult(_fieldResult, result);
@@ -50,43 +36,13 @@ class RuleHolder {
 
 class ApplyRulesToValue {
   final rules = <RuleHolder>[];
-  Object _input;
-  Object _inputCast;
-  String _field;
-  var _bail = false;
-  final _errors = <ErrorExpander>[];
-
   
   ValueResult done(Object input, [String field = '']) {
-    _input = input;
-    _field = field;
-    _inputCast = input;
-    for (final rule in rules) {
-      _runRule(rule.rule, rule.test);
-    }
-    return ValueResult(_input, _errors, _field);
+
+    final evaluator = Evaluator(this.rules, input, field);
+    return evaluator.evaluate();
   }
 
-  void _runRule(ValueRule rule, [Object test = null]) {
-    if (_bail && !rule.escapesBail) {
-      return;
-    }
-    if (!rule.restriction(_inputCast)) {
-      throw EndorseException('${rule.name} ${rule.restrictionError}.');
-    }
-    final ruleGot = rule.got(_input, test);
-    final got = ruleGot != null ? ruleGot : _input;
-    final ruleWant = rule.want(_input, test);
-    final want = ruleWant != null ? ruleWant : test;
-    if (!rule.pass(_inputCast, test)) {
-      _errors.add(ErrorExpander(_field, got, rule.name, rule.errorMsg, test, want));
-      if (rule.causesBail) {
-        _bail = true;
-      }
-    }
-  }
-
-  
   void isRequired() {
     rules.add(RuleHolder(IsRequiredRule()));
   }
@@ -101,40 +57,21 @@ class ApplyRulesToValue {
 
   void isInt({bool fromString = false}) {
     if (fromString) {
-      final cast = int.tryParse(_inputCast);
-      if (cast == null) {
-        _errors.add(ErrorExpander(_field, _input, 'intFromString', 'Could not cast to int from String'));
-        _bail = true;
-      } else {
-        _inputCast = cast;
-      }
+      rules.add(RuleHolder(IntFromStringRule()));
     }
     rules.add(RuleHolder(IsIntRule()));
   }
 
   void isDouble({bool fromString = false}) {
     if (fromString) {
-      final cast = double.tryParse(_inputCast);
-      if (cast == null) {
-        _errors.add(ErrorExpander(_field, _input, 'doubleFromString', 'Could not cast to double from String'));
-        _bail = true;
-      } else {
-        _inputCast = cast;
-      }
+      rules.add(RuleHolder(DoubleFromStringRule()));
     }
     rules.add(RuleHolder(IsDoubleRule()));
   }
 
   void isBoolean({bool fromString = false}) {
     if (fromString) {
-      final isTrue = _inputCast == 'true' ? true : null;
-      final isFalse = _inputCast == 'false' ? false : null;
-      if (isTrue == null && isFalse == null) {
-        _errors.add(ErrorExpander(_field, _input, 'boolFromString', 'Could not cast to bool from String'));
-        _bail = true;
-      } else {
-        _inputCast = isTrue == null ? isFalse : isTrue;
-      }
+      rules.add(RuleHolder(BoolFromStringRule()));
     }
     rules.add(RuleHolder(IsBoolRule()));
   }
@@ -187,8 +124,54 @@ class ApplyRulesToValue {
     rules.add(RuleHolder(IsFalseRule()));
   }
 
+}
+
+
+class Evaluator {
+  final List<RuleHolder> rules;
+  final Object _input;
+  Object _inputCast;
+  final String _field;
+  var _bail = false;
+  final _errors = <ErrorExpander>[];
+
+  Evaluator(this.rules, this._input, [this._field = '']) {
+    _inputCast = _input;
+  }
+
+  ValueResult evaluate() {
+    for (final rule in rules) {
+      _runRule(rule.rule, rule.test);
+    }
+    return ValueResult(_input, _errors, _field);
+  }
+
+  void _runRule(ValueRule rule, [Object test = null]) {
+    if (_bail && !rule.escapesBail) {
+      return;
+    }
+    if (!rule.restriction(_inputCast)) {
+      throw EndorseException('${rule.name} ${rule.restrictionError}.');
+    }
+    final ruleGot = rule.got(_input, test);
+    final got = ruleGot != null ? ruleGot : _input;
+    final ruleWant = rule.want(_input, test);
+    final want = ruleWant != null ? ruleWant : test;
+    if (!rule.pass(_inputCast, test)) {
+      _errors.add(ErrorExpander(_field, got, rule.name, rule.errorMsg, want));
+      if (rule.causesBail) {
+        _bail = true;
+      }
+    }
+    _inputCast = rule.cast(_inputCast);
+  }
+
+  
   
 
 
 }
+
+
+
 

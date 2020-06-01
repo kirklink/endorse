@@ -46,11 +46,11 @@ class ListResult implements ResultObject {
     return _itemResults.map((i) => i.value).toList();
   }
 
+  List<ValueResult> get list => _itemResults;
+
   Object get errors {
     final itemErrors = <Object>[];
     for (var item in _itemResults) {
-      print(item.errors);
-      print(item.value);
       itemErrors.add(item.errors);
     }
     final result = {

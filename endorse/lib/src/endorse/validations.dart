@@ -9,6 +9,12 @@ class IsRequired implements Validation {
   const IsRequired();
 }
 
+class FromString implements Validation {
+  @override
+  final String call = 'fromString()';
+  const FromString();
+}
+
 class MaxLength implements Validation {
   final int value;
   @override

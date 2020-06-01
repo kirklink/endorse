@@ -1,4 +1,5 @@
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/constant/value.dart';
 // import 'package:analyzer/dart/element/visitor.dart';
 import 'package:endorse_builder/src/endorse_builder_exception.dart';
 import 'package:source_gen/source_gen.dart';
@@ -6,6 +7,36 @@ import 'package:endorse/endorse.dart';
 
 
 final _checkForEndorseField = const TypeChecker.fromRuntime(EndorseField);
+
+String _processValidations(List<DartObject> validations) {
+   for (final rule in validations) {
+
+      if (validations.contains(IsRequired())) {
+        print('is required');
+      }
+
+      // Get the right type for the test value
+      final t = rule.getField('value')?.type;
+      String v;
+      if (t == null) {
+        v = '';
+      } else if (t.isDartCoreString) {
+        v = "'${rule.getField('value').toStringValue().toString()}'";
+      } else if (t.isDartCoreInt) {
+        v = rule.getField('value').toIntValue().toString();
+      } else if (t.isDartCoreDouble) {
+        v = rule.getField('value').toDoubleValue().toString();
+      }
+
+      // Replace the token with a value
+      final r = '..' + (rule.getField('call').toStringValue()).replaceFirst('@', v);
+      return r;
+   
+    }
+}
+
+
+
 
 StringBuffer processField(FieldElement field) {
 
@@ -28,9 +59,9 @@ StringBuffer processField(FieldElement field) {
   if (_checkForEndorseField.hasAnnotationOfExact(field)) {
     final reader = ConstantReader(_checkForEndorseField.firstAnnotationOf(field));
     final validations = reader.peek('validate').listValue;
-    final listItemValidations = reader.peek('listItemValidate:');
+    final listItemValidations = reader.peek('listItemValidate');
     // final isRequired = reader.peek('require')?.boolValue ?? false;
-    final fromString = reader.peek('fromString')?.boolValue ?? false;
+    // final fromString = reader.peek('fromString')?.boolValue ?? false;
     
     var isList = false;
     var isCore = false;
@@ -41,14 +72,15 @@ StringBuffer processField(FieldElement field) {
     var require = '';
     var castFromString = '';
 
+
     fieldBuf.write('(ApplyRulesToValue()');
     listItemBuf.write('(ApplyRulesToValue()');
     
 
 
-    if (fromString) {
-      castFromString = 'fromString: true';
-    }
+    // if (fromString) {
+    //   castFromString = 'fromString: true';
+    // }
 
     if (field.type.isDartCoreList) {
       isList = true;
@@ -89,34 +121,17 @@ StringBuffer processField(FieldElement field) {
 
     fieldBuf.write(preRules);
 
-    if (validations.contains(IsRequired())) {
-      print('isRequired');
-          // if (isRequired) {
-    //   require = '..isRequired()';
+    // if (validations.contains(IsRequired())) {
+    //   print('isRequired');
+    //       // if (isRequired) {
+    // //   require = '..isRequired()';
+    // // }
     // }
-    }
+    
+    fieldBuf.write(_processValidations(validations));
 
     // Handle the validations
-    for (final rule in validations) {
-
-      // Get the right type for the test value
-      final t = rule.getField('value')?.type;
-      String v;
-      if (t == null) {
-        v = '';
-      } else if (t.isDartCoreString) {
-        v = "'${rule.getField('value').toStringValue().toString()}'";
-      } else if (t.isDartCoreInt) {
-        v = rule.getField('value').toIntValue().toString();
-      } else if (t.isDartCoreDouble) {
-        v = rule.getField('value').toDoubleValue().toString();
-      }
-
-      // Replace the token with a value
-      final r = '..' + (rule.getField('call').toStringValue()).replaceFirst('@', v);
-      fieldBuf.write(r);
    
-    }
     buf.writeln(fieldBuf.toString());
   }
   

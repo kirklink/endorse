@@ -3,6 +3,7 @@ typedef bool PassFuntion(Object input, Object test);
 typedef bool RestrictFunction(Object input);
 typedef Object GotFunction(Object input, Object test);
 typedef Object WantFunction(Object input, Object test);
+typedef Object CastFuntion(Object input);
 
 abstract class Rule {
   final String name = '';
@@ -12,6 +13,7 @@ abstract class Rule {
   final RestrictFunction restriction = (input) => true;
   final GotFunction got = (input, test) => null;
   final WantFunction want = (input, test) => null;
+  final CastFuntion cast = (input) => input;
   final String  restrictionError = '';
   final String errorMsg = '';
 }
@@ -29,7 +31,8 @@ class IsListRule extends ValueRule {
   final name = 'IsList';
   final causesBail = true;
   final pass = (input, test) => input is List;
-  final errorMsg = 'must be a List';
+  final errorMsg = 'must be a';
+  final want = (input, test) => 'List';
   final got = (input, test) => input.runtimeType;
 }
 
@@ -37,29 +40,62 @@ class IsStringRule extends ValueRule {
   final name = 'IsString';
   final causesBail = true;
   final pass = (input, test) => input is String;
-  final errorMsg = 'must be a String';
+  final errorMsg = 'must be a';
+  final want = (input, test) => 'String';
+  final got = (input, test) => input.runtimeType;
 }
 
 class IsIntRule extends ValueRule {
   final name = 'IsInt';
   final causesBail = true;
   final pass = (input, test) => input is int;
-  final errorMsg = 'must be an integer';
+  final errorMsg = 'must be an';
+  final want = (input, test) => 'int';
+  final got = (input, test) => input.runtimeType;
 }
 
 class IsDoubleRule extends ValueRule {
   final name = 'IsDouble';
   final causesBail = true;
   final pass = (input, test) => input is double;
-  final errorMsg = 'must be a double';
+  final errorMsg = 'must be a';
+  final want = (input, test) => 'double';
+  final got = (input, test) => input.runtimeType;
 }
 
 class IsBoolRule extends ValueRule {
   final name = 'IsBool';
   final causesBail = true;
   final pass = (input, test) => input is bool;
-  final errorMsg = 'must be a boolean';  
+  final errorMsg = 'must be a';
+  final want = (input, test) => 'bool';
+  final got = (input, test) => input.runtimeType;
 }
+
+class IntFromStringRule extends ValueRule {
+  final name = 'IntFromString';
+  final causesBail = true;
+  final pass = (input, test) => int.tryParse(input) != null;
+  final errorMsg = 'could not cast to int from String';
+  final cast = (input) => int.parse(input);
+}
+
+class DoubleFromStringRule extends ValueRule {
+  final name = 'DoubleFromString';
+  final causesBail = true;
+  final pass = (input, test) => double.tryParse(input) != null;
+  final errorMsg = 'could not cast to double from String';
+  final cast = (input) => double.parse(input);
+}
+
+class BoolFromStringRule extends ValueRule {
+  final name = 'BoolFromString';
+  final causesBail = true;
+  final pass = (input, test) => input == 'true' || input == 'false';
+  final errorMsg = 'could not cast to bool from String';
+  final cast = (input) => input == 'true' ? true : false;
+}
+
 
 class MaxLengthRule extends ValueRule {
   final name = 'MaxLength';
