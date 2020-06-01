@@ -39,33 +39,19 @@ class EndorseEntityGenerator extends GeneratorForAnnotation<EndorseEntity> {
     final validatorReturnBuf = StringBuffer();
 
     // Set up the result class
-    resultBuf.writeln('class _\$${classNamePrefix}ValidationResult implements ResultObject {');
-    resultBuf.writeln('@override');
-    resultBuf.writeln('final bool isValid;');
-    resultBuf.writeln('@override');
-    resultBuf.writeln('final Object value;');
-    resultBuf.writeln('@override');
-    resultBuf.writeln('final Object errors;\n');
-    // resultBuf.writeln('');
-    
+    resultBuf.writeln('class _\$${classNamePrefix}ValidationResult extends ClassResult {');
     
     // Set up the validator class
     validatorBuf.writeln('class _\$${classNamePrefix}Validator implements Validator {');
     validatorBuf.writeln('');
     validatorBuf.writeln('_\$${classNamePrefix}ValidationResult validate(Map<String, Object> input) {');
     validatorBuf.writeln('final r = <String, ResultObject>{};');
-    validatorBuf.writeln('final v = <String, Object>{};');
-    validatorBuf.writeln('final e = <String, Object>{};');
-    validatorBuf.writeln('var isValid = true;');
 
-    
-    
     // For each field
     for (var field in (element as ClassElement).fields) {
       if (field.isStatic) {
         continue;
       }
-
 
       
       final fieldName = '${field.name}';
@@ -90,19 +76,12 @@ class EndorseEntityGenerator extends GeneratorForAnnotation<EndorseEntity> {
       final fieldBuf = processField(field);
       validatorBuf.writeln(fieldBuf.toString());
       
-
-      
-
-      
       
       }
-      validatorBuf.writeln("v['$fieldName'] = r['$fieldName'].value;");
-      validatorBuf.writeln("if (!r['$fieldName'].isValid) e['$fieldName'] = r['$fieldName'].errors;");
-      validatorBuf.writeln("isValid = isValid == false ? false : r['$fieldName'].isValid;");
     }
-    resultBuf.writeln('_\$${classNamePrefix}ValidationResult(this.isValid, this.value, this.errors${resultContructorBuf.toString()});');
+    resultBuf.writeln('_\$${classNamePrefix}ValidationResult(Map<String, ResultObject> fields${resultContructorBuf.toString()}) : super(fields);');
     resultBuf.writeln('}');
-    validatorBuf.writeln('return _\$${classNamePrefix}ValidationResult(isValid, v, e${validatorReturnBuf.toString()});');
+    validatorBuf.writeln('return _\$${classNamePrefix}ValidationResult(r${validatorReturnBuf.toString()});');
     validatorBuf.writeln('}');
     validatorBuf.writeln('List<_\$${classNamePrefix}ValidationResult> validateList(List<Object> list) {');
     validatorBuf.writeln('final result = <_\$${classNamePrefix}ValidationResult>[];');

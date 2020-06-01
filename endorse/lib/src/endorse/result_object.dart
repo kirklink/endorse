@@ -7,12 +7,83 @@ abstract class ResultObject {
   bool get isValid;
 }
 
-class ValueResult implements ResultObject {
+
+class ClassResult implements ResultObject {
+  final Map<String, ResultObject> _fields;
+  
+  ClassResult(this._fields);
+
+  bool get isValid => !(_fields.values.any((e) => e.isValid == false));
+
+  Object get value {
+    final r = <String, Object>{};
+    for (final k in _fields.keys) {
+      r[k] = _fields[k].value;
+    }
+    return r;
+  }
+
+  Object get errors {
+    final r = <String, Object>{};
+    for (final k in _fields.keys) {
+      if (!_fields[k].isValid) {
+        r[k] = _fields[k].errors;
+      }
+    }
+    return r;
+  }
+}
+
+
+class ListResult extends ResultObject {
+  final ValueResult valueResult;
+  final List<ValueResult> _itemResults;
+
+  ListResult(this.valueResult, this._itemResults);
+
+  bool get isValid => !(_itemResults.any((e) => e.isValid == false));
+
+  Object get value {
+    final r = <Object>[];
+    for (final i in _itemResults) {
+      r.add(i.value);
+    }
+    return r;
+  }
+
+  List<ValueResult> get list => _itemResults;
+  
+  Object get errors {
+    
+    final itemErrors = <Object>[];
+    
+    for (var item in _itemResults) {
+      itemErrors.add(item.errors);
+    }
+
+    final result = <String, Object>{};
+
+    if (!valueResult.isValid) {
+      result['list'] = valueResult.errors;
+    }
+
+    if (_itemResults.any((e) => !e.isValid)) {
+      result['items'] = itemErrors;
+    }
+    return result;
+  }
+
+}
+
+
+class ValueResult extends ResultObject {
   final String field;
-  final Object value;
+  final Object _value;
   final List<ErrorExpander> _errorExpanders;
   
-  ValueResult(this.value, this._errorExpanders, [this.field = '']);
+  ValueResult(this._value, this._errorExpanders, [this.field = '']);
+
+  Object get value => _value;
 
   bool get isValid => _errorExpanders.isEmpty;
 
@@ -23,41 +94,4 @@ class ValueResult implements ResultObject {
 }
 
 
-class ListResult implements ResultObject {
-  final String field;
-  final ValueResult valueResult;
-  final List<ValueResult> _itemResults;
 
-  ListResult(this.valueResult, this._itemResults, [this.field]);
-
-  bool get isValid {
-    if (!valueResult.isValid) {
-      return false;
-    }
-    for (var i in _itemResults) {
-      if (!i.isValid) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  Object get value {
-    return _itemResults.map((i) => i.value).toList();
-  }
-
-  List<ValueResult> get list => _itemResults;
-
-  Object get errors {
-    final itemErrors = <Object>[];
-    for (var item in _itemResults) {
-      itemErrors.add(item.errors);
-    }
-    final result = {
-      'list': valueResult.errors,
-      'items': itemErrors
-    };
-    return result;
-  }
-
-}

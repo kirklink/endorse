@@ -1,6 +1,5 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/constant/value.dart';
-// import 'package:analyzer/dart/element/visitor.dart';
 import 'package:endorse_builder/src/endorse_builder_exception.dart';
 import 'package:source_gen/source_gen.dart';
 import 'package:endorse/endorse.dart';
@@ -9,30 +8,32 @@ import 'package:endorse/endorse.dart';
 final _checkForEndorseField = const TypeChecker.fromRuntime(EndorseField);
 
 String _processValidations(List<DartObject> validations) {
-   for (final rule in validations) {
-
-      if (validations.contains(IsRequired())) {
-        print('is required');
-      }
-
-      // Get the right type for the test value
-      final t = rule.getField('value')?.type;
-      String v;
-      if (t == null) {
-        v = '';
-      } else if (t.isDartCoreString) {
-        v = "'${rule.getField('value').toStringValue().toString()}'";
-      } else if (t.isDartCoreInt) {
-        v = rule.getField('value').toIntValue().toString();
-      } else if (t.isDartCoreDouble) {
-        v = rule.getField('value').toDoubleValue().toString();
-      }
-
-      // Replace the token with a value
-      final r = '..' + (rule.getField('call').toStringValue()).replaceFirst('@', v);
-      return r;
    
+   if (validations == null) {
+     return '';
+   }
+   var r = '';
+   for (final rule in validations) {
+    if (rule.type.getDisplayString() == 'Required' 
+        || rule.type.getDisplayString() == 'FromString') {
+      continue;
     }
+    // Get the right type for the test value
+    final t = rule.getField('value')?.type;
+    String v;
+    if (t == null) {
+      v = '';
+    } else if (t.isDartCoreString) {
+      v = "'${rule.getField('value').toStringValue().toString()}'";
+    } else if (t.isDartCoreInt) {
+      v = rule.getField('value').toIntValue().toString();
+    } else if (t.isDartCoreDouble) {
+      v = rule.getField('value').toDoubleValue().toString();
+    }
+    // Replace the token with a value
+    r = r + '..' + (rule.getField('call').toStringValue()).replaceFirst('@', v);
+  }
+  return r;
 }
 
 
@@ -43,104 +44,115 @@ StringBuffer processField(FieldElement field) {
   final fieldName = '${field.name}';
 
   final buf = StringBuffer();
-  final valueRule = StringBuffer();
-  final listRule = StringBuffer();
-  // if (field.type is List) {
-  //   buf.write("r['$fieldName'] = ");
-  // } else {
-  //   buf.write("r['$fieldName'] = ");
-  // }
-  buf.write("r['$fieldName'] = ");
- 
   
+  var isCore = false;
+  final fieldBuf = StringBuffer();
+  final itemBuf = StringBuffer();
+  var fieldType = '';
+  var itemType = '';
+  var fieldCastFromString = '';
+  var itemCastFromString = '';
 
-  // Validate the field
-  // Handle the annotations
-  if (_checkForEndorseField.hasAnnotationOfExact(field)) {
-    final reader = ConstantReader(_checkForEndorseField.firstAnnotationOf(field));
-    final validations = reader.peek('validate').listValue;
-    final listItemValidations = reader.peek('listItemValidate');
-    // final isRequired = reader.peek('require')?.boolValue ?? false;
-    // final fromString = reader.peek('fromString')?.boolValue ?? false;
-    
-    var isList = false;
-    var isCore = false;
-    final fieldBuf = StringBuffer();
-    final listItemBuf = StringBuffer();
-    var fieldType = '';
-    var listType = '';
-    var require = '';
-    var castFromString = '';
+  buf.write("r['$fieldName'] = ");
 
+  final isList = field.type.isDartCoreList;
 
-    fieldBuf.write('(ApplyRulesToValue()');
-    listItemBuf.write('(ApplyRulesToValue()');
-    
-
-
-    // if (fromString) {
-    //   castFromString = 'fromString: true';
-    // }
-
-    if (field.type.isDartCoreList) {
-      isList = true;
-      // typeRule = '..isList()';
-      fieldType = ('..isList()');
-      final listType = (field.type.toString()
-        .split('<').map((p) => p.replaceAll('>', ''))
-        .toList()
-          ..removeWhere((s) => s == null || s.isEmpty))
-          .firstWhere((e) => e != 'List');
-      // final listType = field.type.toString().split('<')[1].split('>')[0];
-      print(listType);
-      switch(listType) {
-        case 'String': fieldType = '$fieldType..ofStrings()';
-          break;
-        case 'int': fieldType = '$fieldType..ofInts()';
-          break;
-        case 'double': fieldType = '$fieldType..ofDoubles()';
-          break;
-        case 'bool': fieldType = '$fieldType..ofBools()';
-          break;
-        default: 
-          throw EndorseBuilderException('$listType not implemented');
+  if (isList) {
+    fieldType = '..isList()';
+    final listTypeParts = (field.type.toString()
+      .split('<').map((p) => p.replaceAll('>', ''))
+      .toList()
+        ..removeWhere((s) => s == null || s.isEmpty));
+    for (final p in listTypeParts.getRange(1, listTypeParts.length)) {
+      if (p == 'List') {
+        fieldType = '$fieldType..ofList()';
       }
-    } else if (field.type.isDartCoreString) {
-      fieldType = '..isString()';
+    }
+    final listTypeStr = listTypeParts.firstWhere((e) => e != 'List');
+    switch(listTypeStr) {
+      case 'String': itemType = '..isString()';
+        break;
+      case 'int': itemType = '..isInt(@)';
+        break;
+      case 'double': itemType = '..isDouble(@)';
+        break;
+      case 'bool': itemType = '..isBoolean(@)';
+        break;
+      default: 
+        throw EndorseBuilderException('$listTypeStr not implemented');
+    }
+  } else {
+    if (field.type.isDartCoreString) {
+    fieldType = '..isString()';
     } else if (field.type.isDartCoreInt) {
-      fieldType = '..isInt($castFromString)';
+      fieldType = '..isInt(@)';
     } else if (field.type.isDartCoreDouble) {
-      fieldType = '..isDouble($castFromString)';
+      fieldType = '..isDouble(@)';
     } else if (field.type.isDartCoreBool) {
-      fieldType = '..isBoolean($castFromString)';
+      fieldType = '..isBoolean(@)';
     } else {
       throw EndorseBuilderException('${field.type.toString()} is not implemented');
     }
+  }
+  // Validate the field
+  // Handle the annotations
 
-    var preRules = '$require$fieldType';
+  final validations = <DartObject>[];
+  final itemValidations = <DartObject>[];
 
-    fieldBuf.write(preRules);
+  if (_checkForEndorseField.hasAnnotationOfExact(field)) {
+    final reader = ConstantReader(_checkForEndorseField.firstAnnotationOf(field));
+    validations.addAll(reader.peek('validate').listValue);
+    itemValidations.addAll(reader.peek('itemValidate').listValue);
 
-    // if (validations.contains(IsRequired())) {
-    //   print('isRequired');
-    //       // if (isRequired) {
-    // //   require = '..isRequired()';
-    // // }
-    // }
+    final fromString = 'fromString: true';  
     
-    fieldBuf.write(_processValidations(validations));
+    if (validations.any((e) => e.type.getDisplayString() == 'Required')) {
+      fieldType = '..isRequired()' + fieldType;
+    }
 
-    // Handle the validations
-   
-    buf.writeln(fieldBuf.toString());
+    if (validations.any((e) => e.type.getDisplayString() == 'FromString')) {
+      fieldCastFromString = fromString;
+    }
+    
+    
+    if (isList) {
+      if (itemValidations.any((e) => e.type.getDisplayString() == 'Required')) {
+        itemType = '..isRequired()' + itemType;
+      }
+      
+      if (itemValidations.any((e) => e.type.getDisplayString() == 'FromString')) {
+        itemCastFromString = fromString;
+      }  
+    }
+    
+  }
+
+  fieldType = fieldType.replaceFirst('@', fieldCastFromString);
+
+  fieldBuf.write(fieldType);
+  if (validations.isNotEmpty) {
+    fieldBuf.write(_processValidations(validations));
   }
   
-  if (field.type.isDartCoreList) {
-    buf.writeln(');');
-  } else {
-    buf.writeln(").done(input['$fieldName'], '$fieldName');");
+  itemType = itemType.replaceFirst('@', itemCastFromString);
+  itemBuf.writeln(itemType);
+  if (itemValidations.isNotEmpty) {
+    itemBuf.write(_processValidations(itemValidations));
   }
-  return buf;
-    
+  
+ 
+  if (isList) {
+    buf.write('(ApplyRulesToList.fromCore(ApplyRulesToValue()');
+    buf.write(fieldBuf.toString());
+    buf.write(', ApplyRulesToValue()');
+    buf.write(itemBuf.toString());
+    buf.write(")).done(input['$fieldName'], '$fieldName');");
+  } else {
+    buf.write('(ApplyRulesToValue()');
+    buf.write(fieldBuf.toString());
+    buf.write(").done(input['$fieldName'], '$fieldName');");
+  }
 
+  return buf;
 }

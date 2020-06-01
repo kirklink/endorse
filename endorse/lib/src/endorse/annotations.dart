@@ -21,11 +21,9 @@ class EndorseEntity {
 /// [ignore]: will ignore this field completely; it will not be included in the validation.
 class EndorseField {
   final List<Validation> validate;
-  final bool require;
-  final bool fromString;
+  final List<Validation> itemValidate;
   const EndorseField({
     this.validate = const <Validation>[],
-    this.require = false,
-    this.fromString
+    this.itemValidate = const <Validation>[]
   });
 }

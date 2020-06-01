@@ -3,10 +3,10 @@ abstract class Validation {
   const Validation();
 }
 
-class IsRequired implements Validation {
+class Required implements Validation {
   @override
   final String call = 'isRequired()';
-  const IsRequired();
+  const Required();
 }
 
 class FromString implements Validation {
