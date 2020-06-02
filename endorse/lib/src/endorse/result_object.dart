@@ -41,9 +41,12 @@ class ListResult extends ResultObject {
 
   ListResult(this.valueResult, this._itemResults);
 
-  bool get isValid => !(_itemResults.any((e) => e.isValid == false));
+  bool get isValid => valueResult.isValid && _itemResults != null && !(_itemResults.any((e) => e.isValid == false));
 
   Object get value {
+    if (_itemResults == null) {
+      return null;
+    }
     final r = <Object>[];
     for (final i in _itemResults) {
       r.add(i.value);
@@ -55,19 +58,17 @@ class ListResult extends ResultObject {
   
   Object get errors {
     
-    final itemErrors = <Object>[];
-    
-    for (var item in _itemResults) {
-      itemErrors.add(item.errors);
-    }
-
     final result = <String, Object>{};
 
     if (!valueResult.isValid) {
       result['list'] = valueResult.errors;
     }
 
-    if (_itemResults.any((e) => !e.isValid)) {
+    if (_itemResults != null && _itemResults.any((e) => !e.isValid)) {
+      final itemErrors = <Object>[];
+      for (var item in _itemResults) {
+        itemErrors.add(item.errors);
+      }
       result['items'] = itemErrors;
     }
     return result;

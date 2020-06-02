@@ -9,19 +9,26 @@ import 'package:endorse/src/endorse/rules.dart';
 class ApplyRulesToList {
   final ApplyRulesToValue _fieldRules;
   final ApplyRulesToValue _itemRules;
-  ValueResult _fieldResult;
+  // ValueResult _fieldResult;
 
   ApplyRulesToList.fromCore(this._fieldRules, this._itemRules);
 
 
   ListResult done(List<Object> items, [String field = '']) {
-    _fieldResult = _fieldRules.done(items, field);
-    final result = <ValueResult>[];
-    items.asMap().forEach((index, item) {
-      var r = _itemRules.done(item, '[$index]');
-      result.add(r);
-    });
-    return ListResult(_fieldResult, result);
+    
+    var _fieldResult = _fieldRules.done(items, field);
+    
+    if (items != null) {
+      final result = <ValueResult>[];
+      items.asMap().forEach((index, item) {
+        var r = _itemRules.done(item, '[$index]');
+        result.add(r);
+      });
+      return ListResult(_fieldResult, result);
+    } else {
+      return ListResult(_fieldResult, null);
+    }
+    
   }
 
 
