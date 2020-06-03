@@ -42,7 +42,7 @@ class EndorseEntityGenerator extends GeneratorForAnnotation<EndorseEntity> {
     resultBuf.writeln('class _\$${classNamePrefix}ValidationResult extends ClassResult {');
     
     // Set up the validator class
-    validatorBuf.writeln('class _\$${classNamePrefix}Validator implements Validator {');
+    validatorBuf.writeln('class _\$Endorse${classNamePrefix} implements EndorseClassValidator {');
     validatorBuf.writeln('');
     validatorBuf.writeln('_\$${classNamePrefix}ValidationResult validate(Map<String, Object> input) {');
     validatorBuf.writeln('final r = <String, ResultObject>{};');
@@ -83,14 +83,14 @@ class EndorseEntityGenerator extends GeneratorForAnnotation<EndorseEntity> {
     resultBuf.writeln('}');
     validatorBuf.writeln('return _\$${classNamePrefix}ValidationResult(r${validatorReturnBuf.toString()});');
     validatorBuf.writeln('}');
-    validatorBuf.writeln('List<_\$${classNamePrefix}ValidationResult> validateList(List<Object> list) {');
-    validatorBuf.writeln('final result = <_\$${classNamePrefix}ValidationResult>[];');
-    validatorBuf.writeln('list.asMap().forEach((index, value) {');
-    validatorBuf.writeln('final r = validate({index.toString(): value});');
-    validatorBuf.writeln('result.add(r);');
-    validatorBuf.writeln('});');
-    validatorBuf.writeln('return result;');
-    validatorBuf.writeln('}');
+    // validatorBuf.writeln('List<_\$${classNamePrefix}ValidationResult> validateList(List<Object> list) {');
+    // validatorBuf.writeln('final result = <_\$${classNamePrefix}ValidationResult>[];');
+    // validatorBuf.writeln('list.asMap().forEach((index, value) {');
+    // validatorBuf.writeln('final r = validate({index.toString(): value});');
+    // validatorBuf.writeln('result.add(r);');
+    // validatorBuf.writeln('});');
+    // validatorBuf.writeln('return result;');
+    // validatorBuf.writeln('}');
     validatorBuf.writeln('}');
     pageBuf.writeAll([resultBuf, validatorBuf]);
     return pageBuf.toString();

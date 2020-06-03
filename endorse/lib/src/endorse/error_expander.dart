@@ -16,19 +16,21 @@ class ErrorExpander {
     }
   } 
   
-  Map<String, Object> expand() {
+  Map<String, Object> expand([String field = '']) {
     if (wantValue == null) {
       return {
-        'validation': ruleName,
-        'message': this.toString(),
-        'got': input.toString()
+        ruleName: {
+          'message': this.toString(),
+          'got': input.toString()  
+        }
       };
     } else {
       return {
-        'validation': ruleName,
-        'message': this.toString(),
-        'want': wantValue.toString(),
-        'got': input.toString()
+        ruleName: {
+          'message': this.toString(),
+          'want': wantValue.toString(),
+          'got': input.toString()
+        }
       };
     }
   }

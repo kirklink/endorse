@@ -1,9 +1,0 @@
-name: endorse
-author: "Kirk Linkletter <kirklinkletter@gmail.com>"
-homepage: "https://github.com/kirklink/endorse"
-description: 'Data validation library.'
-version: 0.0.1
-environment:
-  sdk: '>=2.0.0 <3.0.0'
-dev_dependencies:
-  test: ^1.3.3
