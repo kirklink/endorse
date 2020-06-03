@@ -1,6 +1,5 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/constant/value.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:endorse_builder/src/endorse_builder_exception.dart';
 import 'package:source_gen/source_gen.dart';
 import 'package:endorse/endorse.dart';
@@ -22,8 +21,14 @@ String _processValidations(List<DartObject> validations, Type type) {
     // Get the right type for the test value
     final valueType = rule.getField('value')?.type;
     final validOnList = rule.getField('validOnTypes')?.toListValue();
+    final notValidOnList = rule.getField('notValidOnTypes')?.toListValue();
     if (validOnList != null && validOnList.isNotEmpty) {
       if (!validOnList.map((v) => v.toTypeValue().getDisplayString()).contains(type.toString())) {
+        throw EndorseBuilderException('${rule.type.getDisplayString()} cannot be used on a ${type.toString()}');
+      }
+    };
+    if (notValidOnList != null && notValidOnList.isNotEmpty) {
+      if (validOnList.map((v) => v.toTypeValue().getDisplayString()).contains(type.toString())) {
         throw EndorseBuilderException('${rule.type.getDisplayString()} cannot be used on a ${type.toString()}');
       }
     };

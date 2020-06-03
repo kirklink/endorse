@@ -1,6 +1,7 @@
 abstract class Validation {
   final String call = '';
   final validOnTypes = const <Type>[];
+  final notValidOnTypes = const <Type>[];
   const Validation();
 }
 
@@ -13,6 +14,8 @@ class Required extends Validation {
 class FromString extends Validation {
   @override
   final String call = 'fromString()';
+  @override
+  final notValidOnTypes = const [String];
   const FromString();
 }
 
@@ -35,69 +38,89 @@ class MinLength extends Validation {
 }
 
 class StartsWith extends Validation {
-  final String value;
   @override
   final String call = 'startsWith(@)';
+  @override
+  final validOnTypes = const [String];
+  final String value;
   const StartsWith(this.value);
 }
 
 class EndsWith extends Validation {
-  final String value;
   @override
   final String call = 'endsWith(@)';
+  @override
+  final validOnTypes = const [String];
+  final String value;
   const EndsWith(this.value);
 }
 
 class Contains extends Validation {
-  final String value;
   @override
   final String call = 'contains(@)';
+  @override
+  final validOnTypes = const [String];
+  final String value;
   const Contains(this.value);
 }
 
 class Matches extends Validation {
-  final String value;
   @override
   final String call = 'matches(@)';
+  @override
+  final validOnTypes = const [String];
+  final String value;
   const Matches(this.value);
 }
 
 class IsLessThan extends Validation {
-  final num value;
   @override
   final String call = 'isLessThan(@)';
+  @override
+  final validOnTypes = const [int, double, num];
+  final num value;
   const IsLessThan(this.value);
 }
 
 class IsGreaterThan extends Validation {
-  final num value;
   @override
   final String call = 'isGreaterThan(@)';
+  @override
+  final validOnTypes = const [int, double, num];
+  final num value;
   const IsGreaterThan(this.value);
 }
 
 class IsEqualTo extends Validation {
-  final num value;
   @override
   final String call = 'isEqualTo(@)';
+  @override
+  final validOnTypes = const [int, double, num];
+  final num value;
   const IsEqualTo(this.value);
 }
 
 class IsNotEqualTo extends Validation {
-  final num value;
   @override
   final String call = 'isNotEqualTo(@)';
+  @override
+  final validOnTypes = const [int, double, num];
+  final num value;
   const IsNotEqualTo(this.value);
 }
 
 class IsTrue extends Validation {
   @override
   final String call = 'isTrue()';
+  @override
+  final validOnTypes = const [bool];
   const IsTrue();
 }
 
 class IsFalse extends Validation {
   @override
   final String call = 'isFalse()';
+  @override
+  final validOnTypes = const [bool];
   const IsFalse();
 }
