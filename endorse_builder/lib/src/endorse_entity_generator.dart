@@ -2,11 +2,9 @@ import 'dart:async';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:build/src/builder/build_step.dart';
 import 'package:source_gen/source_gen.dart';
-
-import 'package:endorse/endorse.dart';
+import 'package:endorse/annotations.dart';
 import 'package:endorse_builder/src/endorse_builder_exception.dart';
 import 'package:endorse_builder/src/field_helper.dart';
-import 'package:endorse_builder/src/processed_field_holder.dart';
 
 
 final _checkForEndorseEntity = const TypeChecker.fromRuntime(EndorseEntity);
@@ -32,8 +30,17 @@ class EndorseEntityGenerator extends GeneratorForAnnotation<EndorseEntity> {
       throw EndorseBuilderException(notReadyBuf.toString());
     }
 
-    final pageBuf = StringBuffer();
+    var recase = annotation.peek('useCase')?.objectValue?.getField('none')?.toIntValue() ?? 0;
+    recase = annotation.peek('useCase')?.objectValue?.getField('camelCase')?.toIntValue() ?? recase;
+    recase = annotation.peek('useCase')?.objectValue?.getField('snakeCase')?.toIntValue() ?? recase;
+    recase = annotation.peek('useCase')?.objectValue?.getField('pascalCase')?.toIntValue() ?? recase;
+    recase = annotation.peek('useCase')?.objectValue?.getField('kebabCase')?.toIntValue() ?? recase;
+
+    // print(annotation.peek('useCase')?.objectValue?.toIntValue());
+    // int recase = annotation.peek('useCase')?.objectValue?.toIntValue() ?? 0;
     
+    
+    final pageBuf = StringBuffer();
     final resultBuf = StringBuffer();
     final resultContructorBuf = StringBuffer();
     final validatorBuf = StringBuffer();
@@ -54,13 +61,14 @@ class EndorseEntityGenerator extends GeneratorForAnnotation<EndorseEntity> {
         continue;
       }
 
-    final fieldInfo = processField(field);
-    if (!fieldInfo.isGood) {
-      continue;
-    }
+      final fieldInfo = processField(field, recase);
+      if (fieldInfo.ignore) {
+        continue;
+      }
 
       
-      final fieldName = '${field.name}';
+      final fieldName = '${fieldInfo.fieldName}';
+
       resultContructorBuf.write(', this.$fieldName');
       validatorReturnBuf.write(", r['$fieldName']");
       
@@ -80,7 +88,7 @@ class EndorseEntityGenerator extends GeneratorForAnnotation<EndorseEntity> {
       } 
       
 
-      validatorBuf.writeln(fieldInfo.field.toString());
+      validatorBuf.writeln(fieldInfo.fieldOutput.toString());
       
       
       }

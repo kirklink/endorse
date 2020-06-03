@@ -3,7 +3,8 @@ import 'package:analyzer/dart/constant/value.dart';
 import 'package:endorse_builder/src/endorse_builder_exception.dart';
 import 'package:endorse_builder/src/processed_field_holder.dart';
 import 'package:source_gen/source_gen.dart';
-import 'package:endorse/endorse.dart';
+import 'package:endorse/annotations.dart';
+import 'package:recase/recase.dart';
 
 
 final _checkForEndorseField = const TypeChecker.fromRuntime(EndorseField);
@@ -52,9 +53,9 @@ String _processValidations(List<DartObject> validations, Type type) {
 
 
 
-ProcessedFieldHolder processField(FieldElement field) {
+ProcessedFieldHolder processField(FieldElement field, int entityRecase) {
 
-  final fieldName = '${field.name}';
+  
 
   final buf = StringBuffer();
   
@@ -68,10 +69,53 @@ ProcessedFieldHolder processField(FieldElement field) {
   var endorseType = '';
   var fieldCastFromString = '';
   var itemCastFromString = '';
+  final isList = field.type.isDartCoreList;
+  final validations = <DartObject>[];
+  final itemValidations = <DartObject>[];
 
+  var fieldName = '${field.name}';
+  
+  if (_checkForEndorseField.hasAnnotationOfExact(field)) {
+    final reader = ConstantReader(_checkForEndorseField.firstAnnotationOf(field));
+    validations.addAll(reader.peek('validate').listValue);
+    itemValidations.addAll(reader.peek('itemValidate').listValue);
+    final ignore = reader.peek('ignore')?.boolValue ?? false;
+
+    var recase = reader.peek('useCase')?.objectValue?.getField('none')?.toIntValue() ?? 0;
+    recase = reader.peek('useCase')?.objectValue?.getField('camelCase')?.toIntValue() ?? recase;
+    recase = reader.peek('useCase')?.objectValue?.getField('snakeCase')?.toIntValue() ?? recase;
+    recase = reader.peek('useCase')?.objectValue?.getField('pascalCase')?.toIntValue() ?? recase;
+    recase = reader.peek('useCase')?.objectValue?.getField('kebabCase')?.toIntValue() ?? recase;
+
+    if (ignore) {
+      return ProcessedFieldHolder('', ignore: true);
+    }
+
+    final useCase = recase > 0 ? recase : entityRecase;
+    
+    print(useCase);
+    if (useCase > 0) {
+      final rc = ReCase('$fieldName');
+      switch (useCase) {
+        case 1: fieldName = rc.camelCase;
+        break;
+        case 2: fieldName = rc.snakeCase;
+        break;
+        case 3: fieldName = rc.pascalCase;
+        break;
+        case 4: fieldName = rc.paramCase;
+        break;
+        default:
+        break;
+      }
+    }
+    
+  }
+
+  
   buf.write("r['$fieldName'] = ");
 
-  final isList = field.type.isDartCoreList;
+  
 
   if (isList) {
     fieldType = List;
@@ -154,41 +198,30 @@ ProcessedFieldHolder processField(FieldElement field) {
   // Validate the field
   // Handle the annotations
 
-  final validations = <DartObject>[];
-  final itemValidations = <DartObject>[];
 
-  if (_checkForEndorseField.hasAnnotationOfExact(field)) {
-    final reader = ConstantReader(_checkForEndorseField.firstAnnotationOf(field));
-    validations.addAll(reader.peek('validate').listValue);
-    itemValidations.addAll(reader.peek('itemValidate').listValue);
-    final ignore = reader.peek('ignore')?.boolValue ?? false;
 
-    if (ignore) {
-      return ProcessedFieldHolder('', false);
-    }
-
-    final fromString = 'fromString: true';  
-    
-    if (validations.any((e) => e.type.getDisplayString() == 'Required')) {
-      fieldRules = '..isRequired()' + fieldRules;
-    }
-
-    if (validations.any((e) => e.type.getDisplayString() == 'FromString')) {
-      fieldCastFromString = fromString;
-    }
-    
-    
-    if (isList && isCore) {
-      if (itemValidations.any((e) => e.type.getDisplayString() == 'Required')) {
-        itemRules = '..isRequired()' + itemRules;
-      }
-      
-      if (itemValidations.any((e) => e.type.getDisplayString() == 'FromString')) {
-        itemCastFromString = fromString;
-      }  
-    }
-    
+  final fromString = 'fromString: true';  
+  
+  if (validations.any((e) => e.type.getDisplayString() == 'Required')) {
+    fieldRules = '..isRequired()' + fieldRules;
   }
+
+  if (validations.any((e) => e.type.getDisplayString() == 'FromString')) {
+    fieldCastFromString = fromString;
+  }
+  
+  
+  if (isList && isCore) {
+    if (itemValidations.any((e) => e.type.getDisplayString() == 'Required')) {
+      itemRules = '..isRequired()' + itemRules;
+    }
+    
+    if (itemValidations.any((e) => e.type.getDisplayString() == 'FromString')) {
+      itemCastFromString = fromString;
+    }  
+  }
+    
+
 
   fieldRules = fieldRules.replaceFirst('@', fieldCastFromString);
 
@@ -222,5 +255,5 @@ ProcessedFieldHolder processField(FieldElement field) {
     buf.write(").from(input['$fieldName'], '$fieldName');");
   }
 
-  return ProcessedFieldHolder(buf.toString());
+  return ProcessedFieldHolder(buf.toString(), fieldName: fieldName);
 }

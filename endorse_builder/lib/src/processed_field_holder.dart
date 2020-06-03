@@ -1,5 +1,6 @@
 class ProcessedFieldHolder {
-  final String field;
-  final bool isGood;
-  ProcessedFieldHolder(this.field, [this.isGood = true]);
+  final String fieldOutput;
+  final String fieldName;
+  final bool ignore;
+  ProcessedFieldHolder(this.fieldOutput, {this.ignore = false, this.fieldName = ''});
 }

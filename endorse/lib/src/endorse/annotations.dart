@@ -1,14 +1,13 @@
 import 'package:endorse/src/endorse/validations.dart';
+import 'package:endorse/src/endorse/case.dart';
 
 
 /// The annotation to convert a Dart class into a Endorse validated object.
 ///
-/// [name]: rename the Stanza table to correspond with a database table name.
-/// [snakeCase]: automatically convert the object field names to snake_case.
+/// [useCase]: automatically convert the object field names to different case schemas.
 class EndorseEntity {
-  final String name;
-  final bool snakeCase;
-  const EndorseEntity({this.name = '', this.snakeCase = false});
+  final Case useCase;
+  const EndorseEntity({this.useCase = Case.none});
 }
 
 /// The annotation to enhance a Dart class property with Endorse metadata.
@@ -23,9 +22,11 @@ class EndorseField {
   final List<Validation> validate;
   final List<Validation> itemValidate;
   final bool ignore;
+  final Case useCase;
   const EndorseField({
     this.validate = const <Validation>[],
     this.itemValidate = const <Validation>[],
-    this.ignore
+    this.ignore = false,
+    this.useCase = Case.none
   });
 }
