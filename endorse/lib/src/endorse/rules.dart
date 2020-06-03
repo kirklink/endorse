@@ -28,6 +28,15 @@ class IsStringRule extends ValueRule {
   final got = (input, test) => input.runtimeType;
 }
 
+class IsNumRule extends ValueRule {
+  final name = 'IsNum';
+  final causesBail = true;
+  final pass = (input, test) => input is num;
+  final errorMsg = 'must be an';
+  final want = (input, test) => 'num';
+  final got = (input, test) => input.runtimeType;
+}
+
 class IsIntRule extends ValueRule {
   final name = 'IsInt';
   final causesBail = true;

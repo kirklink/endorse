@@ -22,8 +22,10 @@ class EndorseEntity {
 class EndorseField {
   final List<Validation> validate;
   final List<Validation> itemValidate;
+  final bool ignore;
   const EndorseField({
     this.validate = const <Validation>[],
-    this.itemValidate = const <Validation>[]
+    this.itemValidate = const <Validation>[],
+    this.ignore
   });
 }

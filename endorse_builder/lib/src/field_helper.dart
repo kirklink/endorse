@@ -1,6 +1,7 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:endorse_builder/src/endorse_builder_exception.dart';
+import 'package:endorse_builder/src/processed_field_holder.dart';
 import 'package:source_gen/source_gen.dart';
 import 'package:endorse/endorse.dart';
 
@@ -51,7 +52,7 @@ String _processValidations(List<DartObject> validations, Type type) {
 
 
 
-StringBuffer processField(FieldElement field) {
+ProcessedFieldHolder processField(FieldElement field) {
 
   final fieldName = '${field.name}';
 
@@ -91,6 +92,11 @@ StringBuffer processField(FieldElement field) {
         itemType = String;
       }
         break;
+      case 'num': {
+        itemRules = '..isNum(@)';
+        itemType = num;
+      }
+        break;
       case 'int': {
         itemRules = '..isInt(@)';
         itemType = int;
@@ -101,7 +107,10 @@ StringBuffer processField(FieldElement field) {
         itemType = double;
       }
         break;
-      case 'bool': itemRules = '..isBoolean(@)';
+      case 'bool': {
+        itemRules = '..isBoolean(@)';
+        itemType = bool;
+        }
         break;
       case 'DateTime':
       case 'BigInt':
@@ -126,6 +135,9 @@ StringBuffer processField(FieldElement field) {
     if (field.type.isDartCoreString) {
       fieldRules = '..isString()';
       fieldType = String;
+    } else if (field.type.isDartCoreNum) {
+      fieldRules = '..isNum(@)';
+      fieldType = num;
     } else if (field.type.isDartCoreInt) {
       fieldRules = '..isInt(@)';
       fieldType = int;
@@ -149,6 +161,11 @@ StringBuffer processField(FieldElement field) {
     final reader = ConstantReader(_checkForEndorseField.firstAnnotationOf(field));
     validations.addAll(reader.peek('validate').listValue);
     itemValidations.addAll(reader.peek('itemValidate').listValue);
+    final ignore = reader.peek('ignore')?.boolValue ?? false;
+
+    if (ignore) {
+      return ProcessedFieldHolder('', false);
+    }
 
     final fromString = 'fromString: true';  
     
@@ -205,5 +222,5 @@ StringBuffer processField(FieldElement field) {
     buf.write(").from(input['$fieldName'], '$fieldName');");
   }
 
-  return buf;
+  return ProcessedFieldHolder(buf.toString());
 }

@@ -24,6 +24,10 @@ class ValidateValue {
     rules.add(RuleHolder(IsStringRule()));
   }
 
+  void isNumber() {
+    rules.add(RuleHolder(IsNumRule()));
+  }
+
   void isInt({bool fromString = false}) {
     if (fromString) {
       rules.add(RuleHolder(IntFromStringRule()));

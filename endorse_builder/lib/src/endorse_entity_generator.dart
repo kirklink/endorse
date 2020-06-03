@@ -6,6 +6,7 @@ import 'package:source_gen/source_gen.dart';
 import 'package:endorse/endorse.dart';
 import 'package:endorse_builder/src/endorse_builder_exception.dart';
 import 'package:endorse_builder/src/field_helper.dart';
+import 'package:endorse_builder/src/processed_field_holder.dart';
 
 
 final _checkForEndorseEntity = const TypeChecker.fromRuntime(EndorseEntity);
@@ -53,6 +54,11 @@ class EndorseEntityGenerator extends GeneratorForAnnotation<EndorseEntity> {
         continue;
       }
 
+    final fieldInfo = processField(field);
+    if (!fieldInfo.isGood) {
+      continue;
+    }
+
       
       final fieldName = '${field.name}';
       resultContructorBuf.write(', this.$fieldName');
@@ -73,8 +79,8 @@ class EndorseEntityGenerator extends GeneratorForAnnotation<EndorseEntity> {
         resultBuf.writeln('final ValueResult $fieldName;');
       } 
       
-      final fieldBuf = processField(field);
-      validatorBuf.writeln(fieldBuf.toString());
+
+      validatorBuf.writeln(fieldInfo.field.toString());
       
       
       }
