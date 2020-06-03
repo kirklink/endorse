@@ -27,9 +27,6 @@ class Evaluator {
     if (_bail && !rule.escapesBail) {
       return;
     }
-    if (!rule.restriction(_inputCast)) {
-      throw EndorseException('${rule.name} ${rule.restrictionError}.');
-    }
     final ruleGot = rule.got(_input, test);
     final got = ruleGot != null ? ruleGot : _input;
     final ruleWant = rule.want(_input, test);

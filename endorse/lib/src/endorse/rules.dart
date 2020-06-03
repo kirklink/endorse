@@ -83,8 +83,6 @@ class BoolFromStringRule extends ValueRule {
 class MaxLengthRule extends ValueRule {
   final name = 'MaxLength';
   final pass = (input, test) => (input as String).length < test;
-  final restriction = (input) => input is String;
-  final restrictionError = 'can only be used on Strings';
   final got = (input, test) => (input as String).length;
   final errorMsg = 'length must be less than';
 }
@@ -92,8 +90,6 @@ class MaxLengthRule extends ValueRule {
 class MinLengthRule extends ValueRule {
   final name = 'MinLength';
   final pass = (input, test) => (input as String).length > test;
-  final restriction = (input) => input is String;
-  final restrictionError = 'can only be used on Strings';
   final got = (input, test) => (input as String).length;
   final errorMsg = 'length must be greater than';
 }
@@ -101,24 +97,18 @@ class MinLengthRule extends ValueRule {
 class MatchesRule extends ValueRule {
   final name = 'Matches';
   final pass = (input, test) => (input as String) == test;
-  final restriction = (input) => input is String;
-  final restrictionError = 'can only be used on Strings';
   final errorMsg = 'must match:';
 }
 
 class ContainsRule extends ValueRule {
   final name = 'Contains';
   final pass = (input, test) => (input as String).contains(test);
-  final restriction = (input) => input is String;
-  final restrictionError = 'can only be used on Strings';
   final errorMsg = 'must contain:';
 }
 
 class StartsWithRule extends ValueRule {
   final name = 'StartsWith';
   final pass = (input, test) => (input as String).startsWith(test);
-  final restriction = (input) => input is String;
-  final restrictionError = 'can only be used on Strings';
   final errorMsg = 'must start with:';
   final got = (input, test) {
     final i = input as String;
@@ -134,8 +124,6 @@ class EndsWithRule extends ValueRule {
   final name = 'EndsWith';
   final pass = (input, test) => (input as String).endsWith(test);
   final restriction = (input) => input is String;
-  final restrictionError = 'can only be used on Strings';
-  final errorMsg = 'must end with:';
   final got = (input, test) {
     final i = input as String;
     final t = test as String;
@@ -149,40 +137,30 @@ class EndsWithRule extends ValueRule {
 class IsEqualToRule extends ValueRule {
   final name = 'IsEqualTo';
   final pass = (input, test) => input == test;
-  final restriction = (input) => input is num;
-  final restrictionError = 'can only be used on numbers';
   final errorMsg = 'must equal';
 }
 
 class IsNotEqualToRule extends ValueRule {
   final name = 'IsNotEqualTo';
   final pass = (input, test) => input != test;
-  final restriction = (input) => input is num;
-  final restrictionError = 'can only be used on numbers';
   final errorMsg = 'must not equal';
 }
 
 class IsLessThanRule extends ValueRule {
   final name = 'IsLessThan';
   final pass = (input, test) => input as num < test;
-  final restriction = (input) => input is num;
-  final restrictionError = 'can only be used on numbers';
   final errorMsg = 'must be less than';
 }
 
 class IsGreaterThanRule extends ValueRule {
   final name = 'IsGreaterThan';
   final pass = (input, test) => input as num > test;
-  final restriction = (input) => input is num;
-  final restrictionError = 'can only be used on numbers';
   final errorMsg = 'must be greater than';
 }
 
 class IsTrueRule extends ValueRule {
   final name = 'IsTrue';
   final pass = (input, test) => input as bool == true;
-  final restriction = (input) => input is bool;
-  final restrictionError = 'can only be used on booleans';
   final errorMsg = 'must be';
   final want = (input, test) => true;
 }
@@ -190,8 +168,6 @@ class IsTrueRule extends ValueRule {
 class IsFalseRule extends ValueRule {
   final name = 'IsFalse';
   final pass = (input, test) => input as bool == false;
-  final restriction = (input) => input is bool;
-  final restrictionError = 'can only be used on booleans';
   final errorMsg = 'must be';
   final want = (input, test) => false;
 }
