@@ -4,7 +4,7 @@ import 'package:endorse_builder/src/endorse_builder_exception.dart';
 import 'package:endorse_builder/src/processed_field_holder.dart';
 import 'package:source_gen/source_gen.dart';
 import 'package:endorse/annotations.dart';
-import 'package:recase/recase.dart';
+import 'package:endorse_builder/src/case_helper.dart';
 
 
 final _checkForEndorseField = const TypeChecker.fromRuntime(EndorseField);
@@ -53,7 +53,7 @@ String _processValidations(List<DartObject> validations, Type type) {
 
 
 
-ProcessedFieldHolder processField(FieldElement field, int entityRecase) {
+ProcessedFieldHolder processField(FieldElement field, String fieldName) {
 
   
 
@@ -72,8 +72,6 @@ ProcessedFieldHolder processField(FieldElement field, int entityRecase) {
   final isList = field.type.isDartCoreList;
   final validations = <DartObject>[];
   final itemValidations = <DartObject>[];
-
-  var fieldName = '${field.name}';
   
   if (_checkForEndorseField.hasAnnotationOfExact(field)) {
     final reader = ConstantReader(_checkForEndorseField.firstAnnotationOf(field));
@@ -90,25 +88,8 @@ ProcessedFieldHolder processField(FieldElement field, int entityRecase) {
     if (ignore) {
       return ProcessedFieldHolder('', ignore: true);
     }
-
-    final useCase = recase > 0 ? recase : entityRecase;
     
-    print(useCase);
-    if (useCase > 0) {
-      final rc = ReCase('$fieldName');
-      switch (useCase) {
-        case 1: fieldName = rc.camelCase;
-        break;
-        case 2: fieldName = rc.snakeCase;
-        break;
-        case 3: fieldName = rc.pascalCase;
-        break;
-        case 4: fieldName = rc.paramCase;
-        break;
-        default:
-        break;
-      }
-    }
+    fieldName = recaseFieldName(recase, fieldName);
     
   }
 

@@ -2,9 +2,12 @@ import 'dart:async';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:build/src/builder/build_step.dart';
 import 'package:source_gen/source_gen.dart';
+
 import 'package:endorse/annotations.dart';
+import 'package:endorse_builder/src/processed_field_holder.dart';
 import 'package:endorse_builder/src/endorse_builder_exception.dart';
 import 'package:endorse_builder/src/field_helper.dart';
+import 'package:endorse_builder/src/case_helper.dart';
 
 
 final _checkForEndorseEntity = const TypeChecker.fromRuntime(EndorseEntity);
@@ -36,15 +39,12 @@ class EndorseEntityGenerator extends GeneratorForAnnotation<EndorseEntity> {
     recase = annotation.peek('useCase')?.objectValue?.getField('pascalCase')?.toIntValue() ?? recase;
     recase = annotation.peek('useCase')?.objectValue?.getField('kebabCase')?.toIntValue() ?? recase;
 
-    // print(annotation.peek('useCase')?.objectValue?.toIntValue());
-    // int recase = annotation.peek('useCase')?.objectValue?.toIntValue() ?? 0;
-    
-    
     final pageBuf = StringBuffer();
     final resultBuf = StringBuffer();
     final resultContructorBuf = StringBuffer();
     final validatorBuf = StringBuffer();
     final validatorReturnBuf = StringBuffer();
+    ProcessedFieldHolder fieldInfo;
 
     // Set up the result class
     resultBuf.writeln('class _\$${classNamePrefix}ValidationResult extends ClassResult {');
@@ -61,14 +61,17 @@ class EndorseEntityGenerator extends GeneratorForAnnotation<EndorseEntity> {
         continue;
       }
 
-      final fieldInfo = processField(field, recase);
-      if (fieldInfo.ignore) {
-        continue;
-      }
-
+      // var fieldInfo = ProcessedFieldHolder('', fieldName: field.name);
+      var fieldName = recaseFieldName(recase, '${field.name}');
       
-      final fieldName = '${fieldInfo.fieldName}';
-
+      if (!_checkForEndorseEntity.hasAnnotationOfExact(field.type.element)) {
+        fieldInfo = processField(field, fieldName);
+        if (fieldInfo.ignore) {
+          continue;
+        }
+        fieldName = '${fieldInfo.fieldName}';
+      }
+      
       resultContructorBuf.write(', this.$fieldName');
       validatorReturnBuf.write(", r['$fieldName']");
       
@@ -81,14 +84,14 @@ class EndorseEntityGenerator extends GeneratorForAnnotation<EndorseEntity> {
       // Otherwise, the type is the result for an instance field
       } else {
 
-      if (field.type.isDartCoreList) {
-        resultBuf.writeln('final ListResult $fieldName;');
-      } else {
-        resultBuf.writeln('final ValueResult $fieldName;');
-      } 
-      
+        if (field.type.isDartCoreList) {
+          resultBuf.writeln('final ListResult $fieldName;');
+        } else {
+          resultBuf.writeln('final ValueResult $fieldName;');
+        } 
+        
 
-      validatorBuf.writeln(fieldInfo.fieldOutput.toString());
+        validatorBuf.writeln(fieldInfo.fieldOutput.toString());
       
       
       }
