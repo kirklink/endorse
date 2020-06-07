@@ -6,7 +6,7 @@ import 'package:source_gen/source_gen.dart';
 import 'package:endorse/annotations.dart';
 import 'package:endorse_builder/src/case_helper.dart';
 
-
+final _checkForEndorseEntity = const TypeChecker.fromRuntime(EndorseEntity);
 final _checkForEndorseField = const TypeChecker.fromRuntime(EndorseField);
 
 String _processValidations(List<DartObject> validations, Type type) {
@@ -60,6 +60,7 @@ ProcessedFieldHolder processField(FieldElement field, String fieldName) {
   final buf = StringBuffer();
   
   var isCore = true;
+  var isEndorseEntity = false;
   final fieldBuf = StringBuffer();
   final itemBuf = StringBuffer();
   var fieldRules = '';
@@ -157,7 +158,11 @@ ProcessedFieldHolder processField(FieldElement field, String fieldName) {
       break;
     }
   } else {
-    if (field.type.isDartCoreString) {
+    if (_checkForEndorseEntity.hasAnnotationOfExact(field.type.element)) {
+      fieldRules = '..isMap()';
+      isEndorseEntity = true;
+      fieldType = Map;
+    } else if (field.type.isDartCoreString) {
       fieldRules = '..isString()';
       fieldType = String;
     } else if (field.type.isDartCoreNum) {
@@ -229,6 +234,13 @@ ProcessedFieldHolder processField(FieldElement field, String fieldName) {
     buf.write('(ValidateList.fromEndorse(ValidateValue()');
     buf.write(fieldBuf.toString());
     buf.write(', _\$Endorse$endorseType()');
+    buf.write(")).from(input['$fieldName'], '$fieldName');");
+  } else if (isEndorseEntity) {
+    final childClass = field.type.getDisplayString();
+    final childResultClass = '${childClass}ValidationResult';
+    buf.write("(ValidateMap<_\$${childResultClass}>(ValidateValue()");
+    buf.write(fieldBuf.toString());
+    buf.write(', _\$Endorse$childClass()');
     buf.write(")).from(input['$fieldName'], '$fieldName');");
   } else {
     buf.write('(ValidateValue()');

@@ -64,14 +64,16 @@ class EndorseEntityGenerator extends GeneratorForAnnotation<EndorseEntity> {
       // var fieldInfo = ProcessedFieldHolder('', fieldName: field.name);
       var fieldName = recaseFieldName(recase, '${field.name}');
       
-      if (!_checkForEndorseEntity.hasAnnotationOfExact(field.type.element)) {
-        fieldInfo = processField(field, fieldName);
-        if (fieldInfo.ignore) {
-          continue;
-        }
-        fieldName = '${fieldInfo.fieldName}';
-      }
-      
+      // if (!_checkForEndorseEntity.hasAnnotationOfExact(field.type.element)) {
+      //   fieldInfo = processField(field, fieldName);
+      //   if (fieldInfo.ignore) {
+      //     continue;
+      //   }
+      //   fieldName = '${fieldInfo.fieldName}';
+      // }
+
+      fieldInfo = processField(field, fieldName);
+      fieldName = '${fieldInfo.fieldName}';
       
       validatorReturnBuf.write(", r['$fieldName']");
       if (resultContructorBuf.toString().isNotEmpty) {
@@ -84,26 +86,33 @@ class EndorseEntityGenerator extends GeneratorForAnnotation<EndorseEntity> {
         final childResultClass = '${childClass}ValidationResult';
         resultBuf.writeln('_\$$childResultClass _$fieldName;');
         resultBuf.writeln('_\$$childResultClass get $fieldName => _$fieldName;');
-        validatorBuf.writeln("r['$fieldName'] = ${childClass}.\$endorse.validate(input['$fieldName']);");
+        // validatorBuf.writeln("r['$fieldName'] = ${fieldInfo.fieldOutput.toString()},_\$Endorse${childClass}()).from(input['$fieldName'], '$fieldName');");
+        // validatorBuf.writeln("r['$fieldName'] = ${childClass}.\$endorse.validate(input['$fieldName']);");
+        validatorBuf.writeln(fieldInfo.fieldOutput.toString());
         resultContructorBuf.write('this._$fieldName');
       // Otherwise, the type is the result for an instance field
       } else {
 
         if (field.type.isDartCoreList) {
-          resultBuf.writeln('final ListResult $fieldName;');
+          resultBuf.writeln('ListResult _$fieldName;');
+          resultBuf.writeln('ListResult get $fieldName => _$fieldName;');
         } else {
-          resultBuf.writeln('final ValueResult $fieldName;');
-        } 
-        resultContructorBuf.write('this.$fieldName');
+          resultBuf.writeln('ValueResult _$fieldName;');
+          resultBuf.writeln('ValueResult get $fieldName => _$fieldName;');
+        }
+        resultContructorBuf.write('this._$fieldName');
 
         validatorBuf.writeln(fieldInfo.fieldOutput.toString());
       
       
       }
     }
-    resultBuf.writeln('_\$${classNamePrefix}ValidationResult(Map<String, ResultObject> fields, [${resultContructorBuf.toString()}]) : super(fields);');
+    resultBuf.writeln('_\$${classNamePrefix}ValidationResult(Map<String, ResultObject> fields, ValueResult mapResult, [${resultContructorBuf.toString()}]) : super(fields, mapResult);');
     resultBuf.writeln('}');
-    validatorBuf.writeln('return _\$${classNamePrefix}ValidationResult(r${validatorReturnBuf.toString()});');
+    validatorBuf.writeln('return _\$${classNamePrefix}ValidationResult(r, null${validatorReturnBuf.toString()});');
+    validatorBuf.writeln('}');
+    validatorBuf.writeln('_\$${classNamePrefix}ValidationResult invalid(ValueResult mapResult) {');
+    validatorBuf.writeln('return _\$${classNamePrefix}ValidationResult(null, mapResult);');
     validatorBuf.writeln('}');
     // validatorBuf.writeln('List<_\$${classNamePrefix}ValidationResult> validateList(List<Object> list) {');
     // validatorBuf.writeln('final result = <_\$${classNamePrefix}ValidationResult>[];');

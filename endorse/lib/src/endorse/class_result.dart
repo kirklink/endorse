@@ -6,10 +6,10 @@ class ClassResult implements ResultObject {
   Map<String, ResultObject> _fields;
   ValueResult _mapMetaResult;
   
-  ClassResult(this._fields, [this._mapMetaResult]);
+  ClassResult(this._fields, this._mapMetaResult);
   
   
-  bool get isValid => !(_fields.values.any((e) => e.isValid == false));
+  bool get isValid => _mapMetaResult?.isValid ?? true && !(_fields.values.any((e) => e.isValid == false));
 
   Object get value {
     final r = <String, Object>{};
@@ -20,14 +20,17 @@ class ClassResult implements ResultObject {
   }
 
   Object get errors {
-
-    final r = <String, Object>{};
-    for (final k in _fields.keys) {
-      if (!_fields[k].isValid) {
-        r[k] = _fields[k].errors;
+    if (_mapMetaResult != null && !_mapMetaResult.isValid) {
+      return _mapMetaResult.errors;
+    } else {
+      final r = <String, Object>{};
+      for (final k in _fields.keys) {
+        if (!_fields[k].isValid) {
+          r[k] = _fields[k].errors;
+        }
       }
+      return r;
     }
-    return r;
   }
 }
 
