@@ -1,11 +1,14 @@
+import 'package:endorse/annotations.dart';
 import 'package:endorse/src/endorse/result_object.dart';
 
 
 class ClassResult implements ResultObject {
-  final Map<String, ResultObject> _fields;
+  Map<String, ResultObject> _fields;
+  ValueResult _mapMetaResult;
   
-  ClassResult(this._fields);
-
+  ClassResult(this._fields, [this._mapMetaResult]);
+  
+  
   bool get isValid => !(_fields.values.any((e) => e.isValid == false));
 
   Object get value {
@@ -17,6 +20,7 @@ class ClassResult implements ResultObject {
   }
 
   Object get errors {
+
     final r = <String, Object>{};
     for (final k in _fields.keys) {
       if (!_fields[k].isValid) {
@@ -26,3 +30,4 @@ class ClassResult implements ResultObject {
     return r;
   }
 }
+

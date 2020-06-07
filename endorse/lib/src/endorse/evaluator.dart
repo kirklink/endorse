@@ -1,4 +1,3 @@
-import 'package:endorse/src/endorse/endorse_exception.dart';
 import 'package:endorse/src/endorse/error_expander.dart';
 import 'package:endorse/src/endorse/rules.dart';
 import 'package:endorse/src/endorse/rule_holder.dart';

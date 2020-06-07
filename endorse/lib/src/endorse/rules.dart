@@ -10,6 +10,15 @@ class IsRequiredRule extends ValueRule {
   final errorMsg = 'is required';
 }
 
+class IsMapRule extends ValueRule {
+  final name = 'IsMap';
+  final causesBail = true;
+  final pass = (input, test) => input is Map<String, Object>;
+  final errorMsg = 'must be a';
+  final want = (input, test) => 'Map<String, Object>';
+  final got = (input, test) => input.runtimeType;
+}
+
 class IsListRule extends ValueRule {
   final name = 'IsList';
   final causesBail = true;

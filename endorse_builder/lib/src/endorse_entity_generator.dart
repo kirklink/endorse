@@ -72,15 +72,20 @@ class EndorseEntityGenerator extends GeneratorForAnnotation<EndorseEntity> {
         fieldName = '${fieldInfo.fieldName}';
       }
       
-      resultContructorBuf.write(', this.$fieldName');
+      
       validatorReturnBuf.write(", r['$fieldName']");
+      if (resultContructorBuf.toString().isNotEmpty) {
+        resultContructorBuf.write(', ');
+      }
       
       // If the field is an EndorseEntity, set the type as it's result
       if (_checkForEndorseEntity.hasAnnotationOfExact(field.type.element)) {
         final childClass = field.type.getDisplayString();
         final childResultClass = '${childClass}ValidationResult';
-        resultBuf.writeln('final _\$$childResultClass $fieldName;');
+        resultBuf.writeln('_\$$childResultClass _$fieldName;');
+        resultBuf.writeln('_\$$childResultClass get $fieldName => _$fieldName;');
         validatorBuf.writeln("r['$fieldName'] = ${childClass}.\$endorse.validate(input['$fieldName']);");
+        resultContructorBuf.write('this._$fieldName');
       // Otherwise, the type is the result for an instance field
       } else {
 
@@ -89,14 +94,14 @@ class EndorseEntityGenerator extends GeneratorForAnnotation<EndorseEntity> {
         } else {
           resultBuf.writeln('final ValueResult $fieldName;');
         } 
-        
+        resultContructorBuf.write('this.$fieldName');
 
         validatorBuf.writeln(fieldInfo.fieldOutput.toString());
       
       
       }
     }
-    resultBuf.writeln('_\$${classNamePrefix}ValidationResult(Map<String, ResultObject> fields${resultContructorBuf.toString()}) : super(fields);');
+    resultBuf.writeln('_\$${classNamePrefix}ValidationResult(Map<String, ResultObject> fields, [${resultContructorBuf.toString()}]) : super(fields);');
     resultBuf.writeln('}');
     validatorBuf.writeln('return _\$${classNamePrefix}ValidationResult(r${validatorReturnBuf.toString()});');
     validatorBuf.writeln('}');

@@ -16,6 +16,10 @@ class ValidateValue {
     rules.add(RuleHolder(IsRequiredRule()));
   }
 
+  void isMap() {
+    rules.add(RuleHolder(IsMapRule()));
+  }
+
   void isList() {
     rules.add(RuleHolder(IsListRule()));
   }
