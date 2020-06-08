@@ -25,10 +25,8 @@ class ListResult extends ResultObject {
   
   Object get errors {
     
-    final result = <String, Object>{};
-
     if (!valueResult.isValid) {
-      result['list'] = valueResult.errors;
+      return valueResult.errors;
     }
 
     if (_itemResults != null && _itemResults.any((e) => !e.isValid)) {
@@ -40,9 +38,9 @@ class ListResult extends ResultObject {
         }
       });
 
-      result['items'] = List.from(_itemResults.map((i) => i.errors));
+      return List.from(_itemResults.map((i) => i.errors));
     }
-    return result;
+    return [];
   }
 
 }
