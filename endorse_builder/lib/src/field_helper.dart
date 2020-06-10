@@ -79,6 +79,7 @@ ProcessedFieldHolder processField(FieldElement field, String fieldName) {
     validations.addAll(reader.peek('validate').listValue);
     itemValidations.addAll(reader.peek('itemValidate').listValue);
     final ignore = reader.peek('ignore')?.boolValue ?? false;
+    final nameOverride = reader.peek('name').stringValue ?? '';
 
     var recase = reader.peek('useCase')?.objectValue?.getField('none')?.toIntValue() ?? 0;
     recase = reader.peek('useCase')?.objectValue?.getField('camelCase')?.toIntValue() ?? recase;
@@ -90,7 +91,12 @@ ProcessedFieldHolder processField(FieldElement field, String fieldName) {
       return ProcessedFieldHolder('', ignore: true);
     }
     
-    fieldName = recaseFieldName(recase, fieldName);
+    if (nameOverride.isNotEmpty) {
+      fieldName = nameOverride;
+    } else {
+      fieldName = recaseFieldName(recase, fieldName);
+    }
+    
     
   }
 

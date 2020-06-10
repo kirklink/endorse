@@ -23,10 +23,12 @@ class EndorseField {
   final List<Validation> itemValidate;
   final bool ignore;
   final Case useCase;
+  final String name;
   const EndorseField({
     this.validate = const <Validation>[],
     this.itemValidate = const <Validation>[],
     this.ignore = false,
-    this.useCase = Case.none
+    this.useCase = Case.none,
+    this.name = ''
   });
 }
