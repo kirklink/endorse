@@ -1,14 +1,14 @@
 targets:
-    $default:
-      builders:
-        endorse_builder:
-          enabled: true
+  $default:
+    builders:
+      endorse_builder:
+        enabled: true
   
 builders:
-    endorse_builder:
-        import: "package:endorse_builder/src/endorse_builder.dart"
-        builder_factories: ["EndorseBuilder"]
-        build_extensions: {".dart": [".g.part", ".g.dart"]}
-        auto_apply: dependents
-        build_to: cache
-        applies_builders: ["source_gen|combining_builder"]
+  endorse_builder:
+    import: "package:endorse_builder/src/endorse_builder.dart"
+    builder_factories: ["EndorseBuilder"]
+    build_extensions: {".dart": [".endorse.g.part"]}
+    auto_apply: dependents
+    build_to: cache
+    applies_builders: ["source_gen|combining_builder"]

@@ -102,8 +102,10 @@ class IsDateTimeRule extends ValueRule {
 class CanIntFromStringRule extends ValueRule {
   final name = 'IntFromString';
   final causesBail = true;
-  final pass = (input, test) => int.tryParse(input) != null;
-  final errorMsg = 'could not cast to int from String';
+  final pass = (input, test) => input is String && int.tryParse(input) != null;
+  final errorMsg = 'could not cast to int from';
+  final want = (input, test) => 'String';
+  final got = (input, test) => input.runtimeType;
 }
 
 class IntFromStringRule extends ValueRule {
@@ -117,8 +119,10 @@ class IntFromStringRule extends ValueRule {
 class CanDoubleFromStringRule extends ValueRule {
   final name = 'DoubleFromString';
   final causesBail = true;
-  final pass = (input, test) => double.tryParse(input) != null;
-  final errorMsg = 'could not cast to double from String';
+  final pass = (input, test) => input is String && double.tryParse(input) != null;
+  final errorMsg = 'could not cast to double from';
+  final want = (input, test) => 'String';
+  final got = (input, test) => input.runtimeType;
 }
 
 class DoubleFromStringRule extends ValueRule {
@@ -132,8 +136,10 @@ class DoubleFromStringRule extends ValueRule {
 class CanNumFromStringRule extends ValueRule {
   final name = 'NumFromString';
   final causesBail = true;
-  final pass = (input, test) => num.tryParse(input) != null;
-  final errorMsg = 'could not cast to num from String';
+  final pass = (input, test) => input is String && num.tryParse(input) != null;
+  final errorMsg = 'could not cast to num from';
+  final want = (input, test) => 'String';
+  final got = (input, test) => input.runtimeType;
 }
 
 class NumFromStringRule extends ValueRule {
@@ -147,8 +153,8 @@ class NumFromStringRule extends ValueRule {
 class CanBoolFromStringRule extends ValueRule {
   final name = 'BoolFromString';
   final causesBail = true;
-  final pass = (input, test) => input == 'true' || input == 'false';
-  final errorMsg = 'could not cast to bool from String';
+  final pass = (input, test) => input is String && (input == 'true' || input == 'false');
+  final errorMsg = 'could not cast to bool from';
 }
 
 class BoolFromStringRule extends ValueRule {
@@ -157,6 +163,8 @@ class BoolFromStringRule extends ValueRule {
   final pass = (input, test) => input == 'true' || input == 'false';
   final errorMsg = 'could not cast to bool from String';
   final cast = (input) => input == 'true' ? true : false;
+  final want = (input, test) => 'String';
+  final got = (input, test) => input.runtimeType;
 }
 
 

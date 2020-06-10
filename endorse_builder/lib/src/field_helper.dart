@@ -9,31 +9,45 @@ import 'package:endorse_builder/src/case_helper.dart';
 final _checkForEndorseEntity = const TypeChecker.fromRuntime(EndorseEntity);
 final _checkForEndorseField = const TypeChecker.fromRuntime(EndorseField);
 
+
+
 String _processValidations(List<DartObject> validations, Type type) {
    
-   if (validations == null) {
+   if (validations == null || validations.isEmpty) {
      return '';
    }
    var ruleCall = '';
+   
+   var typeOverride = '';
+   
    for (final rule in validations) {
-    if (rule.type.getDisplayString() == 'Required' 
-        || rule.type.getDisplayString() == 'FromString') {
+    if (rule.type.getDisplayString() == 'Required') {
       continue;
     }
+
+    
     // Get the right type for the test value
     final valueType = rule.getField('value')?.type;
     final validOnList = rule.getField('validOnTypes')?.toListValue();
     final notValidOnList = rule.getField('notValidOnTypes')?.toListValue();
+
+    
+    
+    final typeToCheck = typeOverride.isNotEmpty ? typeOverride : type.toString();
+
+    print('checkpoint i1');
     if (validOnList != null && validOnList.isNotEmpty) {
-      if (!validOnList.map((v) => v.toTypeValue().getDisplayString()).contains(type.toString())) {
+      if (!validOnList.map((v) => v.toTypeValue().getDisplayString()).contains(typeToCheck)) {
         throw EndorseBuilderException('${rule.type.getDisplayString()} cannot be used on a ${type.toString()}');
       }
     };
     if (notValidOnList != null && notValidOnList.isNotEmpty) {
-      if (validOnList.map((v) => v.toTypeValue().getDisplayString()).contains(type.toString())) {
+      if (notValidOnList.map((v) => v.toTypeValue().getDisplayString()).contains(typeToCheck)) {
         throw EndorseBuilderException('${rule.type.getDisplayString()} cannot be used on a ${type.toString()}');
       }
     };
+
+    print('checkpoint i2');
     String value;
     if (valueType == null) {
       value = '';
@@ -46,6 +60,18 @@ String _processValidations(List<DartObject> validations, Type type) {
     }
     // Replace the token with a value
     ruleCall = ruleCall + '..' + (rule.getField('call').toStringValue()).replaceFirst('@', value);
+
+    if (rule.type.getDisplayString() == 'ToString') {
+      typeOverride = 'String';
+    } else if (rule.type.getDisplayString() == 'IntFromString'){
+      typeOverride = 'int';
+    } else if (rule.type.getDisplayString() == 'DoubleFromString'){
+      typeOverride = 'double';
+    } else if (rule.type.getDisplayString() == 'NumFromString'){
+      typeOverride = 'num';
+    } else if (rule.type.getDisplayString() == 'BoolFromString'){
+      typeOverride = 'bool';
+    }
   }
   return ruleCall;
 }
@@ -54,7 +80,7 @@ String _processValidations(List<DartObject> validations, Type type) {
 
 
 ProcessedFieldHolder processField(FieldElement field, String fieldName) {
-
+  print('start processField ${field.name}');
   
 
   final buf = StringBuffer();
@@ -68,18 +94,16 @@ ProcessedFieldHolder processField(FieldElement field, String fieldName) {
   Type fieldType;
   Type itemType;
   var endorseType = '';
-  var fieldCastFromString = '';
-  var itemCastFromString = '';
   final isList = field.type.isDartCoreList;
   final validations = <DartObject>[];
   final itemValidations = <DartObject>[];
   
   if (_checkForEndorseField.hasAnnotationOfExact(field)) {
     final reader = ConstantReader(_checkForEndorseField.firstAnnotationOf(field));
-    validations.addAll(reader.peek('validate').listValue);
-    itemValidations.addAll(reader.peek('itemValidate').listValue);
+    validations.addAll(reader.peek('validate')?.listValue);
+    itemValidations.addAll(reader.peek('itemValidate')?.listValue);
     final ignore = reader.peek('ignore')?.boolValue ?? false;
-    final nameOverride = reader.peek('name').stringValue ?? '';
+    final nameOverride = reader.peek('name')?.stringValue ?? '';
 
     var recase = reader.peek('useCase')?.objectValue?.getField('none')?.toIntValue() ?? 0;
     recase = reader.peek('useCase')?.objectValue?.getField('camelCase')?.toIntValue() ?? recase;
@@ -90,6 +114,8 @@ ProcessedFieldHolder processField(FieldElement field, String fieldName) {
     if (ignore) {
       return ProcessedFieldHolder('', ignore: true);
     }
+
+    print('checkpoint 1');
     
     if (nameOverride.isNotEmpty) {
       fieldName = nameOverride;
@@ -103,7 +129,7 @@ ProcessedFieldHolder processField(FieldElement field, String fieldName) {
   
   buf.write("r['$fieldName'] = ");
 
-  
+  print('checkpoint 2');
 
   if (isList) {
     fieldType = List;
@@ -196,22 +222,34 @@ ProcessedFieldHolder processField(FieldElement field, String fieldName) {
   }
   // Validate the field
   // Handle the annotations
+  print('checkpoint 3');
 
 
-
-  final fromString = 'fromString: true';
-  final toString = 'toString: true';
+  const fromString = 'fromString: true';
+  const toString = 'toString: true';
+  const fromStringRules = const ['IntFromString', 'DoubleFromString', 'NumFromString', 'BoolFromString'];
+  // var fieldCastFromString = '';
+  // var itemCastFromString = '';
   
   if (validations.any((e) => e.type.getDisplayString() == 'Required')) {
     fieldRules = '..isRequired()' + fieldRules;
   }
 
-  if (validations.any((e) => e.type.getDisplayString() == 'FromString')) {
-    fieldCastFromString = fromString;
+
+
+  if (validations.any((e) => fromStringRules.contains(e.type.getDisplayString()))) {
+    fieldRules = fieldRules.replaceFirst('@', fromString);
   }
 
   if (validations.any((e) => e.type.getDisplayString() == 'ToString')) {
-    fieldCastFromString = toString;
+    fieldRules = fieldRules.replaceFirst('#', toString);
+  }
+  fieldRules = fieldRules.replaceFirst('@', '');
+  fieldRules = fieldRules.replaceFirst('#', '');
+
+  fieldBuf.write(fieldRules);
+    if (validations.isNotEmpty) {
+      fieldBuf.write(_processValidations(validations, fieldType));
   }
   
   
@@ -219,33 +257,27 @@ ProcessedFieldHolder processField(FieldElement field, String fieldName) {
     if (itemValidations.any((e) => e.type.getDisplayString() == 'Required')) {
       itemRules = '..isRequired()' + itemRules;
     }
-    
-    if (itemValidations.any((e) => e.type.getDisplayString() == 'FromString')) {
-      itemCastFromString = fromString;
+    if (itemValidations.any((e) => fromStringRules.contains(e.type.getDisplayString()))) {
+      itemRules = itemRules.replaceFirst('@', fromString);
     }
-
     if (itemValidations.any((e) => e.type.getDisplayString() == 'ToString')) {
-      itemCastFromString = toString;
+      itemRules = itemRules.replaceFirst('#', toString);
     }
-  }
-    
-
-
-  fieldRules = fieldRules.replaceFirst('@', fieldCastFromString);
-  fieldRules = fieldRules.replaceFirst('#', fieldCastFromString);
-
-  fieldBuf.write(fieldRules);
-  if (validations.isNotEmpty) {
-    fieldBuf.write(_processValidations(validations, fieldType));
+    itemRules = itemRules.replaceFirst('@', '');
+    itemRules = itemRules.replaceFirst('#', '');
   }
   
+  print('checkpoint 4');
+  
   if (isCore) {
-    itemRules = itemRules.replaceFirst('@', itemCastFromString);
     itemBuf.writeln(itemRules);
     if (itemValidations.isNotEmpty) {
       itemBuf.write(_processValidations(itemValidations, itemType));
     }
+    print('checkpoint 4.4');
   }
+
+  print('checkpoint 5');
  
   if (isList && isCore) {
     buf.write('(ValidateList.fromCore(ValidateValue()');
@@ -271,5 +303,6 @@ ProcessedFieldHolder processField(FieldElement field, String fieldName) {
     buf.write(").from(input['$fieldName'], '$fieldName');");
   }
 
+  print('end processField ${field.name}');
   return ProcessedFieldHolder(buf.toString(), fieldName: fieldName);
 }

@@ -21,3 +21,6 @@
 
 ## 0.0.7
 - Fix handling of String conversions
+
+## 0.0.8
+- Better handling of String conversions
