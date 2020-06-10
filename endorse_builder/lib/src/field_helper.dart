@@ -144,7 +144,11 @@ ProcessedFieldHolder processField(FieldElement field, String fieldName) {
         itemType = bool;
         }
         break;
-      case 'DateTime':
+      case 'DateTime': {
+        itemRules = '..isDateTime()';
+        itemType = DateTime;
+        }
+        break;
       case 'BigInt':
       case 'Duration':
       case 'Expando':
@@ -168,6 +172,9 @@ ProcessedFieldHolder processField(FieldElement field, String fieldName) {
       fieldRules = '..isMap()';
       isEndorseEntity = true;
       fieldType = Map;
+    } else if (field.type.getDisplayString() == 'DateTime') {
+      fieldRules = '..isDateTime()';
+      fieldType = DateTime;
     } else if (field.type.isDartCoreString) {
       fieldRules = '..isString()';
       fieldType = String;

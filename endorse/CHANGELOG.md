@@ -9,3 +9,6 @@
 
 ## 0.0.3
 - Allow override of field names
+
+## 0.0.4
+- Validate DateTime strings

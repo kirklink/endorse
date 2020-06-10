@@ -73,6 +73,14 @@ class IsBoolRule extends ValueRule {
   final got = (input, test) => input.runtimeType;
 }
 
+class IsDateTimeRule extends ValueRule {
+  final name = 'IsDateTime';
+  final causesBail = true;
+  final pass = (input, test) => DateTime.tryParse(input) != null;
+  final errorMsg = 'could not parse a DateTime';
+  final cast = (input) => DateTime.parse(input);
+}
+
 class IntFromStringRule extends ValueRule {
   final name = 'IntFromString';
   final causesBail = true;

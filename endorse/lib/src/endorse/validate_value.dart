@@ -53,6 +53,10 @@ class ValidateValue {
     rules.add(RuleHolder(IsBoolRule()));
   }
 
+  void isDateTime() {
+    rules.add(RuleHolder(IsDateTimeRule()));
+  }
+
   void maxLength(int test) {
     rules.add(RuleHolder(MaxLengthRule(), test));
   }
