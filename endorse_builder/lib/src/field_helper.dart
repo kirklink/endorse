@@ -120,7 +120,7 @@ ProcessedFieldHolder processField(FieldElement field, String fieldName) {
     final listTypeStr = listTypeParts.firstWhere((e) => e != 'List');
     switch(listTypeStr) {
       case 'String': {
-        itemRules = '..isString()';
+        itemRules = '..isString(#)';
         itemType = String;
       }
         break;
@@ -176,7 +176,7 @@ ProcessedFieldHolder processField(FieldElement field, String fieldName) {
       fieldRules = '..isDateTime()';
       fieldType = DateTime;
     } else if (field.type.isDartCoreString) {
-      fieldRules = '..isString()';
+      fieldRules = '..isString(#)';
       fieldType = String;
     } else if (field.type.isDartCoreNum) {
       fieldRules = '..isNum(@)';
@@ -197,32 +197,17 @@ ProcessedFieldHolder processField(FieldElement field, String fieldName) {
   // Validate the field
   // Handle the annotations
 
-
-
-  final fromString = 'fromString: true';  
   
   if (validations.any((e) => e.type.getDisplayString() == 'Required')) {
     fieldRules = '..isRequired()' + fieldRules;
   }
 
-  if (validations.any((e) => e.type.getDisplayString() == 'FromString')) {
-    fieldCastFromString = fromString;
-  }
-  
   
   if (isList && isCore) {
     if (itemValidations.any((e) => e.type.getDisplayString() == 'Required')) {
       itemRules = '..isRequired()' + itemRules;
     }
-    
-    if (itemValidations.any((e) => e.type.getDisplayString() == 'FromString')) {
-      itemCastFromString = fromString;
-    }  
   }
-    
-
-
-  fieldRules = fieldRules.replaceFirst('@', fieldCastFromString);
 
   fieldBuf.write(fieldRules);
   if (validations.isNotEmpty) {

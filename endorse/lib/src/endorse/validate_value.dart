@@ -28,29 +28,36 @@ class ValidateValue {
     rules.add(RuleHolder(IsStringRule()));
   }
 
+  void makeString() {
+    rules.add(RuleHolder(ToStringRule()));
+  }
+
   void isNumber() {
     rules.add(RuleHolder(IsNumRule()));
   }
 
-  void isInt({bool fromString = false}) {
-    if (fromString) {
-      rules.add(RuleHolder(IntFromStringRule()));
-    }
+  void isInt() {
     rules.add(RuleHolder(IsIntRule()));
   }
 
-  void isDouble({bool fromString = false}) {
-    if (fromString) {
-      rules.add(RuleHolder(DoubleFromStringRule()));
-    }
+  void isDouble() {
     rules.add(RuleHolder(IsDoubleRule()));
   }
 
-  void isBoolean({bool fromString = false}) {
-    if (fromString) {
-      rules.add(RuleHolder(BoolFromStringRule()));
-    }
+  void isBoolean() {
     rules.add(RuleHolder(IsBoolRule()));
+  }
+
+  void intFromString() {
+    rules.add(RuleHolder(IntFromStringRule()));
+  }
+
+  void doubleFromString() {
+    rules.add(RuleHolder(DoubleFromStringRule()));
+  }
+
+  void numFromString() {
+    rules.add(RuleHolder(NumFromStringRule()));
   }
 
   void isDateTime() {

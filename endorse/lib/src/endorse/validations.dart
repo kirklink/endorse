@@ -11,12 +11,44 @@ class Required extends Validation {
   const Required();
 }
 
-class FromString extends Validation {
+class ToString extends Validation {
   @override
-  final String call = 'fromString()';
+  final String call = 'makeString()';
   @override
   final notValidOnTypes = const [String];
-  const FromString();
+  const ToString();
+}
+
+class IntFromString extends Validation {
+  @override
+  final String call = 'intFromString()';
+  @override
+  final validOnTypes = const [int];
+  const IntFromString();
+}
+
+class DoubleFromString extends Validation {
+  @override
+  final String call = 'doubleFromString()';
+  @override
+  final validOnTypes = const [double];
+  const DoubleFromString();
+}
+
+class NumFromString extends Validation {
+  @override
+  final String call = 'numFromString()';
+  @override
+  final validOnTypes = const [int, double, num];
+  const NumFromString();
+}
+
+class BoolFromString extends Validation {
+  @override
+  final String call = 'boolFromString()';
+  @override
+  final validOnTypes = const [bool];
+  const BoolFromString();
 }
 
 class MaxLength extends Validation {

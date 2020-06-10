@@ -15,3 +15,6 @@
 
 ## 0.0.5
 - Better handling of non-required null values
+
+## 0.0.6
+- Change handling of String conversions

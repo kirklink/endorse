@@ -38,6 +38,23 @@ class IsStringRule extends ValueRule {
   final got = (input, test) => input.runtimeType;
 }
 
+class ToStringRule extends ValueRule {
+  final name = 'ToString';
+  final causesBail = true;
+  final pass = (input, test) {
+    try {
+      final e = input.toString();
+      return true;
+    } catch (e) {
+      return false;
+    }
+  };
+  final errorMsg = 'cannot be coerced to String.';
+  final want = (input, test) => 'object with toString() method.';
+  final got = (input, test) => input.runtimeType;
+  final cast = (input) => input.toString();
+}
+
 class IsNumRule extends ValueRule {
   final name = 'IsNum';
   final causesBail = true;
@@ -96,6 +113,14 @@ class DoubleFromStringRule extends ValueRule {
   final pass = (input, test) => double.tryParse(input) != null;
   final errorMsg = 'could not cast to double from String';
   final cast = (input) => double.parse(input);
+}
+
+class NumFromStringRule extends ValueRule {
+  final name = 'NumFromString';
+  final causesBail = true;
+  final pass = (input, test) => num.tryParse(input) != null;
+  final errorMsg = 'could not cast to num from String';
+  final cast = (input) => num.parse(input);
 }
 
 class BoolFromStringRule extends ValueRule {
