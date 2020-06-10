@@ -59,7 +59,6 @@ String _processValidations(List<DartObject> validations, Type type) {
     final notValidOnList = rule.getField('notValidOnTypes')?.toListValue();
     
     final typeToCheck = typeOverride.isNotEmpty ? typeOverride : type.toString();
-    print(typeToCheck);
 
     if (validOnList != null && validOnList.isNotEmpty) {
       if (!validOnList.map((v) => v.toTypeValue().getDisplayString()).contains(typeToCheck)) {

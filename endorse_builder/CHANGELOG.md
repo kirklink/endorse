@@ -33,3 +33,6 @@
 
 ## 0.0.11
 - More improvements to type switching
+
+## 0.0.12
+- Minor oopsie
