@@ -15,7 +15,7 @@ class ToString extends Validation {
   @override
   final String call = 'makeString()';
   @override
-  final notValidOnTypes = const [String];
+  final validOnTypes = const [String];
   const ToString();
 }
 
