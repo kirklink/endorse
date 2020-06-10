@@ -5,6 +5,7 @@ typedef Object CastFuntion(Object input);
 
 abstract class Rule {
   final String name = '';
+  final bool skipIfNull = true;
   final bool causesBail = false;
   final bool escapesBail = false;
   final PassFuntion pass = (input, test) => true; 

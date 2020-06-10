@@ -5,6 +5,7 @@ abstract class ValueRule extends Rule{}
 
 class IsRequiredRule extends ValueRule {
   final name = 'required';
+  final skipIfNull = false;
   final causesBail = true;
   final pass = (input, test) => input != null;
   final errorMsg = 'is required';

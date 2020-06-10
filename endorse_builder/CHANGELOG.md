@@ -12,3 +12,6 @@
 
 ## 0.0.4
 - Validate DateTime strings
+
+## 0.0.5
+- Better handling of non-required null values

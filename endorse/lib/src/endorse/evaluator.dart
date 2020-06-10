@@ -26,6 +26,9 @@ class Evaluator {
     if (_bail && !rule.escapesBail) {
       return;
     }
+    if (_inputCast == null && rule.skipIfNull) {
+      return;
+    }
     final ruleGot = rule.got(_input, test);
     final got = ruleGot != null ? ruleGot : _input;
     final ruleWant = rule.want(_input, test);
