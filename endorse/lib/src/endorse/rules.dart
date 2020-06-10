@@ -38,6 +38,22 @@ class IsStringRule extends ValueRule {
   final got = (input, test) => input.runtimeType;
 }
 
+class CanStringRule extends ValueRule {
+  final name = 'IsString';
+  final causesBail = true;
+  final pass = (input, test) {
+    try {
+      final e = input.toString();
+      return true;
+    } catch (e) {
+      return false;
+    }
+  };
+  final errorMsg = 'cannot be coerced to String.';
+  final want = (input, test) => 'String';
+  final got = (input, test) => input.runtimeType;
+}
+
 class ToStringRule extends ValueRule {
   final name = 'ToString';
   final causesBail = true;

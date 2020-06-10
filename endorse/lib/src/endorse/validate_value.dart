@@ -24,7 +24,10 @@ class ValidateValue {
     rules.add(RuleHolder(IsListRule()));
   }
 
-  void isString() {
+  void isString({bool toString = false}) {
+    if (toString) {
+      rules.add(RuleHolder(CanStringRule()));
+    }
     rules.add(RuleHolder(IsStringRule()));
   }
 

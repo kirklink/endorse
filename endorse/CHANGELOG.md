@@ -27,3 +27,6 @@
 
 ## 0.0.9
 - Fix ToString rule
+
+## 0.0.10
+- Fix ToString rule
