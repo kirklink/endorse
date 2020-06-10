@@ -197,17 +197,42 @@ ProcessedFieldHolder processField(FieldElement field, String fieldName) {
   // Validate the field
   // Handle the annotations
 
+
+
+  final fromString = 'fromString: true';
+  final toString = 'toString: true';
   
   if (validations.any((e) => e.type.getDisplayString() == 'Required')) {
     fieldRules = '..isRequired()' + fieldRules;
   }
 
+  if (validations.any((e) => e.type.getDisplayString() == 'FromString')) {
+    fieldCastFromString = fromString;
+  }
+
+  if (validations.any((e) => e.type.getDisplayString() == 'ToString')) {
+    fieldCastFromString = toString;
+  }
+  
   
   if (isList && isCore) {
     if (itemValidations.any((e) => e.type.getDisplayString() == 'Required')) {
       itemRules = '..isRequired()' + itemRules;
     }
+    
+    if (itemValidations.any((e) => e.type.getDisplayString() == 'FromString')) {
+      itemCastFromString = fromString;
+    }
+
+    if (itemValidations.any((e) => e.type.getDisplayString() == 'ToString')) {
+      itemCastFromString = toString;
+    }
   }
+    
+
+
+  fieldRules = fieldRules.replaceFirst('@', fieldCastFromString);
+  fieldRules = fieldRules.replaceFirst('#', fieldCastFromString);
 
   fieldBuf.write(fieldRules);
   if (validations.isNotEmpty) {

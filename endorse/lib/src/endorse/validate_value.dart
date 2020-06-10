@@ -36,16 +36,36 @@ class ValidateValue {
     rules.add(RuleHolder(IsNumRule()));
   }
 
-  void isInt() {
-    rules.add(RuleHolder(IsIntRule()));
+  void isInt({bool fromString = false}) {
+    if (fromString) {
+      rules.add(RuleHolder(CanIntFromStringRule()));
+    } else {
+      rules.add(RuleHolder(IsIntRule()));
+    }
   }
 
-  void isDouble() {
-    rules.add(RuleHolder(IsDoubleRule()));
+  void isDouble({bool fromString = false}) {
+    if (fromString) {
+      rules.add(RuleHolder(CanDoubleFromStringRule()));
+    } else {
+      rules.add(RuleHolder(IsDoubleRule()));
+    }
   }
 
-  void isBoolean() {
-    rules.add(RuleHolder(IsBoolRule()));
+  void isNum({bool fromString = false}) {
+    if (fromString) {
+      rules.add(RuleHolder(CanNumFromStringRule()));
+    } else {
+      rules.add(RuleHolder(IsNumRule()));
+    }
+  }
+
+  void isBoolean({bool fromString = false}) {
+    if (fromString) {
+      rules.add(RuleHolder(CanBoolFromStringRule()));
+    } else {
+      rules.add(RuleHolder(IsBoolRule()));
+    }
   }
 
   void intFromString() {

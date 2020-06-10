@@ -99,12 +99,26 @@ class IsDateTimeRule extends ValueRule {
   final cast = (input) => DateTime.parse(input);
 }
 
+class CanIntFromStringRule extends ValueRule {
+  final name = 'IntFromString';
+  final causesBail = true;
+  final pass = (input, test) => int.tryParse(input) != null;
+  final errorMsg = 'could not cast to int from String';
+}
+
 class IntFromStringRule extends ValueRule {
   final name = 'IntFromString';
   final causesBail = true;
   final pass = (input, test) => int.tryParse(input) != null;
   final errorMsg = 'could not cast to int from String';
   final cast = (input) => int.parse(input);
+}
+
+class CanDoubleFromStringRule extends ValueRule {
+  final name = 'DoubleFromString';
+  final causesBail = true;
+  final pass = (input, test) => double.tryParse(input) != null;
+  final errorMsg = 'could not cast to double from String';
 }
 
 class DoubleFromStringRule extends ValueRule {
@@ -115,12 +129,26 @@ class DoubleFromStringRule extends ValueRule {
   final cast = (input) => double.parse(input);
 }
 
+class CanNumFromStringRule extends ValueRule {
+  final name = 'NumFromString';
+  final causesBail = true;
+  final pass = (input, test) => num.tryParse(input) != null;
+  final errorMsg = 'could not cast to num from String';
+}
+
 class NumFromStringRule extends ValueRule {
   final name = 'NumFromString';
   final causesBail = true;
   final pass = (input, test) => num.tryParse(input) != null;
   final errorMsg = 'could not cast to num from String';
   final cast = (input) => num.parse(input);
+}
+
+class CanBoolFromStringRule extends ValueRule {
+  final name = 'BoolFromString';
+  final causesBail = true;
+  final pass = (input, test) => input == 'true' || input == 'false';
+  final errorMsg = 'could not cast to bool from String';
 }
 
 class BoolFromStringRule extends ValueRule {
