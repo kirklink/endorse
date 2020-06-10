@@ -24,3 +24,6 @@
 
 ## 0.0.8
 - Better handling of String conversions
+
+## 0.0.9
+- Fix ToString rule
