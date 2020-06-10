@@ -43,7 +43,7 @@ class CanStringRule extends ValueRule {
   final causesBail = true;
   final pass = (input, test) {
     try {
-      final e = input.toString();
+      input.toString();
       return true;
     } catch (e) {
       return false;
@@ -59,7 +59,7 @@ class ToStringRule extends ValueRule {
   final causesBail = true;
   final pass = (input, test) {
     try {
-      final e = input.toString();
+      input.toString();
       return true;
     } catch (e) {
       return false;
@@ -75,7 +75,7 @@ class IsNumRule extends ValueRule {
   final name = 'IsNum';
   final causesBail = true;
   final pass = (input, test) => input is num;
-  final errorMsg = 'must be an';
+  final errorMsg = 'must be a';
   final want = (input, test) => 'num';
   final got = (input, test) => input.runtimeType;
 }

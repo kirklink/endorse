@@ -30,3 +30,6 @@
 
 ## 0.0.10
 - Fix ToString rule
+
+## 0.0.11
+- More improvements to type switching

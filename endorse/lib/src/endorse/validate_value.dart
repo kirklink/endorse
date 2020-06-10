@@ -27,8 +27,9 @@ class ValidateValue {
   void isString({bool toString = false}) {
     if (toString) {
       rules.add(RuleHolder(CanStringRule()));
+    } else {
+      rules.add(RuleHolder(IsStringRule()));
     }
-    rules.add(RuleHolder(IsStringRule()));
   }
 
   void makeString() {

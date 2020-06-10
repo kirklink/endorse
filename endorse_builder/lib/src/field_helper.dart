@@ -19,10 +19,37 @@ String _processValidations(List<DartObject> validations, Type type) {
    var ruleCall = '';
    
    var typeOverride = '';
-   
+
+    if (validations.any((v) => v.type.getDisplayString() == 'ToStringFromInt')) {
+      typeOverride = 'int';
+      ruleCall = ruleCall + '..isInt()';
+    } else if (validations.any((v) => v.type.getDisplayString() == 'ToStringFromDouble')){
+      typeOverride = 'double';
+      ruleCall = ruleCall + '..isDouble()';
+    } else if (validations.any((v) => v.type.getDisplayString() == 'ToStringFromNum')){
+      typeOverride = 'num';
+      ruleCall = ruleCall + '..isNum()';
+    } else if (validations.any((v) => v.type.getDisplayString() == 'ToStringFromBool')){
+      typeOverride = 'bool';
+      ruleCall = ruleCall + '..isBool()';
+    }
+     
    for (final rule in validations) {
     if (rule.type.getDisplayString() == 'Required') {
       continue;
+    }
+
+
+    if (rule.type.getDisplayString().startsWith('ToString')) {
+      typeOverride = 'String';
+    } else if (rule.type.getDisplayString() == 'IntFromString'){
+      typeOverride = 'int';
+    } else if (rule.type.getDisplayString() == 'DoubleFromString'){
+      typeOverride = 'double';
+    } else if (rule.type.getDisplayString() == 'NumFromString'){
+      typeOverride = 'num';
+    } else if (rule.type.getDisplayString() == 'BoolFromString'){
+      typeOverride = 'bool';
     }
 
     
@@ -32,6 +59,7 @@ String _processValidations(List<DartObject> validations, Type type) {
     final notValidOnList = rule.getField('notValidOnTypes')?.toListValue();
     
     final typeToCheck = typeOverride.isNotEmpty ? typeOverride : type.toString();
+    print(typeToCheck);
 
     if (validOnList != null && validOnList.isNotEmpty) {
       if (!validOnList.map((v) => v.toTypeValue().getDisplayString()).contains(typeToCheck)) {
@@ -57,17 +85,7 @@ String _processValidations(List<DartObject> validations, Type type) {
     // Replace the token with a value
     ruleCall = ruleCall + '..' + (rule.getField('call').toStringValue()).replaceFirst('@', value);
 
-    if (rule.type.getDisplayString() == 'ToString') {
-      typeOverride = 'String';
-    } else if (rule.type.getDisplayString() == 'IntFromString'){
-      typeOverride = 'int';
-    } else if (rule.type.getDisplayString() == 'DoubleFromString'){
-      typeOverride = 'double';
-    } else if (rule.type.getDisplayString() == 'NumFromString'){
-      typeOverride = 'num';
-    } else if (rule.type.getDisplayString() == 'BoolFromString'){
-      typeOverride = 'bool';
-    }
+
   }
   return ruleCall;
 }
@@ -225,7 +243,7 @@ ProcessedFieldHolder processField(FieldElement field, String fieldName) {
     fieldRules = fieldRules.replaceFirst('@', fromString);
   }
 
-  if (validations.any((e) => e.type.getDisplayString() == 'ToString')) {
+  if (validations.any((e) => e.type.getDisplayString().startsWith('ToString'))) {
     fieldRules = fieldRules.replaceFirst('#', toString);
   }
   fieldRules = fieldRules.replaceFirst('@', '');
@@ -244,7 +262,7 @@ ProcessedFieldHolder processField(FieldElement field, String fieldName) {
     if (itemValidations.any((e) => fromStringRules.contains(e.type.getDisplayString()))) {
       itemRules = itemRules.replaceFirst('@', fromString);
     }
-    if (itemValidations.any((e) => e.type.getDisplayString() == 'ToString')) {
+    if (itemValidations.any((e) => e.type.getDisplayString().startsWith('ToString'))) {
       itemRules = itemRules.replaceFirst('#', toString);
     }
     itemRules = itemRules.replaceFirst('@', '');
