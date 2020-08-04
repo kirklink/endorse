@@ -62,16 +62,19 @@ class EndorseEntityGenerator extends GeneratorForAnnotation<EndorseEntity> {
       if (field.isStatic) {
         continue;
       }
-      final reader = ConstantReader(_checkForEndorseField.firstAnnotationOf(field));
-      final ignore = reader.peek('ignore')?.boolValue ?? false;
-      if (ignore) {
-        continue;
-      }
+      // final reader = ConstantReader(_checkForEndorseField.firstAnnotationOf(field));
+      // final ignore = reader.peek('ignore')?.boolValue ?? false;
+      // if (ignore) {
+      //   continue;
+      // }
 
       // var fieldInfo = ProcessedFieldHolder('', fieldName: field.name);
       var fieldName = recaseFieldName(recase, '${field.name}');
       
       fieldInfo = processField(field, fieldName);
+      if (fieldInfo.ignore) {
+        continue;
+      }
       fieldName = '${fieldInfo.fieldName}';
       
       validatorReturnBuf.write(", r['$fieldName']");

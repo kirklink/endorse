@@ -39,3 +39,6 @@
 
 ## 0.0.13
 - Better handling of ignored fields
+
+## 0.0.14
+- Better handling of ignored fields

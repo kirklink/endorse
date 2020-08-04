@@ -116,16 +116,17 @@ ProcessedFieldHolder processField(FieldElement field, String fieldName) {
     final ignore = reader.peek('ignore')?.boolValue ?? false;
     final nameOverride = reader.peek('name')?.stringValue ?? '';
 
+    if (ignore) {
+      return ProcessedFieldHolder('', ignore: true);
+    }
+
     var recase = reader.peek('useCase')?.objectValue?.getField('none')?.toIntValue() ?? 0;
     recase = reader.peek('useCase')?.objectValue?.getField('camelCase')?.toIntValue() ?? recase;
     recase = reader.peek('useCase')?.objectValue?.getField('snakeCase')?.toIntValue() ?? recase;
     recase = reader.peek('useCase')?.objectValue?.getField('pascalCase')?.toIntValue() ?? recase;
     recase = reader.peek('useCase')?.objectValue?.getField('kebabCase')?.toIntValue() ?? recase;
 
-    if (ignore) {
-      return ProcessedFieldHolder('', ignore: true);
-    }
-    
+  
     if (nameOverride.isNotEmpty) {
       fieldName = nameOverride;
     } else {
