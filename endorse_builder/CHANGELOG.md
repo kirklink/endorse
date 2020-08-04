@@ -36,3 +36,6 @@
 
 ## 0.0.12
 - Minor oopsie
+
+## 0.0.13
+- Better handling of ignored fields

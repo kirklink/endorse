@@ -32,3 +32,8 @@ class EndorseField {
     this.name = ''
   });
 }
+
+
+class EndorseMap {
+  
+}
