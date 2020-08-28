@@ -11,6 +11,7 @@ class ClassResult implements ResultObject {
   
   bool get isValid => _mapMetaResult?.isValid ?? true && !(_fields.values.any((e) => e.isValid == false));
 
+
   Object get value {
     final r = <String, Object>{};
     for (final k in _fields.keys) {

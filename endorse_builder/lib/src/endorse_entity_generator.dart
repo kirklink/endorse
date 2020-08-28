@@ -51,7 +51,7 @@ class EndorseEntityGenerator extends GeneratorForAnnotation<EndorseEntity> {
     resultBuf.writeln('class _\$${classNamePrefix}ValidationResult extends ClassResult {');
     
     // Set up the validator class
-    validatorBuf.writeln('class _\$Endorse${classNamePrefix} implements EndorseClassValidator {');
+    validatorBuf.writeln('class _\$${classNamePrefix}Endorse implements EndorseClassValidator {');
     validatorBuf.writeln('');
     validatorBuf.writeln('@override');
     validatorBuf.writeln('_\$${classNamePrefix}ValidationResult validate(Map<String, Object> input) {');
@@ -86,21 +86,21 @@ class EndorseEntityGenerator extends GeneratorForAnnotation<EndorseEntity> {
       if (_checkForEndorseEntity.hasAnnotationOfExact(field.type.element)) {
         final childClass = field.type.getDisplayString();
         final childResultClass = '${childClass}ValidationResult';
-        resultBuf.writeln('final _\$$childResultClass _$fieldName;');
-        resultBuf.writeln('_\$$childResultClass get $fieldName => _$fieldName;');
+        resultBuf.writeln('final _\$$childResultClass $fieldName;');
+        // resultBuf.writeln('_\$$childResultClass get $fieldName => _$fieldName;');
         validatorBuf.writeln(fieldInfo.fieldOutput.toString());
-        resultContructorBuf.write('this._$fieldName');
+        resultContructorBuf.write('this.$fieldName');
       // Otherwise, the type is the result for an instance field
       } else {
 
         if (field.type.isDartCoreList) {
-          resultBuf.writeln('final ListResult _$fieldName;');
-          resultBuf.writeln('ListResult get $fieldName => _$fieldName;');
+          resultBuf.writeln('final ListResult $fieldName;');
+          // resultBuf.writeln('ListResult get $fieldName => _$fieldName;');
         } else {
-          resultBuf.writeln('final ValueResult _$fieldName;');
-          resultBuf.writeln('ValueResult get $fieldName => _$fieldName;');
+          resultBuf.writeln('final ValueResult $fieldName;');
+          // resultBuf.writeln('ValueResult get $fieldName => _$fieldName;');
         }
-        resultContructorBuf.write('this._$fieldName');
+        resultContructorBuf.write('this.$fieldName');
 
         validatorBuf.writeln(fieldInfo.fieldOutput.toString());
       

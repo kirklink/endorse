@@ -202,6 +202,8 @@ ProcessedFieldHolder processField(FieldElement field, String fieldName) {
     }
   } else {
     if (_checkForEndorseEntity.hasAnnotationOfExact(field.type.element)) {
+      // TODO: or checkForEndorseMap
+      
       fieldRules = '..isMap()';
       isEndorseEntity = true;
       fieldType = Map;
@@ -285,14 +287,14 @@ ProcessedFieldHolder processField(FieldElement field, String fieldName) {
   } else if (isList && !isCore) {
     buf.write('(ValidateList.fromEndorse(ValidateValue()');
     buf.write(fieldBuf.toString());
-    buf.write(', _\$Endorse$endorseType()');
+    buf.write(', _\$${endorseType}Endorse()');
     buf.write(")).from(input['$fieldName'], '$fieldName');");
   } else if (isEndorseEntity) {
     final childClass = field.type.getDisplayString();
     final childResultClass = '${childClass}ValidationResult';
     buf.write("(ValidateMap<_\$${childResultClass}>(ValidateValue()");
     buf.write(fieldBuf.toString());
-    buf.write(', _\$Endorse$childClass()');
+    buf.write(', _\$${childClass}Endorse()');
     buf.write(")).from(input['$fieldName'], '$fieldName');");
   } else {
     buf.write('(ValidateValue()');
