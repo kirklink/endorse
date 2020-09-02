@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:build/src/builder/build_step.dart';
+import 'package:endorse_builder/src/endorse_class_helper.dart';
 import 'package:source_gen/source_gen.dart';
 
 import 'package:endorse/annotations.dart';
@@ -45,79 +46,80 @@ class EndorseEntityGenerator extends GeneratorForAnnotation<EndorseEntity> {
     final resultContructorBuf = StringBuffer();
     final validatorBuf = StringBuffer();
     final validatorReturnBuf = StringBuffer();
-    ProcessedFieldHolder fieldInfo;
+    // ProcessedFieldHolder fieldInfo;
 
     // Set up the result class
-    resultBuf.writeln('class _\$${classNamePrefix}ValidationResult extends ClassResult {');
+    // resultBuf.writeln('class _\$${classNamePrefix}ValidationResult extends ClassResult {');
     
     // Set up the validator class
-    validatorBuf.writeln('class _\$${classNamePrefix}Endorse implements EndorseClassValidator {');
-    validatorBuf.writeln('');
-    validatorBuf.writeln('@override');
-    validatorBuf.writeln('_\$${classNamePrefix}ValidationResult validate(Map<String, Object> input) {');
-    validatorBuf.writeln('final r = <String, ResultObject>{};');
+    // validatorBuf.writeln('class _\$${classNamePrefix}Endorse implements EndorseClassValidator {');
+    // validatorBuf.writeln('');
+    // validatorBuf.writeln('@override');
+    // validatorBuf.writeln('_\$${classNamePrefix}ValidationResult validate(Map<String, Object> input) {');
+    // validatorBuf.writeln('final r = <String, ResultObject>{};');
 
     // For each field
-    for (var field in (element as ClassElement).fields) {
-      if (field.isStatic) {
-        continue;
-      }
-      // final reader = ConstantReader(_checkForEndorseField.firstAnnotationOf(field));
+    // for (var field in (element as ClassElement).fields) {
+    //   if (field.isStatic) {
+    //     continue;
+    //   }
+    //   // final reader = ConstantReader(_checkForEndorseField.firstAnnotationOf(field));
       // final ignore = reader.peek('ignore')?.boolValue ?? false;
       // if (ignore) {
       //   continue;
       // }
 
       // var fieldInfo = ProcessedFieldHolder('', fieldName: field.name);
-      var fieldName = recaseFieldName(recase, '${field.name}');
+      // var fieldName = recaseFieldName(recase, '${field.name}');
       
-      fieldInfo = processField(field, fieldName);
-      if (fieldInfo.ignore) {
-        continue;
-      }
-      fieldName = '${fieldInfo.fieldName}';
+      // fieldInfo = processField(field, fieldName);
+      // if (fieldInfo.ignore) {
+      //   continue;
+      // }
+      // fieldName = '${fieldInfo.fieldName}';
       
-      validatorReturnBuf.write(", r['$fieldName']");
-      if (resultContructorBuf.toString().isNotEmpty) {
-        resultContructorBuf.write(', ');
-      }
+      // validatorReturnBuf.write(", r['$fieldName']");
+      // if (resultContructorBuf.toString().isNotEmpty) {
+      //   resultContructorBuf.write(', ');
+      // }
+
       
       // If the field is an EndorseEntity, set the type as it's result
-      if (_checkForEndorseEntity.hasAnnotationOfExact(field.type.element)) {
-        final childClass = field.type.getDisplayString();
-        final childResultClass = '${childClass}ValidationResult';
-        resultBuf.writeln('final _\$$childResultClass $fieldName;');
-        // resultBuf.writeln('_\$$childResultClass get $fieldName => _$fieldName;');
-        validatorBuf.writeln(fieldInfo.fieldOutput.toString());
-        resultContructorBuf.write('this.$fieldName');
-      // Otherwise, the type is the result for an instance field
-      } else {
+      // if (_checkForEndorseEntity.hasAnnotationOfExact(field.type.element)) {
+      //   final childClass = field.type.getDisplayString();
+      //   final childResultClass = '${childClass}ValidationResult';
+      //   resultBuf.writeln('final _\$$childResultClass $fieldName;');
+      //   // resultBuf.writeln('_\$$childResultClass get $fieldName => _$fieldName;');
+      //   validatorBuf.writeln(fieldInfo.fieldOutput.toString());
+      //   resultContructorBuf.write('this.$fieldName');
+      // // Otherwise, the type is the result for an instance field
+      // } else {
 
-        if (field.type.isDartCoreList) {
-          resultBuf.writeln('final ListResult $fieldName;');
-          // resultBuf.writeln('ListResult get $fieldName => _$fieldName;');
-        } else {
-          resultBuf.writeln('final ValueResult $fieldName;');
-          // resultBuf.writeln('ValueResult get $fieldName => _$fieldName;');
-        }
-        resultContructorBuf.write('this.$fieldName');
+      //   if (field.type.isDartCoreList) {
+      //     resultBuf.writeln('final ListResult $fieldName;');
+      //     // resultBuf.writeln('ListResult get $fieldName => _$fieldName;');
+      //   } else {
+      //     resultBuf.writeln('final ValueResult $fieldName;');
+      //     // resultBuf.writeln('ValueResult get $fieldName => _$fieldName;');
+      //   }
+      //   resultContructorBuf.write('this.$fieldName');
 
-        validatorBuf.writeln(fieldInfo.fieldOutput.toString());
+      //   validatorBuf.writeln(fieldInfo.fieldOutput.toString());
       
       
-      }
-    }
-    resultBuf.writeln('_\$${classNamePrefix}ValidationResult(Map<String, ResultObject> fields, ValueResult mapResult, [${resultContructorBuf.toString()}]) : super(fields, mapResult);');
-    resultBuf.writeln('}');
-    validatorBuf.writeln('return _\$${classNamePrefix}ValidationResult(r, null${validatorReturnBuf.toString()});');
-    validatorBuf.writeln('}');
-    validatorBuf.writeln('');
-    validatorBuf.writeln('@override');
-    validatorBuf.writeln('_\$${classNamePrefix}ValidationResult invalid(ValueResult mapResult) {');
-    validatorBuf.writeln('return _\$${classNamePrefix}ValidationResult(null, mapResult);');
-    validatorBuf.writeln('}');
-    validatorBuf.writeln('}');
-    pageBuf.writeAll([resultBuf, validatorBuf]);
-    return pageBuf.toString();
+      // }
+    // }
+    // resultBuf.writeln('_\$${classNamePrefix}ValidationResult(Map<String, ResultObject> fields, ValueResult mapResult, [${resultContructorBuf.toString()}]) : super(fields, mapResult);');
+    // resultBuf.writeln('}');
+    // validatorBuf.writeln('return _\$${classNamePrefix}ValidationResult(r, null${validatorReturnBuf.toString()});');
+    // validatorBuf.writeln('}');
+    // validatorBuf.writeln('');
+    // validatorBuf.writeln('@override');
+    // validatorBuf.writeln('_\$${classNamePrefix}ValidationResult invalid(ValueResult mapResult) {');
+    // validatorBuf.writeln('return _\$${classNamePrefix}ValidationResult(null, mapResult);');
+    // validatorBuf.writeln('}');
+    // validatorBuf.writeln('}');
+    final endorse = convertToEndorse(element, recase, false);
+    return endorse.toString();
   }
 }

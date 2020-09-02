@@ -1,7 +1,8 @@
 typedef bool PassFuntion(Object input, Object test);
 typedef Object GotFunction(Object input, Object test);
 typedef Object WantFunction(Object input, Object test);
-typedef Object CastFuntion(Object input);
+typedef Object CastFunction(Object input);
+typedef String ErrorMessage(Object input, Object test);
 
 abstract class Rule {
   final String name = '';
@@ -11,6 +12,6 @@ abstract class Rule {
   final PassFuntion pass = (input, test) => true; 
   final GotFunction got = (input, test) => null;
   final WantFunction want = (input, test) => null;
-  final CastFuntion cast = (input) => input;
-  final String errorMsg = '';
+  final CastFunction cast = (input) => input;
+  final ErrorMessage errorMsg = (input, test) => '';
 }

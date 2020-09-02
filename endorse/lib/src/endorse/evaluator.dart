@@ -9,7 +9,7 @@ class Evaluator {
   Object _inputCast;
   String _field;
   var _bail = false;
-  final _errors = <ErrorExpander>[];
+  final _errors = <String, List<ErrorExpander>>{};
 
   Evaluator(this.rules, this._input, [this._field = '']) {
     _inputCast = _input;
@@ -34,7 +34,10 @@ class Evaluator {
     final ruleWant = rule.want(_input, test);
     final want = ruleWant != null ? ruleWant : test;
     if (!rule.pass(_inputCast, test)) {
-      _errors.add(ErrorExpander(_field, got, rule.name, rule.errorMsg, want));
+      if (!_errors.containsKey(_field)) {
+        _errors[_field] = <ErrorExpander>[];
+      }
+      _errors[_field].add(ErrorExpander(got, rule.name, rule.errorMsg(_input, test), want));
       if (rule.causesBail) {
         _bail = true;
       }

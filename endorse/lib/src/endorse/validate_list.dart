@@ -14,9 +14,9 @@ class ValidateList {
   ValidateList.fromEndorse(this._fieldRules, this._validator);
 
 
-  ListResult from(Object items, [String field = '']) {
+  ListResult from(Object items, String field) {
     
-    var _fieldResult = _fieldRules.from(items);
+    var _fieldResult = _fieldRules.from(items, field);
     
     if (items == null || !(items is List)) {
       return ListResult(_fieldResult, null);

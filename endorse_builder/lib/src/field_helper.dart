@@ -11,7 +11,7 @@ final _checkForEndorseField = const TypeChecker.fromRuntime(EndorseField);
 
 
 
-String _processValidations(List<DartObject> validations, Type type) {
+String processValidations(List<DartObject> validations, Type type) {
    
    if (validations == null || validations.isEmpty) {
      return '';
@@ -253,7 +253,7 @@ ProcessedFieldHolder processField(FieldElement field, String fieldName) {
 
   fieldBuf.write(fieldRules);
     if (validations.isNotEmpty) {
-      fieldBuf.write(_processValidations(validations, fieldType));
+      fieldBuf.write(processValidations(validations, fieldType));
   }
   
   
@@ -274,7 +274,7 @@ ProcessedFieldHolder processField(FieldElement field, String fieldName) {
   if (isCore) {
     itemBuf.writeln(itemRules);
     if (itemValidations.isNotEmpty) {
-      itemBuf.write(_processValidations(itemValidations, itemType));
+      itemBuf.write(processValidations(itemValidations, itemType));
     }
   }
  

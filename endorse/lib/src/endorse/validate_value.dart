@@ -7,7 +7,7 @@ import 'package:endorse/src/endorse/evaluator.dart';
 class ValidateValue {
   final rules = <RuleHolder>[];
   
-  ValueResult from(Object input, [String field = '']) {
+  ValueResult from(Object input, String field) {
     final evaluator = Evaluator(this.rules, input, field);
     return evaluator.evaluate();
   }

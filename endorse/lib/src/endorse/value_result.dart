@@ -4,7 +4,7 @@ import 'package:endorse/src/endorse/error_expander.dart';
 
 class ValueResult extends ResultObject {
   final Object _value;
-  final List<ErrorExpander> _errorExpanders;
+  final Map<String, List<ErrorExpander>> _errorExpanders;
   
   ValueResult(this._value, this._errorExpanders);
 
@@ -13,8 +13,13 @@ class ValueResult extends ResultObject {
   bool get isValid => _errorExpanders.isEmpty;
 
   Object get errors {
-    final result = <String, Object> {};
-    _errorExpanders.forEach((item) => result.addAll(item.expand()));
+    final result = <Object>[];
+    // _errorExpanders.forEach((item) => result.addAll(item.expand()));
+    _errorExpanders.keys.forEach((key) {
+      _errorExpanders[key].forEach((item) {
+        result.add(item.expand());
+      });
+    });
     return result;
   }
 }

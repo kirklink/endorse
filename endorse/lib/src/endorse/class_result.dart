@@ -6,7 +6,7 @@ class ClassResult implements ResultObject {
   Map<String, ResultObject> _fields;
   ValueResult _mapMetaResult;
   
-  ClassResult(this._fields, this._mapMetaResult);
+  ClassResult(this._fields, [this._mapMetaResult]);
   
   
   bool get isValid => _mapMetaResult?.isValid ?? true && !(_fields.values.any((e) => e.isValid == false));

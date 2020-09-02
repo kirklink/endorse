@@ -13,7 +13,7 @@ class ValidateMap<T extends ClassResult> {
     var _fieldResult = _fieldRules.from(map, field);
 
     if (!_fieldResult.isValid) {
-      return _validator.invalid(_fieldResult);
+      // return _validator.invalid(_fieldResult);
     } else {
       // handle if it's null
       return _validator.validate(map);
