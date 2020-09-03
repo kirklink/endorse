@@ -2,7 +2,7 @@ import 'package:endorse/annotations.dart';
 import 'package:endorse/src/endorse/result_object.dart';
 
 
-class ClassResult implements ResultObject {
+class ClassResult extends ResultObject {
   Map<String, ResultObject> _fields;
   ValueResult _mapMetaResult;
   

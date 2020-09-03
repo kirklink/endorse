@@ -14,11 +14,8 @@ class ValueResult extends ResultObject {
 
   Object get errors {
     final result = <Object>[];
-    // _errorExpanders.forEach((item) => result.addAll(item.expand()));
     _errorExpanders.keys.forEach((key) {
-      _errorExpanders[key].forEach((item) {
-        result.add(item.expand());
-      });
+      _errorExpanders[key].forEach((item) => result.add(item.expand()));
     });
     return result;
   }
