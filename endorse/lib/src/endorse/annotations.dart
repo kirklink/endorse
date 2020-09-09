@@ -35,5 +35,7 @@ class EndorseField {
 
 
 class EndorseMap {
+
+  const EndorseMap();
   
 }

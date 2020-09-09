@@ -17,17 +17,35 @@ Iterable<DartType> _getGenericTypes(DartType type) {
   return type is ParameterizedType ? type.typeArguments : const [];
 }
 
-StringBuffer convertToEndorse(ClassElement clazz, int recase, bool globalAllowNull, {String parent = '', bool parentAllowNull = false, int nestLevel = 0, bool inList = false}) {
+abstract class _Tracker {
+  static final builtClasses = <String>[];
+}
+
+StringBuffer convertToEndorse(ClassElement clazz, int recase, {int nestLevel = 0}) {
 
   final pageBuf = StringBuffer();
   
+  var privatePrefix = '_';
+  if (nestLevel > 0) {
+    privatePrefix = '__';
+  }
+
+  final validatorClassName = '${privatePrefix}\$${clazz.name}Endorse';
+
+  if (_Tracker.builtClasses.contains(validatorClassName)) {
+    return pageBuf;
+  } else {
+    _Tracker.builtClasses.add(validatorClassName);
+  }
+
+
   final rulesBuf = StringBuffer();
-  final rulesClassName = '_\$${clazz.name}ValidationRules'; 
+  final rulesClassName = '__\$${clazz.name}ValidationRules'; 
   rulesBuf.writeln('class ${rulesClassName} {');
 
   
   final resultBuf = StringBuffer();
-  final resultClassName = '_\$${clazz.name}ValidationResult';
+  final resultClassName = '__\$${clazz.name}ValidationResult';
   resultBuf.writeln('class ${resultClassName} extends ClassResult {');
   // CLOSE
   // resultBuf.writeln('}');
@@ -38,7 +56,7 @@ StringBuffer convertToEndorse(ClassElement clazz, int recase, bool globalAllowNu
   // resultBufConstructor.writeln(']) : super(fields);');
 
   final valBuf = StringBuffer();
-  final validatorClassName = '_\$${clazz.name}Endorse';
+  
   valBuf.writeln('class ${validatorClassName} implements EndorseClassValidator {');
   valBuf.writeln('final rules = ${rulesClassName}();');
   final valBufValidate = StringBuffer();
@@ -53,6 +71,8 @@ StringBuffer convertToEndorse(ClassElement clazz, int recase, bool globalAllowNu
   // valBufConstructor.write(']);');
   // CLOSE
   // valBuf.writeln('}');
+
+
 
 
   final classElements = <ClassElement>[];
@@ -72,7 +92,6 @@ StringBuffer convertToEndorse(ClassElement clazz, int recase, bool globalAllowNu
       final appName = field.name;
       var jsonName = field.name;
       jsonName = recaseFieldName(recase, jsonName);
-      var allowNull = globalAllowNull;
 
       final validations = <DartObject>[];
       final itemValidations = <DartObject>[];
@@ -90,37 +109,17 @@ StringBuffer convertToEndorse(ClassElement clazz, int recase, bool globalAllowNu
         }
         
 
-        // TODO: Is this needed?
-        if ((reader.peek('ignoreInLists')?.boolValue ?? false) && inList) {
-          continue;
-        }
-
         final rename = reader.peek('name')?.stringValue ?? '';
         if (rename.isNotEmpty) {
           jsonName = rename;
         }
         
-        allowNull = reader.peek('allowNull')?.boolValue ?? false;
 
         validations.addAll(reader.peek('validate')?.listValue);
         itemValidations.addAll(reader.peek('itemValidate')?.listValue);
             
       }
 
-      // var inheritedName = jsonName;
-      // if (parent.isNotEmpty) {
-      //   inheritedName = '$parent?.$jsonName';
-      // }
-      // final inheritedNameDisplay = inheritedName.replaceAll('?', '');
-      
-      // String mode = '';
-      // if (useDefaultValue) {
-      //   mode = ', useDefaultValue: true';
-      // } else if (allowNull) {
-      //   mode = ', allowNull: true';
-      // } else if (parentAllowNull) {
-      //   mode = ', allowNull: (e?.$parent == null)';
-      // }
 
       final fieldRulesBuf = StringBuffer();
       final itemRulesBuf = StringBuffer();
@@ -128,6 +127,7 @@ StringBuffer convertToEndorse(ClassElement clazz, int recase, bool globalAllowNu
       Type itemType;
       bool isValue = false;
       bool isList = false;
+      bool isClass = false;
 
       if (validations.any((e) => e.type.getDisplayString() == 'Required')) {
         fieldRulesBuf.write('..isRequired()');
@@ -159,6 +159,22 @@ StringBuffer convertToEndorse(ClassElement clazz, int recase, bool globalAllowNu
         isValue = true;
       }
 
+      if (_checkForEndorseMap.hasAnnotationOfExact(field.type.element)
+      || _checkForEndorseEntity.hasAnnotationOfExact(field.type.element)) {
+        
+        final mapElement = field.type.element;
+        if (mapElement is! ClassElement) {
+          throw EndorseBuilderException('EndorseEntity and EdorseMap must only annotate classes. ${field.getDisplayString(withNullability: null)} is not a class.');
+        }
+        pageBuf.writeln(convertToEndorse(mapElement, recase, nestLevel: nestLevel + 1));
+        
+        itemRulesBuf.write(', ${validatorClassName}()');
+        isClass = true;
+        fieldRulesBuf.write('..isMap()');
+        fieldType = Map;
+
+      }
+
 
       if (field.type.isDartCoreList) {
         isList = true;
@@ -171,40 +187,47 @@ StringBuffer convertToEndorse(ClassElement clazz, int recase, bool globalAllowNu
           throw EndorseBuilderException('Maps within the list ${field.name} must be implemented by using a class annotated with @EndorseMap');
         }
         final elementType = elementTypes.first;
-        // final listBuf = StringBuffer();
-        // listBuf.write("...{'$jsonName' : ToFs.list(e?.$inheritedName?.map((e) => ");
         
         fieldRulesBuf.write('..isList()');
-        final listResult = _processList(elementType);
-        itemRulesBuf.write(listResult.itemRules);
-        itemType = listResult.itemType;
-        isValue = listResult.isValue;
         
-        // if (elementType.isDartCoreString) {
-        //   itemRulesBuf.write(', ValidateValue()..isString(#)');
-        //   itemType = String;
-        //   isValue = true;
-        // } else if (elementType.isDartCoreInt) {
-        //   itemRulesBuf.write(', ValidateValue()..isInt(@)');
-        //   itemType = int;
-        //   isValue = true;
-        // } else if (elementType.isDartCoreDouble) {
-        //   itemRulesBuf.write(', ValidateValue()..isDouble(@)');
-        //   itemType = double;
-        //   isValue = true;
-        // } else if (elementType.isDartCoreNum) {
-        //   itemRulesBuf.write(', ValidateValue()..isNum(@)');
-        //   itemType = num;
-        //   isValue = true;
-        // } else if (elementType.isDartCoreBool) {
-        //   itemRulesBuf.write(', ValidateValue()..isBool(@)');
-        //   itemType = bool;
-        //   isValue = true;
-        // } else if (elementType.getDisplayString() == 'DateTime') {
-        //   itemRulesBuf.write(', ValidateValue()..isDateTime()');
-        //   itemType = DateTime;
-        //   isValue = true;
-        // } 
+        if (elementType.isDartCoreString) {
+          itemRulesBuf.write(', ValidateValue()..isString(#)');
+          itemType = String;
+          isValue = true;
+        } else if (elementType.isDartCoreInt) {
+          itemRulesBuf.write(', ValidateValue()..isInt(@)');
+          itemType = int;
+          isValue = true;
+        } else if (elementType.isDartCoreDouble) {
+          itemRulesBuf.write(', ValidateValue()..isDouble(@)');
+          itemType = double;
+          isValue = true;
+        } else if (elementType.isDartCoreNum) {
+          itemRulesBuf.write(', ValidateValue()..isNum(@)');
+          itemType = num;
+          isValue = true;
+        } else if (elementType.isDartCoreBool) {
+          itemRulesBuf.write(', ValidateValue()..isBool(@)');
+          itemType = bool;
+          isValue = true;
+        } else if (elementType.getDisplayString() == 'DateTime') {
+          itemRulesBuf.write(', ValidateValue()..isDateTime()');
+          itemType = DateTime;
+          isValue = true;
+        } else if (_checkForEndorseEntity.hasAnnotationOfExact(elementType.element) 
+        || _checkForEndorseMap.hasAnnotationOfExact(elementType.element)) {
+          isClass = true;
+          itemType = Map;
+          // itemRulesBuf.write(', ValidateValue()..isMap()');
+          itemRulesBuf.write(', __\$${elementType.getDisplayString()}Endorse()');
+
+          final mapElement = elementType.element;
+          if (mapElement is! ClassElement) {
+            throw EndorseBuilderException('EndorseEntity and EdorseMap must only annotate classes. ${field.getDisplayString(withNullability: null)} is not a class.');
+          }
+          pageBuf.writeln(convertToEndorse(mapElement, recase, nestLevel: nestLevel + 1));
+
+        }
       }
       
       if (isValue && !isList) {
@@ -216,12 +239,29 @@ StringBuffer convertToEndorse(ClassElement clazz, int recase, bool globalAllowNu
       }
 
       if (isList && isValue) {
-        rulesBuf.write('ListResult ${appName}(Object value) => (ValidateList.');
-        rulesBuf.write('fromCore(ValidateValue()');
+        rulesBuf.write('ListResult ${appName}(Object value) => (ValidateList.fromCore(ValidateValue()');
         resultBufFields.writeln('final ListResult ${appName};');
-        resultBufConstructor.write('this.${appName}');
+        resultBufConstructor.write('this.${appName}, ');
         valBufValidate.writeln("'${appName}': rules.${appName}(input['${jsonName}']),");
         valBufConstructor.write("r['${appName}'], ");
+      }
+
+      if (isList && isClass) {
+        rulesBuf.write('ListResult ${appName}(Object value) => (ValidateList.fromEndorse(ValidateValue()');
+        resultBufFields.writeln('final ListResult ${appName};');
+        resultBufConstructor.write('this.${appName}, ');
+        valBufValidate.writeln("'${appName}': rules.${appName}(input['${jsonName}']),");
+        valBufConstructor.write("r['${appName}'], ");
+        
+      }
+
+      if (isClass && !isList) {
+        rulesBuf.write('ClassResult ${appName}(Object value) => (ValidateMap(ValidateValue()');
+        resultBufFields.writeln('final ClassResult ${appName};');
+        resultBufConstructor.write('this.${appName}, ');
+        valBufValidate.writeln("'${appName}': rules.${appName}(input['${jsonName}']),");
+        valBufConstructor.write("r['${appName}'], ");
+        
       }
 
       const fromString = 'fromString: true';
@@ -231,7 +271,6 @@ StringBuffer convertToEndorse(ClassElement clazz, int recase, bool globalAllowNu
 
       if (isValue && !isList) {
         var fieldRules = fieldRulesBuf.toString();
-        validations.forEach((element) {print(element.type.getDisplayString());});
         if (validations.any((e) => fromStringRules.contains(e.type.getDisplayString()))) {
           fieldRules = fieldRules.replaceFirst('@', fromString);
         }
@@ -279,81 +318,17 @@ StringBuffer convertToEndorse(ClassElement clazz, int recase, bool globalAllowNu
       }
 
 
-      if (isValue && !isList) {
+      if (isValue && !isList && !isClass) {
         fieldRulesBuf.write(").from(value, '${jsonName}');");
       }
 
-      if (isList) {
+      if (isList || isClass) {
         itemRulesBuf.write(")).from(value, '${jsonName}');");
         fieldRulesBuf.write(itemRulesBuf);
       }
 
       rulesBuf.writeln(fieldRulesBuf);
 
-
-
-      // List
-      
-          
-        // } else if (_checkForLooseMap.hasAnnotationOfExact(elementType.element)
-        // || _checkForLooseDocument.hasAnnotationOfExact(elementType.element)) {
-        // if (elementType.element is! ClassElement) {
-        //   throw LooseBuilderException('LooseDocument or LooseMap must only annotate classes. Field elements "${elementType.getDisplayString()}" are not user defined classes.');
-        // }
-        //   var childAllowNulls = false;
-        //   var childUseDefaultValues = false;
-        //   if (_checkForLooseDocument.hasAnnotationOfExact(field.type.element)) {
-        //     final reader = ConstantReader(_checkForLooseDocument.firstAnnotationOf(field.type.element));
-        //     final thisAllowNulls = reader.peek('allowNulls')?.boolValue ?? false;
-        //     final thisUseDefaultValue = reader.peek('useDefaultValue')?.boolValue ?? false;
-        //     childAllowNulls = thisAllowNulls ? true : allowNull;
-        //     childUseDefaultValues = thisUseDefaultValue ? true : allowNull;
-        //   }
-
-        //   if (_checkForLooseMap.hasAnnotationOfExact(field.type.element)) {
-        //     final reader = ConstantReader(_checkForLooseMap.firstAnnotationOf(field.type.element));
-        //     final thisAllowNulls = reader.peek('allowNulls')?.boolValue ?? false;
-        //     final thisUseDefaultValue = reader.peek('useDefaultValue')?.boolValue ?? false;
-        //     childAllowNulls = thisAllowNulls ? true : allowNull;
-        //     childUseDefaultValues = thisUseDefaultValue ? true : allowNull;
-        //   }
-        //   listBuf.write("ToFs.map(${convertToEndorse(elementType.element, recase, childAllowNulls, childUseDefaultValues, nestLevel: 0, inList: true)}, '$inheritedNameDisplay'$mode)");
-        // }
-        // listBuf.write(")?.toList(), '$inheritedNameDisplay'$mode)},");
-        // classBuffer.writeln(listBuf.toString());
-      
-      // }
-      
-      
-      // Class
-    //   if (_checkForEndorseMap.hasAnnotationOfExact(field.type.element)
-    //     || _checkForEndorseEntity.hasAnnotationOfExact(field.type.element)) {
-    //     if (field.type.element is! ClassElement) {
-    //       throw EndorseBuilderException('EndorseEntity or EndorseField must only annotate classes. Field "${field.name}" is not a class.');
-    //     }
-        
-    //     var childAllowNulls = false;
-    //     if (_checkForEndorseEntity.hasAnnotationOfExact(field.type.element)) {
-    //       final reader = ConstantReader(_checkForEndorseEntity.firstAnnotationOf(field.type.element));
-    //       final thisAllowNulls = reader.peek('allowNulls')?.boolValue ?? false;
-    //       childAllowNulls = thisAllowNulls ? true : allowNull;
-    //       nestLevel = nestLevel + 1;
-    //     }
-
-    //     if (_checkForEndorseMap.hasAnnotationOfExact(field.type.element)) {
-    //       final reader = ConstantReader(_checkForEndorseMap.firstAnnotationOf(field.type.element));
-    //       final thisAllowNulls = reader.peek('allowNulls')?.boolValue ?? false;
-    //       childAllowNulls = thisAllowNulls ? true : allowNull;
-    //     }
-    //     // if (_checkForEndorseEntity.hasAnnotationOfExact(field.type.element)) {
-    //     //   nestLevel = nestLevel + 1;
-    //     // }
-    //     classBuffer.write("...{'$jsonName' : ToFs.map(${convertToEndorse(field.type.element, recase, childAllowNulls, parent: inheritedName, parentAllowNull: (allowNull || parentAllowNull), nestLevel: nestLevel)}, '$inheritedNameDisplay'$mode)},");
-      
-    // }
-      // classBuffer.writeln('}');
-      // print(classBuffer);
-      // return classBuffer.toString();
     }
 
     
@@ -378,37 +353,3 @@ StringBuffer convertToEndorse(ClassElement clazz, int recase, bool globalAllowNu
   // print(pageBuf.toString());
   return pageBuf;
 }
-
-
-
-
-class _ProcessListResult {
-  final Type itemType;
-  final bool isValue;
-  final String itemRules;
-
-  const _ProcessListResult(this.itemRules, this.itemType, this.isValue);
-}
-
-_ProcessListResult _processList(DartType elementType) {
-  if (elementType.isDartCoreString) {
-    return _ProcessListResult(', ValidateValue()..isString(#)', String, true);
-  } else if (elementType.isDartCoreInt) {
-    return _ProcessListResult(', ValidateValue()..isInt(@)', int, true);
-  } else if (elementType.isDartCoreDouble) {
-    return _ProcessListResult(', ValidateValue()..isDouble(@)', double, true);
-  } else if (elementType.isDartCoreNum) {
-    return _ProcessListResult(', ValidateValue()..isNumber(@)', num, true);
-  } else if (elementType.isDartCoreBool) {
-    return _ProcessListResult(', ValidateValue()..isBool(@)', bool, true);
-    // itemRulesBuf.write(', ValidateValue()..isBool(@)');
-    // itemType = bool;
-    // isValue = true;
-  } else if (elementType.getDisplayString() == 'DateTime') {
-    return _ProcessListResult(', ValidateValue()..isDateTime()', DateTime, true);
-  } 
-}
-
-          // itemRulesBuf.write(', ValidateValue()..isNum(@)');
-          // itemType = num;
-          // isValue = true;
