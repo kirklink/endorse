@@ -14,7 +14,14 @@ class ClassResult extends ResultObject {
 
   Object get value {
     final r = <String, Object>{};
+    if (_fields == null) {
+      return null;
+    }
     for (final k in _fields.keys) {
+      final value = _fields[k].value;
+      if (value == null) {
+        continue;
+      }
       r[k] = _fields[k].value;
     }
     return r;

@@ -35,7 +35,9 @@ class EndorseEntityGenerator extends GeneratorForAnnotation<EndorseEntity> {
     recase = annotation.peek('useCase')?.objectValue?.getField('pascalCase')?.toIntValue() ?? recase;
     recase = annotation.peek('useCase')?.objectValue?.getField('kebabCase')?.toIntValue() ?? recase;
 
-    final endorse = convertToEndorse(element, recase);
+    final requireAll = annotation.peek('requireAll')?.boolValue ?? false;
+
+    final endorse = convertToEndorse(element, recase, requireAll);
     return endorse.toString();
   }
 }

@@ -7,7 +7,11 @@ import 'package:endorse/src/endorse/case.dart';
 /// [useCase]: automatically convert the object field names to different case schemas.
 class EndorseEntity {
   final Case useCase;
-  const EndorseEntity({this.useCase = Case.none});
+  final bool requireAll;
+  const EndorseEntity({
+    this.useCase = Case.none,
+    this.requireAll,
+    });
 }
 
 /// The annotation to enhance a Dart class property with Endorse metadata.

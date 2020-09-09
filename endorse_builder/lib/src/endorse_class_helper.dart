@@ -21,7 +21,7 @@ abstract class _Tracker {
   static final builtClasses = <String>[];
 }
 
-StringBuffer convertToEndorse(ClassElement clazz, int recase, {int nestLevel = 0}) {
+StringBuffer convertToEndorse(ClassElement clazz, int recase, bool globalRequireAll, {int nestLevel = 0}) {
 
   final pageBuf = StringBuffer();
   
@@ -96,6 +96,8 @@ StringBuffer convertToEndorse(ClassElement clazz, int recase, {int nestLevel = 0
       final validations = <DartObject>[];
       final itemValidations = <DartObject>[];
 
+      final requireAll = globalRequireAll;
+
       if (_checkForEndorseField.hasAnnotationOfExact(field)) {
         final reader = ConstantReader(_checkForEndorseField.firstAnnotationOf(field));
       
@@ -129,7 +131,7 @@ StringBuffer convertToEndorse(ClassElement clazz, int recase, {int nestLevel = 0
       bool isList = false;
       bool isClass = false;
 
-      if (validations.any((e) => e.type.getDisplayString() == 'Required')) {
+      if (requireAll || validations.any((e) => e.type.getDisplayString() == 'Required')) {
         fieldRulesBuf.write('..isRequired()');
       }
       
@@ -166,9 +168,9 @@ StringBuffer convertToEndorse(ClassElement clazz, int recase, {int nestLevel = 0
         if (mapElement is! ClassElement) {
           throw EndorseBuilderException('EndorseEntity and EdorseMap must only annotate classes. ${field.getDisplayString(withNullability: null)} is not a class.');
         }
-        pageBuf.writeln(convertToEndorse(mapElement, recase, nestLevel: nestLevel + 1));
+        pageBuf.writeln(convertToEndorse(mapElement, recase, requireAll, nestLevel: nestLevel + 1));
         
-        itemRulesBuf.write(', ${validatorClassName}()');
+        itemRulesBuf.write(', __\$${field.type.getDisplayString()}Endorse()');
         isClass = true;
         fieldRulesBuf.write('..isMap()');
         fieldType = Map;
@@ -225,7 +227,7 @@ StringBuffer convertToEndorse(ClassElement clazz, int recase, {int nestLevel = 0
           if (mapElement is! ClassElement) {
             throw EndorseBuilderException('EndorseEntity and EdorseMap must only annotate classes. ${field.getDisplayString(withNullability: null)} is not a class.');
           }
-          pageBuf.writeln(convertToEndorse(mapElement, recase, nestLevel: nestLevel + 1));
+          pageBuf.writeln(convertToEndorse(mapElement, recase, requireAll, nestLevel: nestLevel + 1));
 
         }
       }
@@ -234,7 +236,7 @@ StringBuffer convertToEndorse(ClassElement clazz, int recase, {int nestLevel = 0
         rulesBuf.write('ValueResult ${appName}(Object value) => (ValidateValue()');
         resultBufFields.writeln('final ValueResult ${appName};');
         resultBufConstructor.write('this.${appName}, ');
-        valBufValidate.writeln("'${appName}': rules.${appName}(input['${jsonName}']),");
+        valBufValidate.writeln("'${appName}': rules.${appName}((input ?? const {})['${jsonName}']),");
         valBufConstructor.write("r['${appName}'], ");
       }
 
@@ -242,7 +244,7 @@ StringBuffer convertToEndorse(ClassElement clazz, int recase, {int nestLevel = 0
         rulesBuf.write('ListResult ${appName}(Object value) => (ValidateList.fromCore(ValidateValue()');
         resultBufFields.writeln('final ListResult ${appName};');
         resultBufConstructor.write('this.${appName}, ');
-        valBufValidate.writeln("'${appName}': rules.${appName}(input['${jsonName}']),");
+        valBufValidate.writeln("'${appName}': rules.${appName}((input ?? const {})['${jsonName}']),");
         valBufConstructor.write("r['${appName}'], ");
       }
 
@@ -250,7 +252,7 @@ StringBuffer convertToEndorse(ClassElement clazz, int recase, {int nestLevel = 0
         rulesBuf.write('ListResult ${appName}(Object value) => (ValidateList.fromEndorse(ValidateValue()');
         resultBufFields.writeln('final ListResult ${appName};');
         resultBufConstructor.write('this.${appName}, ');
-        valBufValidate.writeln("'${appName}': rules.${appName}(input['${jsonName}']),");
+        valBufValidate.writeln("'${appName}': rules.${appName}((input ?? const {})['${jsonName}']),");
         valBufConstructor.write("r['${appName}'], ");
         
       }
@@ -259,7 +261,7 @@ StringBuffer convertToEndorse(ClassElement clazz, int recase, {int nestLevel = 0
         rulesBuf.write('ClassResult ${appName}(Object value) => (ValidateMap(ValidateValue()');
         resultBufFields.writeln('final ClassResult ${appName};');
         resultBufConstructor.write('this.${appName}, ');
-        valBufValidate.writeln("'${appName}': rules.${appName}(input['${jsonName}']),");
+        valBufValidate.writeln("'${appName}': rules.${appName}((input ?? const {})['${jsonName}']),");
         valBufConstructor.write("r['${appName}'], ");
         
       }
