@@ -1,23 +1,21 @@
 import 'package:endorse/src/endorse/result_object.dart';
-import 'package:endorse/src/endorse/error_expander.dart';
-
+import 'package:endorse/src/endorse/validation_error.dart';
 
 class ValueResult extends ResultObject {
   final Object _value;
-  final Map<String, List<ErrorExpander>> _errorExpanders;
-  
-  ValueResult(this._value, this._errorExpanders);
+  final String $fieldName;
+  final List<ValidationError> _validationErrors;
 
-  Object get value => _value;
+  ValueResult(this.$fieldName, this._value, this._validationErrors);
 
-  bool get isValid => _errorExpanders.isEmpty;
+  Object get $value => _value;
 
-  Object get errors {
-    final result = <Object>[];
-    _errorExpanders.keys.forEach((key) {
-      _errorExpanders[key].forEach((item) => result.add(item.expand()));
-    });
-    return result;
+  bool get $isValid => _validationErrors.isEmpty;
+  bool get $isNotValid => _validationErrors.isNotEmpty;
+
+  Object get $errorsJson => _validationErrors.map((e) => e.toJson()).toList();
+
+  List<ValidationError> get $errors {
+    return _validationErrors;
   }
 }
-

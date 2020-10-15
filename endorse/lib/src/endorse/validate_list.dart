@@ -13,33 +13,27 @@ class ValidateList {
 
   ValidateList.fromEndorse(this._fieldRules, this._validator);
 
+  ListResult from(Object items, String fieldName) {
+    final fieldResult = _fieldRules.from(items, fieldName);
 
-  ListResult from(Object items, String field) {
-    
-    var _fieldResult = _fieldRules.from(items, field);
-    
     if (items == null || !(items is List)) {
-      return ListResult(_fieldResult, null);
+      return ListResult(fieldName, fieldResult, const []);
     } else {
       if (_validator != null) {
-        final result = <ClassResult>[];
+        final elements = <ClassResult>[];
         (items as List).asMap().forEach((index, item) {
           final r = _validator.validate(item);
-          result.add(r);
+          elements.add(r);
         });
-        return ListResult(_fieldResult, result);
+        return ListResult(fieldName, fieldResult, elements);
       } else {
-        final result = <ValueResult>[];
+        final elements = <ValueResult>[];
         (items as List).asMap().forEach((index, item) {
-          var r = _itemRules.from(item, '[$index]');
-          result.add(r);
+          final r = _itemRules.from(item, '[$index]');
+          elements.add(r);
         });
-        return ListResult(_fieldResult, result);      
+        return ListResult(fieldName, fieldResult, elements);
       }
-      
     }
-    
   }
-
-
 }

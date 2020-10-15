@@ -3,24 +3,18 @@ import 'package:endorse/src/endorse/validate_value.dart';
 import 'package:endorse/src/endorse/endorse_class_validator.dart';
 import 'package:endorse/src/endorse/class_result.dart';
 
-class ValidateMap {
+class ValidateClass {
   final ValidateValue _fieldRules;
   EndorseClassValidator _validator;
 
-  ValidateMap(this._fieldRules, this._validator);
+  ValidateClass(this._fieldRules, this._validator);
 
-  ClassResult from(Object map, [String field = '']) {
-    
-    var _fieldResult = _fieldRules.from(map, field);
-
-    if (!_fieldResult.isValid) {
-      return ClassResult(null, _fieldResult);
+  ClassResult from(Object map, String fieldName) {
+    final fieldResult = _fieldRules.from(map, fieldName);
+    if (!fieldResult.$isValid) {
+      return ClassResult(const {}, fieldName, fieldResult);
     } else {
-      // handle if it's null
       return _validator.validate(map);
     }
-    
   }
-
-
 }

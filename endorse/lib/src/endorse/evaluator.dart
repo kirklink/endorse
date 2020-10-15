@@ -1,4 +1,4 @@
-import 'package:endorse/src/endorse/error_expander.dart';
+import 'package:endorse/src/endorse/validation_error.dart';
 import 'package:endorse/src/endorse/rules.dart';
 import 'package:endorse/src/endorse/rule_holder.dart';
 import 'package:endorse/src/endorse/value_result.dart';
@@ -9,9 +9,9 @@ class Evaluator {
   Object _inputCast;
   String _field;
   var _bail = false;
-  final _errors = <String, List<ErrorExpander>>{};
+  final _errors = <ValidationError>[];
 
-  Evaluator(this.rules, this._input, [this._field = '']) {
+  Evaluator(this.rules, this._input, this._field) {
     _inputCast = _input;
   }
 
@@ -19,7 +19,7 @@ class Evaluator {
     for (final rule in rules) {
       _runRule(rule.rule, rule.test);
     }
-    return ValueResult(_input, _errors);
+    return ValueResult(_field, _input, _errors);
   }
 
   void _runRule(ValueRule rule, [Object test = null]) {
@@ -34,23 +34,12 @@ class Evaluator {
     final ruleWant = rule.want(_input, test);
     final want = ruleWant != null ? ruleWant : test;
     if (!rule.pass(_inputCast, test)) {
-      if (!_errors.containsKey(_field)) {
-        _errors[_field] = <ErrorExpander>[];
-      }
-      _errors[_field].add(ErrorExpander(got, rule.name, rule.errorMsg(_input, test), want));
+      _errors.add(
+          ValidationError(rule.name, rule.errorMsg(_input, test), got, want));
       if (rule.causesBail) {
         _bail = true;
       }
     }
     _inputCast = rule.cast(_inputCast);
   }
-
-  
-  
-
-
 }
-
-
-
-

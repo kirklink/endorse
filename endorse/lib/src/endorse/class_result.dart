@@ -1,44 +1,90 @@
 import 'package:endorse/annotations.dart';
 import 'package:endorse/src/endorse/result_object.dart';
-
+import 'package:endorse/src/endorse/validation_error.dart';
 
 class ClassResult extends ResultObject {
-  Map<String, ResultObject> _fields;
-  ValueResult _mapMetaResult;
-  
-  ClassResult(this._fields, [this._mapMetaResult]);
-  
-  
-  bool get isValid => _mapMetaResult?.isValid ?? true && !(_fields.values.any((e) => e.isValid == false));
+  final Map<String, ResultObject> _elements;
+  final ValueResult _field;
+  final String _fieldName;
+  bool _isValid;
+  bool _hasElementErrors;
 
+  ClassResult(this._elements, [this._fieldName, this._field]);
 
-  Object get value {
-    final r = <String, Object>{};
-    if (_fields == null) {
-      return null;
+  String get $fieldName => _fieldName;
+
+  bool get $isValid {
+    if (_isValid != null) {
+      return _isValid;
     }
-    for (final k in _fields.keys) {
-      final value = _fields[k].value;
+    _isValid = (_field == null || _field.$isValid) && !$hasElementErrors;
+    return _isValid;
+  }
+
+  bool get $isNotValid => !$isValid;
+
+  bool get $hasElementErrors {
+    if (_hasElementErrors != null) {
+      return _hasElementErrors;
+    }
+    _hasElementErrors = _elements.values.any((e) => e.$isNotValid);
+    return _hasElementErrors;
+  }
+
+  List<ValidationError> get $errors {
+    if ($isValid) {
+      return const [];
+    } else if (_field != null) {
+      if ($hasElementErrors) {
+        var errorFields = '';
+        var count = 0;
+        _elements.forEach((key, value) {
+          if (value.$isNotValid) {
+            errorFields =
+                errorFields + "${errorFields.isNotEmpty ? ',' : ''}" + key;
+            count++;
+          }
+        });
+        final elementError = ValidationError(
+            'ElementErrors',
+            'Validation failed for $count element(s).',
+            errorFields,
+            '0 errors.');
+        final errors = List<ValidationError>.from(_field.$errors);
+        errors.add(elementError);
+        return errors;
+      } else {
+        return _field.$errors;
+      }
+    } else {
+      return const [];
+    }
+  }
+
+
+  Object get $value {
+    final r = <String, Object>{};
+    for (final k in _elements.keys) {
+      final value = _elements[k].$value;
       if (value == null) {
         continue;
       }
-      r[k] = _fields[k].value;
+      r[k] = value;
     }
     return r;
   }
 
-  Object get errors {
-    if (_mapMetaResult != null && !_mapMetaResult.isValid) {
-      return _mapMetaResult.errors;
+  Object get $errorsJson {
+    if (_field != null && _field.$isNotValid) {
+      return _field.$errorsJson;
     } else {
       final r = <String, Object>{};
-      for (final k in _fields.keys) {
-        if (!_fields[k].isValid) {
-          r[k] = _fields[k].errors;
+      for (final k in _elements.keys) {
+        if (!_elements[k].$isValid) {
+          r[k] = _elements[k].$errorsJson;
         }
       }
       return r;
     }
   }
 }
-
