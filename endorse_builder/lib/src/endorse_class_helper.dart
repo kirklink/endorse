@@ -53,7 +53,7 @@ StringBuffer convertToEndorse(
   final resultBufFields = StringBuffer();
   final resultBufConstructor = StringBuffer();
   resultBufConstructor
-      .writeln('${resultClassName}(Map<String, ResultObject> fields, [');
+      .writeln('${resultClassName}(Map<String, ResultObject> fieldMap, [');
   // CLOSE
   // resultBufConstructor.writeln(']) : super(fields);');
 
@@ -358,7 +358,7 @@ StringBuffer convertToEndorse(
   // CLOSE
   rulesBuf.writeln('}');
   // CLOSE
-  resultBufConstructor.writeln(']) : super(fields);');
+  resultBufConstructor.writeln(']) : super(fieldMap);');
   // CLOSE
   resultBuf.writeln(resultBufFields);
   resultBuf.writeln(resultBufConstructor);
