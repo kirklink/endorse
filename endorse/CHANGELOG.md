@@ -1,6 +1,9 @@
 # Endorse Changelog
 
 
+## 0.0.19
+- Upload failure -- re-upload
+
 ## 0.0.18
 - Fix failed boolean assertion
 
