@@ -3,7 +3,7 @@
 # Licensed under the MIT License. See https://go.microsoft.com/fwlink/?linkid=2090316 for license information.
 #-------------------------------------------------------------------------------------------------------------
 
-FROM google/dart:2.8.1
+FROM google/dart:2.10.2
 
 
 # Docker script args, location, and expected SHA - SHA generated on release
@@ -17,7 +17,9 @@ ARG TARGET_SOCKET=/var/run/docker.sock
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Add bin location to path
-ENV PATH="$PATH":"/root/.pub-cache/bin"
+# ENV PATH="$PATH":"/root/.pub-cache/bin"
+## When running as non-root vscode user
+ENV PATH="$PATH":"/home/vscode/.pub-cache/bin"
 
 # This Dockerfile adds a non-root user with sudo access. Use the "remoteUser"
 # property in devcontainer.json to use it. On Linux, the container user's GID/UIDs
@@ -41,16 +43,17 @@ RUN apt-get update \
       2>&1 \
     #
     # Verify git, process tools, lsb-release (common in install instructions for CLIs) installed
-    && apt-get -y install git openssh-client less iproute2 procps lsb-release \
-    # Install nodejs
-    && curl -sL https://deb.nodesource.com/setup_10.x | bash - \
+    && apt-get -y install git openssh-client less iproute2 procps lsb-release
+    
+    # Install nodejs and nodemon
+RUN curl -sL https://deb.nodesource.com/setup_10.x | bash - \
     && apt-get install -y nodejs \
     && npm i -g nodemon \
     && nodejs -v \
-    && npm -v \
+    && npm -v
     #
     # Create a non-root user to use if preferred - see https://aka.ms/vscode-remote/containers/non-root-user.
-    && groupadd --gid $USER_GID $USERNAME \
+RUN groupadd --gid $USER_GID $USERNAME \
     && useradd -s /bin/bash --uid $USER_UID --gid $USER_GID -m $USERNAME \
     # [Optional] Add sudo support for the non-root user
     && apt-get install -y sudo \
@@ -65,50 +68,21 @@ RUN apt-get update \
     # Clean up
     && apt-get autoremove -y \
     && apt-get clean -y \
-    && rm -rf /var/lib/apt/lists/* \
-    && curl https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.tar.gz > /tmp/google-cloud-sdk.tar.gz \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN curl https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.tar.gz > /tmp/google-cloud-sdk.tar.gz \
     # Install the gcloud package
     && mkdir -p /usr/local/gcloud \
     && tar -C /usr/local/gcloud -xvf /tmp/google-cloud-sdk.tar.gz \
     && /usr/local/gcloud/google-cloud-sdk/install.sh --quiet
 
-# Adding the package path to local
+# Add gcloud to path
 ENV PATH $PATH:/usr/local/gcloud/google-cloud-sdk/bin
 
 # Install kubectl and make sure gcloud is up to date
 RUN gcloud components install kubectl \
   && gcloud components update --quiet
 
-# Copy localhost's ~/.kube/config file into the container and swap out localhost
-# for host.docker.internal whenever a new shell starts to keep them in sync.
-# RUN echo '\n\
-# if [ "$SYNC_LOCALHOST_KUBECONFIG" == "true" ]; then\n\
-#     mkdir -p $HOME/.kube\n\
-#     cp -r $HOME/.kube-localhost/* $HOME/.kube\n\
-#     sed -i -e "s/localhost/host.docker.internal/g" $HOME/.kube/config\n\
-# \n\
-# fi' \
-# >> $HOME/.bashrc
-
-# # Copy gcloud config from the host
-# RUN echo '\n\
-# if [ "$SYNC_LOCALHOST_GCLOUD" == "true" ]; then\n\
-#     mkdir -p $HOME/.config/gcloud\n\
-#     cp -r $HOME/.gcloud-localhost/* $HOME/.config/gcloud\n\
-# \n\
-# fi' \
-# >> $HOME/.bashrc
-
-# #COPY sync.sh /root/sync.sh
-# #RUN touch /root/.bashrc && /root/sync.sh >> $HOME/.bashrc
-# RUN echo '\n\
-# if [ "$SYNC_LOCALHOST_SSH" == "true" ]; then\n\
-#     mkdir -p ~/.ssh\n\
-#     cp -r ~/.ssh-localhost/* ~/.ssh\n\
-#     chmod 700 ~/.ssh \n\
-#     chmod 600 ~/.ssh/*\n\
-# fi' \
-# >> $HOME/.bashrc
 
 # Switch back to dialog for any ad-hoc use of apt-get
 ENV DEBIAN_FRONTEND=dialog
