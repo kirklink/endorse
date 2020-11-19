@@ -1,6 +1,9 @@
 # Endorse Changelog
 
 
+## 0.0.18
+- Fix failed boolean assertion
+
 ## 0.0.17
 - Update dependency constraints
 

@@ -1,7 +1,7 @@
 name: endorse
 homepage: "https://github.com/kirklink/endorse"
 description: "Library for validating arbitrary objects such as API responses."
-version: 0.0.17
+version: 0.0.18
 environment:
   sdk: '>=2.9.0 <3.0.0'
 #dependencies: 

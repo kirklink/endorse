@@ -1,7 +1,6 @@
 import 'package:endorse/src/endorse/validations.dart';
 import 'package:endorse/src/endorse/case.dart';
 
-
 /// The annotation to convert a Dart class into a Endorse validated object.
 ///
 /// [useCase]: automatically convert the object field names to different case schemas.
@@ -10,8 +9,8 @@ class EndorseEntity {
   final bool requireAll;
   const EndorseEntity({
     this.useCase = Case.none,
-    this.requireAll,
-    });
+    this.requireAll = false,
+  });
 }
 
 /// The annotation to enhance a Dart class property with Endorse metadata.
@@ -28,18 +27,14 @@ class EndorseField {
   final bool ignore;
   final Case useCase;
   final String name;
-  const EndorseField({
-    this.validate = const <Validation>[],
-    this.itemValidate = const <Validation>[],
-    this.ignore = false,
-    this.useCase = Case.none,
-    this.name = ''
-  });
+  const EndorseField(
+      {this.validate = const <Validation>[],
+      this.itemValidate = const <Validation>[],
+      this.ignore = false,
+      this.useCase = Case.none,
+      this.name = ''});
 }
 
-
 class EndorseMap {
-
   const EndorseMap();
-  
 }
