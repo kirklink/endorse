@@ -1,5 +1,8 @@
 # Endorse Builder Changelog
 
+## 0.0.17
+- Update dependency constraints
+
 ## 0.0.16
 - Add validation errors as a Dart class ValidationError
 - Fix type assigment in code gen of nested classes ClassResult fields
