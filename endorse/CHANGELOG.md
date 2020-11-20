@@ -1,8 +1,11 @@
 # Endorse Changelog
 
 
+## 0.0.20
+- Fix error after dependency upgrades
+
 ## 0.0.19
-- Upload failure -- re-upload
+- Fix upload error
 
 ## 0.0.18
 - Fix failed boolean assertion
