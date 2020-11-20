@@ -1,6 +1,9 @@
 # Endorse Builder Changelog
 
 
+## 0.0.21
+- Align analyzer dependency with similar packages
+
 ## 0.0.20
 - Fix error after dependency upgrades
 
