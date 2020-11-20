@@ -131,7 +131,8 @@ StringBuffer convertToEndorse(
       bool isClass = false;
 
       if (requireAll ||
-          validations.any((e) => e.type.getDisplayString() == 'Required')) {
+          validations.any((e) =>
+              e.type.getDisplayString(withNullability: false) == 'Required')) {
         fieldRulesBuf.write('..isRequired()');
       }
 
@@ -155,7 +156,8 @@ StringBuffer convertToEndorse(
         fieldRulesBuf.write('..isBoolean(@)');
         fieldType = bool;
         isValue = true;
-      } else if (field.type.getDisplayString() == 'DateTime') {
+      } else if (field.type.getDisplayString(withNullability: false) ==
+          'DateTime') {
         fieldRulesBuf.write('..isDateTime()');
         fieldType = DateTime;
         isValue = true;
@@ -168,10 +170,12 @@ StringBuffer convertToEndorse(
           throw EndorseBuilderException(
               'EndorseEntity and EdorseMap must only annotate classes. ${field.getDisplayString(withNullability: null)} is not a class.');
         }
+
         pageBuf.writeln(convertToEndorse(mapElement, recase, requireAll,
             nestLevel: nestLevel + 1));
 
-        itemRulesBuf.write(', __\$${field.type.getDisplayString()}Endorse()');
+        itemRulesBuf.write(
+            ', __\$${field.type.getDisplayString(withNullability: false)}Endorse()');
         isClass = true;
         fieldRulesBuf.write('..isMap()');
         fieldType = Map;
@@ -213,7 +217,8 @@ StringBuffer convertToEndorse(
           itemRulesBuf.write(', ValidateValue()..isBool(@)');
           itemType = bool;
           isValue = true;
-        } else if (elementType.getDisplayString() == 'DateTime') {
+        } else if (elementType.getDisplayString(withNullability: false) ==
+            'DateTime') {
           itemRulesBuf.write(', ValidateValue()..isDateTime()');
           itemType = DateTime;
           isValue = true;
@@ -223,8 +228,8 @@ StringBuffer convertToEndorse(
           isClass = true;
           itemType = Map;
           // itemRulesBuf.write(', ValidateValue()..isMap()');
-          itemRulesBuf
-              .write(', __\$${elementType.getDisplayString()}Endorse()');
+          itemRulesBuf.write(
+              ', __\$${elementType.getDisplayString(withNullability: false)}Endorse()');
 
           final mapElement = elementType.element;
           if (mapElement is! ClassElement) {
@@ -270,7 +275,7 @@ StringBuffer convertToEndorse(
         rulesBuf.write(
             'ClassResult ${appName}(Object value) => (ValidateClass(ValidateValue()');
         final classResultName =
-            "__\$${field.type.getDisplayString()}ValidationResult";
+            "__\$${field.type.getDisplayString(withNullability: false)}ValidationResult";
         resultBufFields.writeln('final ${classResultName} ${appName};');
         resultBufConstructor.write('this.${appName}, ');
         valBufValidate.writeln(
@@ -289,13 +294,15 @@ StringBuffer convertToEndorse(
 
       if (isValue && !isList) {
         var fieldRules = fieldRulesBuf.toString();
-        if (validations
-            .any((e) => fromStringRules.contains(e.type.getDisplayString()))) {
+
+        if (validations.any((e) => fromStringRules
+            .contains(e.type.getDisplayString(withNullability: false)))) {
           fieldRules = fieldRules.replaceFirst('@', fromString);
         }
 
-        if (validations
-            .any((e) => e.type.getDisplayString().startsWith('ToString'))) {
+        if (validations.any((e) => e.type
+            .getDisplayString(withNullability: false)
+            .startsWith('ToString'))) {
           fieldRules = fieldRules.replaceFirst('#', toString);
         }
 
@@ -322,13 +329,14 @@ StringBuffer convertToEndorse(
 
         var itemRules = itemRulesBuf.toString();
 
-        if (itemValidations
-            .any((e) => fromStringRules.contains(e.type.getDisplayString()))) {
+        if (itemValidations.any((e) => fromStringRules
+            .contains(e.type.getDisplayString(withNullability: false)))) {
           itemRules = itemRules.replaceFirst('@', fromString);
         }
 
-        if (itemValidations
-            .any((e) => e.type.getDisplayString().startsWith('ToString'))) {
+        if (itemValidations.any((e) => e.type
+            .getDisplayString(withNullability: false)
+            .startsWith('ToString'))) {
           itemRules = itemRules.replaceFirst('#', toString);
         }
 
@@ -355,6 +363,7 @@ StringBuffer convertToEndorse(
       rulesBuf.writeln(fieldRulesBuf);
     }
   }
+
   // CLOSE
   rulesBuf.writeln('}');
   // CLOSE
