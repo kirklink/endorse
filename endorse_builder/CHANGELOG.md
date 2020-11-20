@@ -1,6 +1,9 @@
 # Endorse Builder Changelog
 
 
+## 0.0.22
+- Align analyzer dependency with similar packages
+
 ## 0.0.21
 - Align analyzer dependency with similar packages
 
