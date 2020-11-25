@@ -12,7 +12,6 @@ class EndorseEntityGenerator extends GeneratorForAnnotation<EndorseEntity> {
   @override
   FutureOr<String> generateForAnnotatedElement(
       Element element, ConstantReader annotation, BuildStep buildStep) {
-    print('ENDORSE RUNNING ON: ${element.name}');
     if (element is! ClassElement) {
       throw ('EndorseEntity must only annotate a class.');
     }
@@ -64,8 +63,6 @@ class EndorseEntityGenerator extends GeneratorForAnnotation<EndorseEntity> {
     final requireAll = annotation.peek('requireAll')?.boolValue ?? false;
     final tracker = Tracker();
     final endorse = convertToEndorse(element, recase, requireAll, tracker);
-    print(endorse.toString());
-    print('ENDORSE FINISHED ON: ${element.name}');
     return endorse.toString();
   }
 }

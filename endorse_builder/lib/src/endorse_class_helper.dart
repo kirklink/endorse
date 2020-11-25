@@ -21,14 +21,11 @@ Iterable<DartType> _getGenericTypes(DartType type) {
 StringBuffer convertToEndorse(
     ClassElement clazz, int recase, bool globalRequireAll, Tracker tracker,
     {int nestLevel = 0}) {
-  print('CONVERTING: ${clazz.name}');
   final pageBuf = StringBuffer();
-  print('4');
   var privatePrefix = '_';
   if (nestLevel > 0) {
     privatePrefix = '__';
   }
-  print('5');
   final validatorClassName = '${privatePrefix}\$${clazz.name}Endorse';
 
   if (tracker.builtClasses.contains(validatorClassName)) {
@@ -37,7 +34,6 @@ StringBuffer convertToEndorse(
     tracker.builtClasses.add(validatorClassName);
   }
 
-  print('1');
   final rulesBuf = StringBuffer();
   final rulesClassName = '__\$${clazz.name}ValidationRules';
   rulesBuf.writeln('class ${rulesClassName} {');
@@ -57,7 +53,6 @@ StringBuffer convertToEndorse(
   // resultBufConstructor.writeln(']) : super(fields);');
 
   final valBuf = StringBuffer();
-  print('2');
   valBuf.writeln(
       'class ${validatorClassName} implements EndorseClassValidator {');
   valBuf.writeln('final rules = ${rulesClassName}();');
@@ -74,7 +69,6 @@ StringBuffer convertToEndorse(
   // valBufConstructor.write(']);');
   // CLOSE
   // valBuf.writeln('}');
-  print('3');
   final classElements = <ClassElement>[];
   classElements.add(clazz);
   for (final superType in clazz.allSupertypes) {
@@ -83,10 +77,8 @@ StringBuffer convertToEndorse(
     }
   }
 
-  print('BEFORE FOR LOOPS');
   for (final klass in classElements) {
     for (final field in klass.fields) {
-      print('WORKING ON: ${klass.name}.${field.name}');
       if (field.isStatic || field.isSynthetic) {
         continue;
       }
@@ -366,7 +358,6 @@ StringBuffer convertToEndorse(
       rulesBuf.writeln(fieldRulesBuf);
     }
   }
-  print('WRITING: ${clazz.name}');
   // CLOSE
   rulesBuf.writeln('}');
   // CLOSE
@@ -384,7 +375,5 @@ StringBuffer convertToEndorse(
   valBuf.writeln(valBufConstructor);
   valBuf.writeln('}}');
   pageBuf.writeAll([rulesBuf, resultBuf, valBuf]);
-  // print(pageBuf.toString());
-  print('END CONVERTING: ${clazz.name}');
   return pageBuf;
 }

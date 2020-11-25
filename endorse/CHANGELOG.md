@@ -1,6 +1,9 @@
 # Endorse Changelog
 
 
+## 0.0.24
+- Remove rogue print statement
+
 ## 0.0.23
 - Fix disappearing build bug
 
