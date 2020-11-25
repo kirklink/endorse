@@ -8,6 +8,7 @@ import 'package:endorse/annotations.dart';
 import 'package:endorse_builder/src/endorse_builder_exception.dart';
 import 'package:endorse_builder/src/recase_helper.dart';
 import 'package:endorse_builder/src/field_helper.dart';
+import 'package:endorse_builder/src/build_tracker.dart';
 
 final _checkForEndorseEntity = const TypeChecker.fromRuntime(EndorseEntity);
 final _checkForEndorseMap = const TypeChecker.fromRuntime(EndorseMap);
@@ -17,28 +18,26 @@ Iterable<DartType> _getGenericTypes(DartType type) {
   return type is ParameterizedType ? type.typeArguments : const [];
 }
 
-abstract class _Tracker {
-  static final builtClasses = <String>[];
-}
-
 StringBuffer convertToEndorse(
-    ClassElement clazz, int recase, bool globalRequireAll,
+    ClassElement clazz, int recase, bool globalRequireAll, Tracker tracker,
     {int nestLevel = 0}) {
+  print('CONVERTING: ${clazz.name}');
   final pageBuf = StringBuffer();
-
+  print('4');
   var privatePrefix = '_';
   if (nestLevel > 0) {
     privatePrefix = '__';
   }
-
+  print('5');
   final validatorClassName = '${privatePrefix}\$${clazz.name}Endorse';
 
-  if (_Tracker.builtClasses.contains(validatorClassName)) {
+  if (tracker.builtClasses.contains(validatorClassName)) {
     return pageBuf;
   } else {
-    _Tracker.builtClasses.add(validatorClassName);
+    tracker.builtClasses.add(validatorClassName);
   }
 
+  print('1');
   final rulesBuf = StringBuffer();
   final rulesClassName = '__\$${clazz.name}ValidationRules';
   rulesBuf.writeln('class ${rulesClassName} {');
@@ -58,7 +57,7 @@ StringBuffer convertToEndorse(
   // resultBufConstructor.writeln(']) : super(fields);');
 
   final valBuf = StringBuffer();
-
+  print('2');
   valBuf.writeln(
       'class ${validatorClassName} implements EndorseClassValidator {');
   valBuf.writeln('final rules = ${rulesClassName}();');
@@ -75,7 +74,7 @@ StringBuffer convertToEndorse(
   // valBufConstructor.write(']);');
   // CLOSE
   // valBuf.writeln('}');
-
+  print('3');
   final classElements = <ClassElement>[];
   classElements.add(clazz);
   for (final superType in clazz.allSupertypes) {
@@ -84,8 +83,10 @@ StringBuffer convertToEndorse(
     }
   }
 
+  print('BEFORE FOR LOOPS');
   for (final klass in classElements) {
     for (final field in klass.fields) {
+      print('WORKING ON: ${klass.name}.${field.name}');
       if (field.isStatic || field.isSynthetic) {
         continue;
       }
@@ -171,7 +172,8 @@ StringBuffer convertToEndorse(
               'EndorseEntity and EdorseMap must only annotate classes. ${field.getDisplayString(withNullability: null)} is not a class.');
         }
 
-        pageBuf.writeln(convertToEndorse(mapElement, recase, requireAll,
+        pageBuf.writeln(convertToEndorse(
+            mapElement, recase, requireAll, tracker,
             nestLevel: nestLevel + 1));
 
         itemRulesBuf.write(
@@ -236,7 +238,8 @@ StringBuffer convertToEndorse(
             throw EndorseBuilderException(
                 'EndorseEntity and EdorseMap must only annotate classes. ${field.getDisplayString(withNullability: null)} is not a class.');
           }
-          pageBuf.writeln(convertToEndorse(mapElement, recase, requireAll,
+          pageBuf.writeln(convertToEndorse(
+              mapElement, recase, requireAll, tracker,
               nestLevel: nestLevel + 1));
         }
       }
@@ -363,7 +366,7 @@ StringBuffer convertToEndorse(
       rulesBuf.writeln(fieldRulesBuf);
     }
   }
-
+  print('WRITING: ${clazz.name}');
   // CLOSE
   rulesBuf.writeln('}');
   // CLOSE
@@ -382,5 +385,6 @@ StringBuffer convertToEndorse(
   valBuf.writeln('}}');
   pageBuf.writeAll([rulesBuf, resultBuf, valBuf]);
   // print(pageBuf.toString());
+  print('END CONVERTING: ${clazz.name}');
   return pageBuf;
 }

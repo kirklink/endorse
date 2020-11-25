@@ -1,6 +1,9 @@
 # Endorse Builder Changelog
 
 
+## 0.0.23
+- Fix disappearing build bug
+
 ## 0.0.22
 - Align analyzer dependency with similar packages
 
