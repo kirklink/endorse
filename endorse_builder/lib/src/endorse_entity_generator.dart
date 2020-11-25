@@ -6,16 +6,17 @@ import 'package:source_gen/source_gen.dart';
 
 import 'package:endorse/annotations.dart';
 import 'package:endorse_builder/src/endorse_builder_exception.dart';
-
+import 'package:endorse_builder/src/build_tracker.dart';
 
 class EndorseEntityGenerator extends GeneratorForAnnotation<EndorseEntity> {
   @override
   FutureOr<String> generateForAnnotatedElement(
-  Element element, ConstantReader annotation, BuildStep buildStep) {
+      Element element, ConstantReader annotation, BuildStep buildStep) {
+    print('ENDORSE RUNNING ON: ${element.name}');
     if (element is! ClassElement) {
       throw ('EndorseEntity must only annotate a class.');
     }
-    
+
     final classNamePrefix = '${element.name}';
 
     final endorseClassName = '${classNamePrefix}Endorse';
@@ -29,15 +30,42 @@ class EndorseEntityGenerator extends GeneratorForAnnotation<EndorseEntity> {
       throw EndorseBuilderException(notReadyBuf.toString());
     }
 
-    var recase = annotation.peek('useCase')?.objectValue?.getField('none')?.toIntValue() ?? 0;
-    recase = annotation.peek('useCase')?.objectValue?.getField('camelCase')?.toIntValue() ?? recase;
-    recase = annotation.peek('useCase')?.objectValue?.getField('snakeCase')?.toIntValue() ?? recase;
-    recase = annotation.peek('useCase')?.objectValue?.getField('pascalCase')?.toIntValue() ?? recase;
-    recase = annotation.peek('useCase')?.objectValue?.getField('kebabCase')?.toIntValue() ?? recase;
+    var recase = annotation
+            .peek('useCase')
+            ?.objectValue
+            ?.getField('none')
+            ?.toIntValue() ??
+        0;
+    recase = annotation
+            .peek('useCase')
+            ?.objectValue
+            ?.getField('camelCase')
+            ?.toIntValue() ??
+        recase;
+    recase = annotation
+            .peek('useCase')
+            ?.objectValue
+            ?.getField('snakeCase')
+            ?.toIntValue() ??
+        recase;
+    recase = annotation
+            .peek('useCase')
+            ?.objectValue
+            ?.getField('pascalCase')
+            ?.toIntValue() ??
+        recase;
+    recase = annotation
+            .peek('useCase')
+            ?.objectValue
+            ?.getField('kebabCase')
+            ?.toIntValue() ??
+        recase;
 
     final requireAll = annotation.peek('requireAll')?.boolValue ?? false;
-
-    final endorse = convertToEndorse(element, recase, requireAll);
+    final tracker = Tracker();
+    final endorse = convertToEndorse(element, recase, requireAll, tracker);
+    print(endorse.toString());
+    print('ENDORSE FINISHED ON: ${element.name}');
     return endorse.toString();
   }
 }

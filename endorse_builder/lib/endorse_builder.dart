@@ -1,1 +1,1 @@
-export 'src/endorse_builder.dart';
+export 'src/endorse_builder.dart' show EndorseBuilder;
