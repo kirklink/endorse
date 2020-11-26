@@ -1,7 +1,6 @@
 import 'package:endorse/src/endorse/rule.dart';
 
-
-abstract class ValueRule extends Rule{}
+abstract class ValueRule extends Rule {}
 
 class IsRequiredRule extends ValueRule {
   final name = 'IsRequired';
@@ -119,7 +118,8 @@ class CanIntFromStringRule extends ValueRule {
   final name = 'IntFromString';
   final causesBail = true;
   final pass = (input, test) => input is String && int.tryParse(input) != null;
-  final errorMsg = (input, test) => 'Could not cast to integer from ${input.runtimeType}.';
+  final errorMsg =
+      (input, test) => 'Could not cast to integer from ${input.runtimeType}.';
   final want = (input, test) => 'String';
   final got = (input, test) => input.runtimeType;
 }
@@ -135,8 +135,10 @@ class IntFromStringRule extends ValueRule {
 class CanDoubleFromStringRule extends ValueRule {
   final name = 'DoubleFromString';
   final causesBail = true;
-  final pass = (input, test) => input is String && double.tryParse(input) != null;
-  final errorMsg = (input, test) => 'Could not cast to double from ${input.runtimeType}.';
+  final pass =
+      (input, test) => input is String && double.tryParse(input) != null;
+  final errorMsg =
+      (input, test) => 'Could not cast to double from ${input.runtimeType}.';
   final want = (input, test) => 'String';
   final got = (input, test) => input.runtimeType;
 }
@@ -153,7 +155,8 @@ class CanNumFromStringRule extends ValueRule {
   final name = 'NumFromString';
   final causesBail = true;
   final pass = (input, test) => input is String && num.tryParse(input) != null;
-  final errorMsg = (input, test) => 'Could not cast to number from ${input.runtimeType}.';
+  final errorMsg =
+      (input, test) => 'Could not cast to number from ${input.runtimeType}.';
   final want = (input, test) => 'String';
   final got = (input, test) => input.runtimeType;
 }
@@ -169,8 +172,10 @@ class NumFromStringRule extends ValueRule {
 class CanBoolFromStringRule extends ValueRule {
   final name = 'BoolFromString';
   final causesBail = true;
-  final pass = (input, test) => input is String && (input == 'true' || input == 'false');
-  final errorMsg = (input, test) => 'Could not cast to boolean from ${input.runtimeType}.';
+  final pass =
+      (input, test) => input is String && (input == 'true' || input == 'false');
+  final errorMsg =
+      (input, test) => 'Could not cast to boolean from ${input.runtimeType}.';
 }
 
 class BoolFromStringRule extends ValueRule {
@@ -183,10 +188,9 @@ class BoolFromStringRule extends ValueRule {
   final got = (input, test) => input.runtimeType;
 }
 
-
 class MaxLengthRule extends ValueRule {
   final name = 'MaxLength';
-  final pass = (input, test) => (input as String).length < test;
+  final pass = (input, test) => (input as String).length <= test;
   final got = (input, test) => (input as String).length;
   final want = (input, test) => '< ${test}';
   final errorMsg = (input, test) => 'Length must be less than ${test}.';
@@ -194,7 +198,7 @@ class MaxLengthRule extends ValueRule {
 
 class MinLengthRule extends ValueRule {
   final name = 'MinLength';
-  final pass = (input, test) => (input as String).length > test;
+  final pass = (input, test) => (input as String).length >= test;
   final got = (input, test) => (input as String).length;
   final want = (input, test) => '> ${test}';
   final errorMsg = (input, test) => 'Length must be greater than ${test}.';
@@ -282,12 +286,6 @@ class IsFalseRule extends ValueRule {
   final want = (input, test) => false;
 }
 
-
-
-
-
-
-
 // class IsBefore extends DateTimeRule {
 //   final DateTime value;
 //   @override
@@ -301,4 +299,3 @@ class IsFalseRule extends ValueRule {
 //   final String part = '.isAfter(@)';
 //   const IsAfter(this.value);
 // }
-

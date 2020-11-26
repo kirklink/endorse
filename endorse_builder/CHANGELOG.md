@@ -1,6 +1,9 @@
 # Endorse Builder Changelog
 
 
+## 0.0.25
+- Fix error in MaxLength, MinLength
+
 ## 0.0.24
 - Remove rogue print statement
 
