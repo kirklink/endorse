@@ -32,7 +32,7 @@ class Evaluator {
     final ruleGot = rule.got(_input, test);
     final got = ruleGot != null ? ruleGot : _input;
     final ruleWant = rule.want(_input, test);
-    final want = ruleWant != null ? ruleWant : test;
+    final want = (ruleWant != null ? ruleWant : test).toString();
     if (!rule.pass(_inputCast, test)) {
       _errors.add(
           ValidationError(rule.name, rule.errorMsg(_input, test), got, want));

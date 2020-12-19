@@ -1,4 +1,5 @@
 import 'package:endorse/src/endorse/rule.dart';
+import 'package:endorse/src/endorse/endorse_exception.dart';
 
 abstract class ValueRule extends Rule {}
 
@@ -109,9 +110,11 @@ class IsBoolRule extends ValueRule {
 class IsDateTimeRule extends ValueRule {
   final name = 'IsDateTime';
   final causesBail = true;
-  final pass = (input, test) => DateTime.tryParse(input) != null;
+  final pass = (input, test) =>
+      input is DateTime || DateTime.tryParse(input as String) != null;
   final errorMsg = (input, test) => 'Must be a datetime.';
-  final cast = (input) => DateTime.parse(input);
+  final cast =
+      (input) => input is DateTime ? input : DateTime.parse(input as String);
 }
 
 class CanIntFromStringRule extends ValueRule {
@@ -286,16 +289,94 @@ class IsFalseRule extends ValueRule {
   final want = (input, test) => false;
 }
 
-// class IsBefore extends DateTimeRule {
-//   final DateTime value;
-//   @override
-//   final String part = '.isBefore(@)';
-//   const IsBefore(this.value);
-// }
+class IsBeforeRule extends ValueRule {
+  final name = 'IsBefore';
+  final pass = (input, test) {
+    if (test == null || DateTime.tryParse(test) == null) {
+      throw Exception(
+          'The test string "$test" could not be parsed to DateTime.');
+    }
+    return (input as DateTime).isBefore(DateTime.parse(test));
+  };
+  final want =
+      (input, test) => '< ${DateTime.parse(test as String).toIso8601String()}';
+  final got = (input, test) => '${(input as DateTime).toIso8601String()}';
+  final errorMsg = (input, test) =>
+      'Must be before ${DateTime.parse(test as String).toIso8601String()}.';
+}
 
-// class IsAfter extends DateTimeRule {
-//   final DateTime value;
-//   @override
-//   final String part = '.isAfter(@)';
-//   const IsAfter(this.value);
-// }
+class IsAfterRule extends ValueRule {
+  final name = 'IsAfter';
+  final pass = (input, test) {
+    if (test == null || DateTime.tryParse(test) == null) {
+      throw EndorseException(
+          'The test string "$test" could not be parsed to DateTime.');
+    }
+    return (input as DateTime).isAfter(DateTime.parse(test));
+  };
+  final want =
+      (input, test) => '> ${DateTime.parse(test as String).toIso8601String()}';
+  final got = (input, test) => '${(input as DateTime).toIso8601String()}';
+  final errorMsg = (input, test) =>
+      'Must be after ${DateTime.parse(test as String).toIso8601String()}.';
+}
+
+class IsAtMomentRule extends ValueRule {
+  final name = 'IsAtMoment';
+  final pass = (input, test) {
+    if (test == null || DateTime.tryParse(test) == null) {
+      throw EndorseException(
+          'The test string "$test" could not be parsed to DateTime.');
+    }
+    return (input as DateTime).isAtSameMomentAs(DateTime.parse(test));
+  };
+  final want =
+      (input, test) => '== ${DateTime.parse(test as String).toIso8601String()}';
+  final got = (input, test) => '${(input as DateTime).toIso8601String()}';
+  final errorMsg = (input, test) =>
+      'Must be after ${DateTime.parse(test as String).toIso8601String()}.';
+}
+
+class IsSameDateAsRule extends ValueRule {
+  final name = 'IsSameDateAs';
+  final pass = (input, test) {
+    if (test == null || DateTime.tryParse(test) == null) {
+      throw EndorseException(
+          'The test string "$test" could not be parsed to DateTime.');
+    }
+    final inputDateTime = input as DateTime;
+    final testDateTime = DateTime.parse(test as String);
+    return inputDateTime.year == testDateTime.year &&
+        inputDateTime.month == testDateTime.month &&
+        inputDateTime.day == testDateTime.day;
+  };
+  final want = (input, test) {
+    final date = DateTime.parse(test as String);
+    return '${date.year}-${date.month}-${date.day}';
+  };
+  final got = (input, test) {
+    final date = input as DateTime;
+    return '${date.year}-${date.month}-${date.day}';
+  };
+  final errorMsg = (input, test) {
+    final date = input as DateTime;
+    return 'Must be on ${date.year}-${date.month}-${date.day}';
+  };
+}
+
+class MatchesPatternRule extends ValueRule {
+  final name = 'MatchesPattern';
+  final pass = (input, test) {
+    RegExp regExp;
+    try {
+      regExp = RegExp(test);
+    } catch (e) {
+      throw EndorseException('Pattern "test" is not a valid RegExp');
+    }
+    return regExp.hasMatch(input as String);
+  };
+  final want = (input, test) => 'Has match with ${test as String}';
+  final got = (input, test) => 'No matches in ${input as String}';
+  final errorMsg = (input, test) =>
+      '${test as String} does not have a match in ${input as String}';
+}

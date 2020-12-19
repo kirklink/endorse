@@ -263,7 +263,7 @@ ProcessedFieldHolder processField(FieldElement field, String fieldName) {
       fieldRules = '..isDouble(@)';
       fieldType = double;
     } else if (field.type.isDartCoreBool) {
-      fieldRules = '..isBoolean(@)';
+      fieldRules = '..isBoolean()';
       fieldType = bool;
     } else {
       throw EndorseBuilderException(

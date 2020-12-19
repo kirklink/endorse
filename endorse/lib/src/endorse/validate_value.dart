@@ -1,12 +1,12 @@
+import 'package:endorse/annotations.dart';
 import 'package:endorse/src/endorse/rules.dart';
 import 'package:endorse/src/endorse/value_result.dart';
 import 'package:endorse/src/endorse/rule_holder.dart';
 import 'package:endorse/src/endorse/evaluator.dart';
 
-
 class ValidateValue {
   final rules = <RuleHolder>[];
-  
+
   ValueResult from(Object input, String field) {
     final evaluator = Evaluator(this.rules, input, field);
     return evaluator.evaluate();
@@ -111,7 +111,7 @@ class ValidateValue {
   void endsWith(String test) {
     rules.add(RuleHolder(EndsWithRule(), test));
   }
- 
+
   void isEqualTo(num test) {
     rules.add(RuleHolder(IsEqualToRule(), test));
   }
@@ -136,4 +136,23 @@ class ValidateValue {
     rules.add(RuleHolder(IsFalseRule()));
   }
 
+  void isBefore(Object test) {
+    rules.add(RuleHolder(IsBeforeRule(), test));
+  }
+
+  void isAfter(Object test) {
+    rules.add(RuleHolder(IsAfterRule(), test));
+  }
+
+  void isAtMoment(Object test) {
+    rules.add(RuleHolder(IsAtMomentRule(), test));
+  }
+
+  void isSameDateAs(Object test) {
+    rules.add(RuleHolder(IsSameDateAsRule(), test));
+  }
+
+  void matchesPattern(String test) {
+    rules.add(RuleHolder(MatchesPatternRule(), test));
+  }
 }

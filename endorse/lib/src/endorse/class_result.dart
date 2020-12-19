@@ -61,7 +61,6 @@ class ClassResult extends ResultObject {
     }
   }
 
-
   Object get $value {
     final r = <String, Object>{};
     for (final k in _elements.keys) {

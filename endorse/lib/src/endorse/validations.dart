@@ -188,3 +188,48 @@ class IsFalse extends Validation {
   final validOnTypes = const [bool];
   const IsFalse();
 }
+
+class IsBefore extends Validation {
+  @override
+  final String call = 'isBefore(@)';
+  @override
+  final validOnTypes = const [DateTime];
+  final String value;
+  const IsBefore(this.value);
+}
+
+class IsAfter extends Validation {
+  @override
+  final String call = 'isAfter(@)';
+  @override
+  final validOnTypes = const [DateTime];
+  final String value;
+  const IsAfter(this.value);
+}
+
+class IsAtMoment extends Validation {
+  @override
+  final String call = 'isAtMoment(@)';
+  @override
+  final validOnTypes = const [DateTime];
+  final String value;
+  const IsAtMoment(this.value);
+}
+
+class IsSameDateAs extends Validation {
+  @override
+  final String call = 'isSameDateAs(@)';
+  @override
+  final validOnTypes = const [DateTime];
+  final String value;
+  const IsSameDateAs(this.value);
+}
+
+class MatchesPattern extends Validation {
+  @override
+  final String call = 'matchesPattern(@)';
+  @override
+  final validOnTypes = const [String];
+  final String value;
+  const MatchesPattern(this.value);
+}
