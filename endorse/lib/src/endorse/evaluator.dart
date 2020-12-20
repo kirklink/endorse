@@ -1,3 +1,4 @@
+import 'package:endorse/src/endorse/endorse_exception.dart';
 import 'package:endorse/src/endorse/validation_error.dart';
 import 'package:endorse/src/endorse/rules.dart';
 import 'package:endorse/src/endorse/rule_holder.dart';
@@ -29,6 +30,10 @@ class Evaluator {
     if (_inputCast == null && rule.skipIfNull) {
       return;
     }
+    final precondition = rule.check(_inputCast, test);
+    if (precondition.isNotEmpty) {
+      throw EndorseException('Precondition failed: $precondition');
+    }
     final ruleGot = rule.got(_input, test);
     final got = ruleGot != null ? ruleGot : _input;
     final ruleWant = rule.want(_input, test);
@@ -41,5 +46,6 @@ class Evaluator {
       }
     }
     _inputCast = rule.cast(_inputCast);
+    rule.cleanup();
   }
 }

@@ -110,11 +110,9 @@ class IsBoolRule extends ValueRule {
 class IsDateTimeRule extends ValueRule {
   final name = 'IsDateTime';
   final causesBail = true;
-  final pass = (input, test) =>
-      input is DateTime || DateTime.tryParse(input as String) != null;
+  final pass = (input, test) => _inputDateConverter(input) != null;
   final errorMsg = (input, test) => 'Must be a datetime.';
-  final cast =
-      (input) => input is DateTime ? input : DateTime.parse(input as String);
+  final cast = (input) => _inputDateConverter(input);
 }
 
 class CanIntFromStringRule extends ValueRule {
@@ -291,92 +289,136 @@ class IsFalseRule extends ValueRule {
 
 class IsBeforeRule extends ValueRule {
   final name = 'IsBefore';
-  final pass = (input, test) {
-    if (test == null || DateTime.tryParse(test) == null) {
-      throw Exception(
-          'The test string "$test" could not be parsed to DateTime.');
-    }
-    return (input as DateTime).isBefore(DateTime.parse(test));
+  static DateTime _test;
+  final check = (input, test) {
+    _test = _testDateConverter(test);
+    return _test != null ? '' : 'Could not parse "$test" to DateTime.';
   };
-  final want =
-      (input, test) => '< ${DateTime.parse(test as String).toIso8601String()}';
-  final got = (input, test) => '${(input as DateTime).toIso8601String()}';
-  final errorMsg = (input, test) =>
-      'Must be before ${DateTime.parse(test as String).toIso8601String()}.';
+  final pass = (input, test) => _inputDateConverter(input).isBefore(_test);
+  final want = (input, test) => '< ${_test}';
+  final got =
+      (input, test) => '${_inputDateConverter(input).toIso8601String()}';
+  final errorMsg = (input, test) => 'Must be before ${_test}.';
+  final cleanup = () => _test = null;
 }
 
 class IsAfterRule extends ValueRule {
   final name = 'IsAfter';
-  final pass = (input, test) {
-    if (test == null || DateTime.tryParse(test) == null) {
-      throw EndorseException(
-          'The test string "$test" could not be parsed to DateTime.');
-    }
-    return (input as DateTime).isAfter(DateTime.parse(test));
+  static DateTime _test;
+  final check = (input, test) {
+    _test = _testDateConverter(test);
+    return _test != null ? '' : 'Could not parse "$test" to DateTime.';
   };
-  final want =
-      (input, test) => '> ${DateTime.parse(test as String).toIso8601String()}';
-  final got = (input, test) => '${(input as DateTime).toIso8601String()}';
-  final errorMsg = (input, test) =>
-      'Must be after ${DateTime.parse(test as String).toIso8601String()}.';
+  final pass = (input, test) =>
+      _inputDateConverter(input).isAfter(_testDateConverter(test));
+  final want = (input, test) => '> ${_test}';
+  final got = (input, test) => '${_inputDateConverter(input)}';
+  final errorMsg = (input, test) => 'Must be after ${_test}.';
+  final cleanup = () => _test = null;
 }
 
 class IsAtMomentRule extends ValueRule {
   final name = 'IsAtMoment';
-  final pass = (input, test) {
-    if (test == null || DateTime.tryParse(test) == null) {
-      throw EndorseException(
-          'The test string "$test" could not be parsed to DateTime.');
-    }
-    return (input as DateTime).isAtSameMomentAs(DateTime.parse(test));
+  static DateTime _test;
+  final check = (input, test) {
+    _test = _testDateConverter(test);
+    return _test != null ? '' : 'Could not parse "$test" to DateTime.';
   };
-  final want =
-      (input, test) => '== ${DateTime.parse(test as String).toIso8601String()}';
-  final got = (input, test) => '${(input as DateTime).toIso8601String()}';
-  final errorMsg = (input, test) =>
-      'Must be after ${DateTime.parse(test as String).toIso8601String()}.';
+  final pass = (input, test) =>
+      _inputDateConverter(input).isAtSameMomentAs(_testDateConverter(test));
+  final want = (input, test) => '== ${_test}';
+  final got = (input, test) => '${input as DateTime}';
+  final errorMsg = (input, test) => 'Must be after ${_test}.';
+  final cleanup = () => _test = null;
 }
 
 class IsSameDateAsRule extends ValueRule {
   final name = 'IsSameDateAs';
+  static DateTime _test;
+  final check = (input, test) {
+    _test = _testDateConverter(test);
+    return _test != null ? '' : 'Could not parse "$test" to DateTime.';
+  };
   final pass = (input, test) {
-    if (test == null || DateTime.tryParse(test) == null) {
-      throw EndorseException(
-          'The test string "$test" could not be parsed to DateTime.');
-    }
-    final inputDateTime = input as DateTime;
-    final testDateTime = DateTime.parse(test as String);
-    return inputDateTime.year == testDateTime.year &&
-        inputDateTime.month == testDateTime.month &&
-        inputDateTime.day == testDateTime.day;
+    final inputDt = _inputDateConverter(input);
+    // final testDt = _testDateConverter(test);
+    return inputDt.year == _test.year &&
+        inputDt.month == _test.month &&
+        inputDt.day == _test.day;
   };
-  final want = (input, test) {
-    final date = DateTime.parse(test as String);
-    return '${date.year}-${date.month}-${date.day}';
-  };
+  final want = (input, test) => '${_test.year}-${_test.month}-${_test.day}';
   final got = (input, test) {
-    final date = input as DateTime;
+    final date = _inputDateConverter(input);
     return '${date.year}-${date.month}-${date.day}';
   };
-  final errorMsg = (input, test) {
-    final date = input as DateTime;
-    return 'Must be on ${date.year}-${date.month}-${date.day}';
-  };
+  final errorMsg =
+      (input, test) => 'Must be on ${_test.year}-${_test.month}-${_test.day}';
+  final cleanup = () => _test = null;
 }
 
 class MatchesPatternRule extends ValueRule {
   final name = 'MatchesPattern';
-  final pass = (input, test) {
-    RegExp regExp;
+  final check = (input, test) {
     try {
-      regExp = RegExp(test);
+      final regExp = RegExp(test);
     } catch (e) {
-      throw EndorseException('Pattern "test" is not a valid RegExp');
+      return 'Pattern "$test" is not a valid RegExp';
     }
-    return regExp.hasMatch(input as String);
+    return '';
+  };
+  final pass = (input, test) {
+    return RegExp(test as String).hasMatch(input as String);
   };
   final want = (input, test) => 'Has match with ${test as String}';
   final got = (input, test) => 'No matches in ${input as String}';
   final errorMsg = (input, test) =>
       '${test as String} does not have a match in ${input as String}';
+}
+
+/********************/
+/* HELPER FUNCTIONS */
+/********************/
+
+DateTime _inputDateConverter(Object input) {
+  if (input is DateTime) {
+    return input.toUtc();
+  } else if (input is String) {
+    try {
+      return DateTime.parse(input).toUtc();
+    } catch (e) {
+      return null;
+    }
+  } else {
+    return null;
+  }
+}
+
+DateTime _testDateConverter(String test) {
+  if ('now' == test.toLowerCase()) {
+    return DateTime.now();
+  } else if (test.startsWith('today')) {
+    final now = DateTime.now();
+    final nowYear = now.year;
+    final nowMonth = now.month;
+    final nowDay = now.day;
+    final safeDate = DateTime.utc(nowYear, nowMonth, nowDay);
+    if (test == 'today') {
+      return safeDate;
+    }
+    final forward = test.split('+');
+    if (forward.length == 2 &&
+        forward[0] == 'today' &&
+        int.tryParse(forward[1]) != null) {
+      return safeDate.add(Duration(days: int.parse(forward[1])));
+    }
+    final back = test.split('-');
+    if (back.length == 2 &&
+        back[0] == 'today' &&
+        int.tryParse(back[1]) != null) {
+      return safeDate.subtract(Duration(days: int.parse(back[1])));
+    }
+  } else if (DateTime.tryParse(test) != null) {
+    return DateTime.parse(test);
+  }
+  return null;
 }

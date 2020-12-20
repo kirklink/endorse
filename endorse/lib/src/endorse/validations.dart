@@ -227,9 +227,27 @@ class IsSameDateAs extends Validation {
 
 class MatchesPattern extends Validation {
   @override
-  final String call = 'matchesPattern(@)';
+  final String call = 'matchesPattern(r@)';
   @override
   final validOnTypes = const [String];
   final String value;
   const MatchesPattern(this.value);
+}
+
+class MatchesRawPattern extends Validation {
+  @override
+  final String call = 'matchesPattern(r@)';
+  @override
+  final validOnTypes = const [String];
+  final String value;
+  const MatchesRawPattern(this.value);
+}
+
+class MatchesEscapedPattern extends Validation {
+  @override
+  final String call = 'matchesPattern(@)';
+  @override
+  final validOnTypes = const [String];
+  final String value;
+  const MatchesEscapedPattern(this.value);
 }
