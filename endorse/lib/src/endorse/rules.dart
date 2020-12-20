@@ -7,7 +7,8 @@ class IsRequiredRule extends ValueRule {
   final name = 'IsRequired';
   final skipIfNull = false;
   final causesBail = true;
-  final pass = (input, test) => input != null;
+  final pass = (input, test) =>
+      input != null && (input is String) ? input.isNotEmpty : true;
   final errorMsg = (input, test) => 'Required.';
 }
 
@@ -373,6 +374,13 @@ class MatchesPatternRule extends ValueRule {
   final got = (input, test) => 'No matches in ${input as String}';
   final errorMsg = (input, test) =>
       '${test as String} does not have a match in ${input as String}';
+}
+
+class IsEmailRule extends MatchesPatternRule {
+  final name = 'IsEmail';
+  final want = (input, test) => 'A valid email.';
+  final got = (input, test) => input;
+  final errorMsg = (input, test) => '$input is not a valid email address.';
 }
 
 /********************/

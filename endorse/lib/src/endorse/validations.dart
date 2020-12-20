@@ -1,3 +1,5 @@
+import 'package:endorse/patterns.dart';
+
 abstract class Validation {
   final String call = '';
   final validOnTypes = const <Type>[];
@@ -250,4 +252,13 @@ class MatchesEscapedPattern extends Validation {
   final validOnTypes = const [String];
   final String value;
   const MatchesEscapedPattern(this.value);
+}
+
+class IsEmail extends Validation {
+  @override
+  final String call = 'isEmail(r@)';
+  @override
+  final validOnTypes = const [String];
+  final String value = Patterns.email;
+  const IsEmail();
 }

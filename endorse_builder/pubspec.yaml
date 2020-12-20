@@ -6,9 +6,9 @@ environment:
   sdk: '>=2.9.0 <3.0.0'
 dependencies:
   recase: ^3.0.0
-  # endorse:
-    # path: ../endorse
-  endorse: ^0.0.26
+  endorse:
+    path: ../endorse
+  # endorse: ^0.0.26
   source_gen: ^0.9.8
   analyzer: ^0.40.4
   build: ^1.5.1

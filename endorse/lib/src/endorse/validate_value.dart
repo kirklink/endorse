@@ -155,4 +155,8 @@ class ValidateValue {
   void matchesPattern(String test) {
     rules.add(RuleHolder(MatchesPatternRule(), test));
   }
+
+  void isEmail(String test) {
+    rules.add(RuleHolder(IsEmailRule(), test));
+  }
 }
