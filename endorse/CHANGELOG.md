@@ -1,6 +1,11 @@
 # Endorse Changelog
 
 
+## 0.0.26
+- Add DateTime validations
+- Add RegExp validations
+- Clean up built in patterns
+
 ## 0.0.25
 - Fix error in MaxLength, MinLength
 
