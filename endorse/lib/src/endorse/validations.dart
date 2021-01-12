@@ -1,13 +1,13 @@
-import 'package:endorse/patterns.dart';
+import 'patterns.dart';
 
-abstract class Validation {
+abstract class ValidationBase {
   final String call = '';
   final validOnTypes = const <Type>[];
   final notValidOnTypes = const <Type>[];
-  const Validation();
+  const ValidationBase();
 }
 
-class Required extends Validation {
+class Required extends ValidationBase {
   @override
   final String call = 'isRequired()';
   const Required();
@@ -21,7 +21,7 @@ class Required extends Validation {
 //   const ToString();
 // }
 
-class ToStringFromInt extends Validation {
+class ToStringFromInt extends ValidationBase {
   @override
   final String call = 'makeString()';
   @override
@@ -29,7 +29,7 @@ class ToStringFromInt extends Validation {
   const ToStringFromInt();
 }
 
-class ToStringFromDouble extends Validation {
+class ToStringFromDouble extends ValidationBase {
   @override
   final String call = 'makeString()';
   @override
@@ -37,7 +37,7 @@ class ToStringFromDouble extends Validation {
   const ToStringFromDouble();
 }
 
-class ToStringFromNum extends Validation {
+class ToStringFromNum extends ValidationBase {
   @override
   final String call = 'makeString()';
   @override
@@ -45,7 +45,7 @@ class ToStringFromNum extends Validation {
   const ToStringFromNum();
 }
 
-class ToStringFromBool extends Validation {
+class ToStringFromBool extends ValidationBase {
   @override
   final String call = 'makeString()';
   @override
@@ -53,7 +53,7 @@ class ToStringFromBool extends Validation {
   const ToStringFromBool();
 }
 
-class IntFromString extends Validation {
+class IntFromString extends ValidationBase {
   @override
   final String call = 'intFromString()';
   @override
@@ -61,7 +61,7 @@ class IntFromString extends Validation {
   const IntFromString();
 }
 
-class DoubleFromString extends Validation {
+class DoubleFromString extends ValidationBase {
   @override
   final String call = 'doubleFromString()';
   @override
@@ -69,7 +69,7 @@ class DoubleFromString extends Validation {
   const DoubleFromString();
 }
 
-class NumFromString extends Validation {
+class NumFromString extends ValidationBase {
   @override
   final String call = 'numFromString()';
   @override
@@ -77,7 +77,7 @@ class NumFromString extends Validation {
   const NumFromString();
 }
 
-class BoolFromString extends Validation {
+class BoolFromString extends ValidationBase {
   @override
   final String call = 'boolFromString()';
   @override
@@ -85,7 +85,7 @@ class BoolFromString extends Validation {
   const BoolFromString();
 }
 
-class MaxLength extends Validation {
+class MaxLength extends ValidationBase {
   @override
   final String call = 'maxLength(@)';
   @override
@@ -94,7 +94,7 @@ class MaxLength extends Validation {
   const MaxLength(this.value);
 }
 
-class MinLength extends Validation {
+class MinLength extends ValidationBase {
   @override
   final String call = 'minLength(@)';
   @override
@@ -103,7 +103,7 @@ class MinLength extends Validation {
   const MinLength(this.value);
 }
 
-class StartsWith extends Validation {
+class StartsWith extends ValidationBase {
   @override
   final String call = 'startsWith(@)';
   @override
@@ -112,7 +112,7 @@ class StartsWith extends Validation {
   const StartsWith(this.value);
 }
 
-class EndsWith extends Validation {
+class EndsWith extends ValidationBase {
   @override
   final String call = 'endsWith(@)';
   @override
@@ -121,7 +121,7 @@ class EndsWith extends Validation {
   const EndsWith(this.value);
 }
 
-class Contains extends Validation {
+class Contains extends ValidationBase {
   @override
   final String call = 'contains(@)';
   @override
@@ -130,7 +130,7 @@ class Contains extends Validation {
   const Contains(this.value);
 }
 
-class Matches extends Validation {
+class Matches extends ValidationBase {
   @override
   final String call = 'matches(@)';
   @override
@@ -139,7 +139,7 @@ class Matches extends Validation {
   const Matches(this.value);
 }
 
-class IsLessThan extends Validation {
+class IsLessThan extends ValidationBase {
   @override
   final String call = 'isLessThan(@)';
   @override
@@ -148,7 +148,7 @@ class IsLessThan extends Validation {
   const IsLessThan(this.value);
 }
 
-class IsGreaterThan extends Validation {
+class IsGreaterThan extends ValidationBase {
   @override
   final String call = 'isGreaterThan(@)';
   @override
@@ -157,7 +157,7 @@ class IsGreaterThan extends Validation {
   const IsGreaterThan(this.value);
 }
 
-class IsEqualTo extends Validation {
+class IsEqualTo extends ValidationBase {
   @override
   final String call = 'isEqualTo(@)';
   @override
@@ -166,7 +166,7 @@ class IsEqualTo extends Validation {
   const IsEqualTo(this.value);
 }
 
-class IsNotEqualTo extends Validation {
+class IsNotEqualTo extends ValidationBase {
   @override
   final String call = 'isNotEqualTo(@)';
   @override
@@ -175,7 +175,7 @@ class IsNotEqualTo extends Validation {
   const IsNotEqualTo(this.value);
 }
 
-class IsTrue extends Validation {
+class IsTrue extends ValidationBase {
   @override
   final String call = 'isTrue()';
   @override
@@ -183,7 +183,7 @@ class IsTrue extends Validation {
   const IsTrue();
 }
 
-class IsFalse extends Validation {
+class IsFalse extends ValidationBase {
   @override
   final String call = 'isFalse()';
   @override
@@ -191,7 +191,7 @@ class IsFalse extends Validation {
   const IsFalse();
 }
 
-class IsBefore extends Validation {
+class IsBefore extends ValidationBase {
   @override
   final String call = 'isBefore(@)';
   @override
@@ -200,7 +200,7 @@ class IsBefore extends Validation {
   const IsBefore(this.value);
 }
 
-class IsAfter extends Validation {
+class IsAfter extends ValidationBase {
   @override
   final String call = 'isAfter(@)';
   @override
@@ -209,7 +209,7 @@ class IsAfter extends Validation {
   const IsAfter(this.value);
 }
 
-class IsAtMoment extends Validation {
+class IsAtMoment extends ValidationBase {
   @override
   final String call = 'isAtMoment(@)';
   @override
@@ -218,7 +218,7 @@ class IsAtMoment extends Validation {
   const IsAtMoment(this.value);
 }
 
-class IsSameDateAs extends Validation {
+class IsSameDateAs extends ValidationBase {
   @override
   final String call = 'isSameDateAs(@)';
   @override
@@ -227,7 +227,7 @@ class IsSameDateAs extends Validation {
   const IsSameDateAs(this.value);
 }
 
-class MatchesPattern extends Validation {
+class MatchesPattern extends ValidationBase {
   @override
   final String call = 'matchesPattern(r@)';
   @override
@@ -236,7 +236,7 @@ class MatchesPattern extends Validation {
   const MatchesPattern(this.value);
 }
 
-class MatchesRawPattern extends Validation {
+class MatchesRawPattern extends ValidationBase {
   @override
   final String call = 'matchesPattern(r@)';
   @override
@@ -245,7 +245,7 @@ class MatchesRawPattern extends Validation {
   const MatchesRawPattern(this.value);
 }
 
-class MatchesEscapedPattern extends Validation {
+class MatchesEscapedPattern extends ValidationBase {
   @override
   final String call = 'matchesPattern(@)';
   @override
@@ -254,7 +254,7 @@ class MatchesEscapedPattern extends Validation {
   const MatchesEscapedPattern(this.value);
 }
 
-class IsEmail extends Validation {
+class IsEmail extends ValidationBase {
   @override
   final String call = 'isEmail(r@)';
   @override

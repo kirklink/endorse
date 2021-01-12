@@ -1,5 +1,8 @@
 # Endorse Changelog
 
+## 0.0.28
+- Separate validations into sub-library
+
 ## 0.0.27
 - Add 10 digit phone pattern
 - Add basic email validator

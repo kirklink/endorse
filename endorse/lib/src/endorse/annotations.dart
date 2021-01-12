@@ -22,14 +22,14 @@ class EndorseEntity {
 /// [name]: sets an explict name from the object if different than the class field name.
 /// [ignore]: will ignore this field completely; it will not be included in the validation.
 class EndorseField {
-  final List<Validation> validate;
-  final List<Validation> itemValidate;
+  final List<ValidationBase> validate;
+  final List<ValidationBase> itemValidate;
   final bool ignore;
   final Case useCase;
   final String name;
   const EndorseField(
-      {this.validate = const <Validation>[],
-      this.itemValidate = const <Validation>[],
+      {this.validate = const <ValidationBase>[],
+      this.itemValidate = const <ValidationBase>[],
       this.ignore = false,
       this.useCase = Case.none,
       this.name = ''});
