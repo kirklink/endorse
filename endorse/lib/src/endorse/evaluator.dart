@@ -6,7 +6,7 @@ import 'package:endorse/src/endorse/value_result.dart';
 
 class Evaluator {
   final List<RuleHolder> rules;
-  final Object _input;
+  final Object? _input;
   Object? _inputCast;
   String _field;
   var _bail = false;

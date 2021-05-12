@@ -114,8 +114,14 @@ StringBuffer convertToEndorse(
           jsonName = rename;
         }
 
-        validations.addAll(reader.peek('validate')?.listValue);
-        itemValidations.addAll(reader.peek('itemValidate')?.listValue);
+        final validate = reader.peek('valudate')?.listValue;
+        if (validate != null) {
+          validations.addAll(validate);
+        }
+        final itemValidate = reader.peek('itemValidate')?.listValue;
+        if (itemValidate != null) {
+          itemValidations.addAll(itemValidate);
+        }
       }
 
       final fieldRulesBuf = StringBuffer();
@@ -164,7 +170,7 @@ StringBuffer convertToEndorse(
         final mapElement = field.type.element;
         if (mapElement is! ClassElement) {
           throw EndorseBuilderException(
-              'EndorseEntity and EdorseMap must only annotate classes. ${field.getDisplayString(withNullability: null)} is not a class.');
+              'EndorseEntity and EdorseMap must only annotate classes. ${field.getDisplayString(withNullability: false)} is not a class.');
         }
 
         pageBuf.writeln(convertToEndorse(
@@ -231,7 +237,7 @@ StringBuffer convertToEndorse(
           final mapElement = elementType.element;
           if (mapElement is! ClassElement) {
             throw EndorseBuilderException(
-                'EndorseEntity and EdorseMap must only annotate classes. ${field.getDisplayString(withNullability: null)} is not a class.');
+                'EndorseEntity and EdorseMap must only annotate classes. ${field.getDisplayString(withNullability: false)} is not a class.');
           }
           pageBuf.writeln(convertToEndorse(
               mapElement, recase, requireAll, tracker,

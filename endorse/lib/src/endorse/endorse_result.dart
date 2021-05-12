@@ -12,11 +12,11 @@ abstract class EndorseResult {
 
   Object get $value {
     final r = <String, Object>{};
-    if (_fields == null) {
-      return null;
+    if (_fields.isEmpty) {
+      return const {};
     }
     for (final k in _fields.keys) {
-      final value = _fields[k]!.$value;
+      final value = _fields[k]?.$value;
       if (value == null) {
         continue;
       }

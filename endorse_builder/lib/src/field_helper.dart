@@ -123,8 +123,14 @@ ProcessedFieldHolder processField(FieldElement field, String fieldName) {
   if (_checkForEndorseField.hasAnnotationOfExact(field)) {
     final reader =
         ConstantReader(_checkForEndorseField.firstAnnotationOf(field));
-    validations.addAll(reader.peek('validate')?.listValue);
-    itemValidations.addAll(reader.peek('itemValidate')?.listValue);
+    final validate = reader.peek('valudate')?.listValue;
+    if (validate != null) {
+      validations.addAll(validate);
+    }
+    final itemValidate = reader.peek('itemValidate')?.listValue;
+    if (itemValidate != null) {
+      itemValidations.addAll(itemValidate);
+    }
     final ignore = reader.peek('ignore')?.boolValue ?? false;
     final nameOverride = reader.peek('name')?.stringValue ?? '';
 
@@ -133,30 +139,29 @@ ProcessedFieldHolder processField(FieldElement field, String fieldName) {
     }
 
     var recase =
-        reader.peek('useCase')?.objectValue?.getField('none')?.toIntValue() ??
-            0;
+        reader.peek('useCase')?.objectValue.getField('none')?.toIntValue() ?? 0;
     recase = reader
             .peek('useCase')
             ?.objectValue
-            ?.getField('camelCase')
+            .getField('camelCase')
             ?.toIntValue() ??
         recase;
     recase = reader
             .peek('useCase')
             ?.objectValue
-            ?.getField('snakeCase')
+            .getField('snakeCase')
             ?.toIntValue() ??
         recase;
     recase = reader
             .peek('useCase')
             ?.objectValue
-            ?.getField('pascalCase')
+            .getField('pascalCase')
             ?.toIntValue() ??
         recase;
     recase = reader
             .peek('useCase')
             ?.objectValue
-            ?.getField('kebabCase')
+            .getField('kebabCase')
             ?.toIntValue() ??
         recase;
 
@@ -177,7 +182,7 @@ ProcessedFieldHolder processField(FieldElement field, String fieldName) {
         .split('<')
         .map((p) => p.replaceAll('>', ''))
         .toList()
-          ..removeWhere((s) => s == null || s.isEmpty));
+          ..removeWhere((s) => s.isEmpty));
     for (final p in listTypeParts.getRange(1, listTypeParts.length)) {
       if (p == 'List') {
         fieldRules = '$fieldRules..ofList()';
@@ -233,7 +238,6 @@ ProcessedFieldHolder processField(FieldElement field, String fieldName) {
       case 'Symbol':
       case 'Uri':
         throw EndorseBuilderException('$listTypeStr not implemented');
-        break;
       default:
         isCore = false;
         endorseType = listTypeStr;
@@ -290,8 +294,9 @@ ProcessedFieldHolder processField(FieldElement field, String fieldName) {
     fieldRules = fieldRules.replaceFirst('@', fromString);
   }
 
-  if (validations.any((e) =>
-      e.type!.getDisplayString(withNullability: false).startsWith('ToString'))) {
+  if (validations.any((e) => e.type!
+      .getDisplayString(withNullability: false)
+      .startsWith('ToString'))) {
     fieldRules = fieldRules.replaceFirst('#', toString);
   }
   fieldRules = fieldRules.replaceFirst('@', '');
@@ -303,8 +308,8 @@ ProcessedFieldHolder processField(FieldElement field, String fieldName) {
   }
 
   if (isList && isCore) {
-    if (itemValidations.any(
-        (e) => e.type!.getDisplayString(withNullability: false) == 'Required')) {
+    if (itemValidations.any((e) =>
+        e.type!.getDisplayString(withNullability: false) == 'Required')) {
       itemRules = '..isRequired()' + itemRules;
     }
     if (itemValidations.any((e) => fromStringRules
