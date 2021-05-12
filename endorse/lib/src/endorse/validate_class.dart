@@ -14,7 +14,7 @@ class ValidateClass {
     if (!fieldResult.$isValid) {
       return ClassResult(const {}, fieldName, fieldResult);
     } else {
-      return _validator.validate(map);
+      return _validator.validate(map as Map<String, Object>);
     }
   }
 }

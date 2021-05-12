@@ -17,8 +17,8 @@ class IsMapRule extends ValueRule {
   final causesBail = true;
   final pass = (input, test) => input is Map<String, Object>;
   final errorMsg = (input, test) => 'Must be a Map<String, Object>.';
-  final want = (input, test) => 'Map<String, Object>';
-  final got = (input, test) => input.runtimeType;
+  final Object Function(Object, Object?) want = (input, test) => 'Map<String, Object>';
+  final Object Function(Object, Object?) got = (input, test) => input.runtimeType;
 }
 
 class IsListRule extends ValueRule {
@@ -26,8 +26,8 @@ class IsListRule extends ValueRule {
   final causesBail = true;
   final pass = (input, test) => input is List;
   final errorMsg = (input, test) => 'Must be a List.';
-  final want = (input, test) => 'List';
-  final got = (input, test) => input.runtimeType;
+  final Object Function(Object, Object?) want = (input, test) => 'List';
+  final Object Function(Object, Object?) got = (input, test) => input.runtimeType;
 }
 
 class IsStringRule extends ValueRule {
@@ -35,8 +35,8 @@ class IsStringRule extends ValueRule {
   final causesBail = true;
   final pass = (input, test) => input is String;
   final errorMsg = (input, test) => 'Must be a String';
-  final want = (input, test) => 'String';
-  final got = (input, test) => input.runtimeType;
+  final Object Function(Object, Object?) want = (input, test) => 'String';
+  final Object Function(Object, Object?) got = (input, test) => input.runtimeType;
 }
 
 class CanStringRule extends ValueRule {
@@ -51,8 +51,8 @@ class CanStringRule extends ValueRule {
     }
   };
   final errorMsg = (input, test) => 'Cannot be coerced to String.';
-  final want = (input, test) => 'String';
-  final got = (input, test) => input.runtimeType;
+  final Object Function(Object, Object?) want = (input, test) => 'String';
+  final Object Function(Object, Object?) got = (input, test) => input.runtimeType;
 }
 
 class ToStringRule extends ValueRule {
@@ -67,9 +67,9 @@ class ToStringRule extends ValueRule {
     }
   };
   final errorMsg = (input, test) => 'Cannot be coerced to String.';
-  final want = (input, test) => 'object with toString() method';
-  final got = (input, test) => input.runtimeType;
-  final cast = (input) => input.toString();
+  final Object Function(Object, Object?) want = (input, test) => 'object with toString() method';
+  final Object Function(Object, Object?) got = (input, test) => input.runtimeType;
+  final Object Function(Object?) cast = (input) => input.toString();
 }
 
 class IsNumRule extends ValueRule {
@@ -77,8 +77,8 @@ class IsNumRule extends ValueRule {
   final causesBail = true;
   final pass = (input, test) => input is num;
   final errorMsg = (input, test) => 'Must be a number.';
-  final want = (input, test) => 'num';
-  final got = (input, test) => input.runtimeType;
+  final Object Function(Object, Object?) want = (input, test) => 'num';
+  final Object Function(Object, Object?) got = (input, test) => input.runtimeType;
 }
 
 class IsIntRule extends ValueRule {
@@ -86,8 +86,8 @@ class IsIntRule extends ValueRule {
   final causesBail = true;
   final pass = (input, test) => input is int;
   final errorMsg = (input, test) => 'Must be an integer.';
-  final want = (input, test) => 'int';
-  final got = (input, test) => input.runtimeType;
+  final Object Function(Object, Object?) want = (input, test) => 'int';
+  final Object Function(Object, Object?) got = (input, test) => input.runtimeType;
 }
 
 class IsDoubleRule extends ValueRule {
@@ -95,8 +95,8 @@ class IsDoubleRule extends ValueRule {
   final causesBail = true;
   final pass = (input, test) => input is double;
   final errorMsg = (input, test) => 'Must be a double.';
-  final want = (input, test) => 'double';
-  final got = (input, test) => input.runtimeType;
+  final Object Function(Object, Object?) want = (input, test) => 'double';
+  final Object Function(Object, Object?) got = (input, test) => input.runtimeType;
 }
 
 class IsBoolRule extends ValueRule {
@@ -104,8 +104,8 @@ class IsBoolRule extends ValueRule {
   final causesBail = true;
   final pass = (input, test) => input is bool;
   final errorMsg = (input, test) => 'Must be a boolean.';
-  final want = (input, test) => 'bool';
-  final got = (input, test) => input.runtimeType;
+  final Object Function(Object, Object?) want = (input, test) => 'bool';
+  final Object Function(Object, Object?) got = (input, test) => input.runtimeType;
 }
 
 class IsDateTimeRule extends ValueRule {
@@ -113,7 +113,7 @@ class IsDateTimeRule extends ValueRule {
   final causesBail = true;
   final pass = (input, test) => _inputDateConverter(input) != null;
   final errorMsg = (input, test) => 'Must be a datetime.';
-  final cast = (input) => _inputDateConverter(input);
+  final Object? Function(Object?) cast = (input) => _inputDateConverter(input);
 }
 
 class CanIntFromStringRule extends ValueRule {
@@ -122,16 +122,16 @@ class CanIntFromStringRule extends ValueRule {
   final pass = (input, test) => input is String && int.tryParse(input) != null;
   final errorMsg =
       (input, test) => 'Could not cast to integer from ${input.runtimeType}.';
-  final want = (input, test) => 'String';
-  final got = (input, test) => input.runtimeType;
+  final Object Function(Object, Object?) want = (input, test) => 'String';
+  final Object Function(Object, Object?) got = (input, test) => input.runtimeType;
 }
 
 class IntFromStringRule extends ValueRule {
   final name = 'IntFromString';
   final causesBail = true;
-  final pass = (input, test) => int.tryParse(input) != null;
+  final pass = (input, test) => int.tryParse(input as String) != null;
   final errorMsg = (input, test) => 'Could not cast to integer from string.';
-  final cast = (input) => int.parse(input);
+  final Object Function(Object?) cast = (input) => int.parse(input as String);
 }
 
 class CanDoubleFromStringRule extends ValueRule {
@@ -141,16 +141,16 @@ class CanDoubleFromStringRule extends ValueRule {
       (input, test) => input is String && double.tryParse(input) != null;
   final errorMsg =
       (input, test) => 'Could not cast to double from ${input.runtimeType}.';
-  final want = (input, test) => 'String';
-  final got = (input, test) => input.runtimeType;
+  final Object Function(Object, Object?) want = (input, test) => 'String';
+  final Object Function(Object, Object?) got = (input, test) => input.runtimeType;
 }
 
 class DoubleFromStringRule extends ValueRule {
   final name = 'DoubleFromString';
   final causesBail = true;
-  final pass = (input, test) => double.tryParse(input) != null;
+  final pass = (input, test) => double.tryParse(input as String) != null;
   final errorMsg = (input, test) => 'Could not cast to double from string.';
-  final cast = (input) => double.parse(input);
+  final Object Function(Object?) cast = (input) => double.parse(input as String);
 }
 
 class CanNumFromStringRule extends ValueRule {
@@ -159,16 +159,16 @@ class CanNumFromStringRule extends ValueRule {
   final pass = (input, test) => input is String && num.tryParse(input) != null;
   final errorMsg =
       (input, test) => 'Could not cast to number from ${input.runtimeType}.';
-  final want = (input, test) => 'String';
-  final got = (input, test) => input.runtimeType;
+  final Object Function(Object, Object?) want = (input, test) => 'String';
+  final Object Function(Object, Object?) got = (input, test) => input.runtimeType;
 }
 
 class NumFromStringRule extends ValueRule {
   final name = 'NumFromString';
   final causesBail = true;
-  final pass = (input, test) => num.tryParse(input) != null;
+  final pass = (input, test) => num.tryParse(input as String) != null;
   final errorMsg = (input, test) => 'Could not cast to number from string.';
-  final cast = (input) => num.parse(input);
+  final Object Function(Object?) cast = (input) => num.parse(input as String);
 }
 
 class CanBoolFromStringRule extends ValueRule {
@@ -185,45 +185,45 @@ class BoolFromStringRule extends ValueRule {
   final causesBail = true;
   final pass = (input, test) => input == 'true' || input == 'false';
   final errorMsg = (input, test) => 'Could not cast to boolean from string.';
-  final cast = (input) => input == 'true' ? true : false;
-  final want = (input, test) => 'String';
-  final got = (input, test) => input.runtimeType;
+  final Object Function(Object?) cast = (input) => input == 'true' ? true : false;
+  final Object Function(Object, Object?) want = (input, test) => 'String';
+  final Object Function(Object, Object?) got = (input, test) => input.runtimeType;
 }
 
 class MaxLengthRule extends ValueRule {
   final name = 'MaxLength';
-  final pass = (input, test) => (input as String).length <= test;
-  final got = (input, test) => (input as String).length;
-  final want = (input, test) => '< ${test}';
+  final pass = (input, test) => (input as String).length <= (test as num);
+  final Object Function(Object, Object?) got = (input, test) => (input as String).length;
+  final Object Function(Object, Object?) want = (input, test) => '< ${test}';
   final errorMsg = (input, test) => 'Length must be less than ${test}.';
 }
 
 class MinLengthRule extends ValueRule {
   final name = 'MinLength';
-  final pass = (input, test) => (input as String).length >= test;
-  final got = (input, test) => (input as String).length;
-  final want = (input, test) => '> ${test}';
+  final pass = (input, test) => (input as String).length >= (test as num);
+  final Object Function(Object, Object?) got = (input, test) => (input as String).length;
+  final Object Function(Object, Object?) want = (input, test) => '> ${test}';
   final errorMsg = (input, test) => 'Length must be greater than ${test}.';
 }
 
 class MatchesRule extends ValueRule {
   final name = 'Matches';
-  final pass = (input, test) => (input as String) == test;
+  final pass = (input, test) => (input as String?) == test;
   final errorMsg = (input, test) => 'Must match: "${test}".';
 }
 
 class ContainsRule extends ValueRule {
   final name = 'Contains';
-  final pass = (input, test) => (input as String).contains(test);
+  final pass = (input, test) => (input as String).contains(test as Pattern);
   final errorMsg = (input, test) => 'Must contain: "${test}".';
 }
 
 class StartsWithRule extends ValueRule {
   final name = 'StartsWith';
-  final pass = (input, test) => (input as String).startsWith(test);
+  final pass = (input, test) => (input as String).startsWith(test as Pattern);
   final restriction = (input) => input is String;
   final errorMsg = (input, test) => 'Must start with: "${test}".';
-  final got = (input, test) {
+  final Object Function(Object, Object?) got = (input, test) {
     final i = input as String;
     final t = test as String;
     final length = i.length < t.length ? i.length : t.length;
@@ -235,10 +235,10 @@ class StartsWithRule extends ValueRule {
 
 class EndsWithRule extends ValueRule {
   final name = 'EndsWith';
-  final pass = (input, test) => (input as String).endsWith(test);
+  final pass = (input, test) => (input as String).endsWith(test as String);
   final restriction = (input) => input is String;
   final errorMsg = (input, test) => 'Must end with: "${test}".';
-  final got = (input, test) {
+  final Object Function(Object, Object?) got = (input, test) {
     final i = input as String;
     final t = test as String;
     final length = i.length < t.length ? i.length : t.length;
@@ -262,106 +262,106 @@ class IsNotEqualToRule extends ValueRule {
 
 class IsLessThanRule extends ValueRule {
   final name = 'IsLessThan';
-  final pass = (input, test) => input as num < test;
+  final pass = (input, test) => (input as num) < (test as num);
   final errorMsg = (input, test) => 'Must be less than ${test}.';
-  final want = (input, test) => '< $test';
+  final Object Function(Object, Object?) want = (input, test) => '< $test';
 }
 
 class IsGreaterThanRule extends ValueRule {
   final name = 'IsGreaterThan';
-  final pass = (input, test) => input as num > test;
+  final pass = (input, test) => (input as num) > (test as num);
   final errorMsg = (input, test) => 'Must be greater than ${test}.';
-  final want = (input, test) => '> $test';
+  final Object Function(Object, Object?) want = (input, test) => '> $test';
 }
 
 class IsTrueRule extends ValueRule {
   final name = 'IsTrue';
-  final pass = (input, test) => input as bool == true;
+  final pass = (input, test) => input as bool? == true;
   final errorMsg = (input, test) => 'Must be true.';
-  final want = (input, test) => true;
+  final Object Function(Object, Object?) want = (input, test) => true;
 }
 
 class IsFalseRule extends ValueRule {
   final name = 'IsFalse';
-  final pass = (input, test) => input as bool == false;
+  final pass = (input, test) => input as bool? == false;
   final errorMsg = (input, test) => 'Must be false.';
-  final want = (input, test) => false;
+  final Object Function(Object, Object?) want = (input, test) => false;
 }
 
 class IsBeforeRule extends ValueRule {
   final name = 'IsBefore';
-  static DateTime _test;
+  static DateTime? _test;
   final check = (input, test) {
-    _test = _testDateConverter(test);
+    _test = _testDateConverter(test as String);
     return _test != null ? '' : 'Could not parse "$test" to DateTime.';
   };
-  final pass = (input, test) => _inputDateConverter(input).isBefore(_test);
-  final want = (input, test) => '< ${_test}';
-  final got =
-      (input, test) => '${_inputDateConverter(input).toIso8601String()}';
+  final pass = (input, test) => _inputDateConverter(input)!.isBefore(_test!);
+  final Object Function(Object, Object?) want = (input, test) => '< ${_test}';
+  final Object Function(Object, Object?) got =
+      (input, test) => '${_inputDateConverter(input)!.toIso8601String()}';
   final errorMsg = (input, test) => 'Must be before ${_test}.';
-  final cleanup = () => _test = null;
+  final void Function() cleanup = () => _test = null;
 }
 
 class IsAfterRule extends ValueRule {
   final name = 'IsAfter';
-  static DateTime _test;
+  static DateTime? _test;
   final check = (input, test) {
-    _test = _testDateConverter(test);
+    _test = _testDateConverter(test as String);
     return _test != null ? '' : 'Could not parse "$test" to DateTime.';
   };
   final pass = (input, test) =>
-      _inputDateConverter(input).isAfter(_testDateConverter(test));
-  final want = (input, test) => '> ${_test}';
-  final got = (input, test) => '${_inputDateConverter(input)}';
+      _inputDateConverter(input)!.isAfter(_testDateConverter(test as String)!);
+  final Object Function(Object, Object?) want = (input, test) => '> ${_test}';
+  final Object Function(Object, Object?) got = (input, test) => '${_inputDateConverter(input)}';
   final errorMsg = (input, test) => 'Must be after ${_test}.';
-  final cleanup = () => _test = null;
+  final void Function() cleanup = () => _test = null;
 }
 
 class IsAtMomentRule extends ValueRule {
   final name = 'IsAtMoment';
-  static DateTime _test;
+  static DateTime? _test;
   final check = (input, test) {
-    _test = _testDateConverter(test);
+    _test = _testDateConverter(test as String);
     return _test != null ? '' : 'Could not parse "$test" to DateTime.';
   };
   final pass = (input, test) =>
-      _inputDateConverter(input).isAtSameMomentAs(_testDateConverter(test));
-  final want = (input, test) => '== ${_test}';
-  final got = (input, test) => '${input as DateTime}';
+      _inputDateConverter(input)!.isAtSameMomentAs(_testDateConverter(test as String)!);
+  final Object Function(Object, Object?) want = (input, test) => '== ${_test}';
+  final Object Function(Object, Object?) got = (input, test) => '${input as DateTime}';
   final errorMsg = (input, test) => 'Must be after ${_test}.';
-  final cleanup = () => _test = null;
+  final void Function() cleanup = () => _test = null;
 }
 
 class IsSameDateAsRule extends ValueRule {
   final name = 'IsSameDateAs';
-  static DateTime _test;
+  static DateTime? _test;
   final check = (input, test) {
-    _test = _testDateConverter(test);
+    _test = _testDateConverter(test as String);
     return _test != null ? '' : 'Could not parse "$test" to DateTime.';
   };
   final pass = (input, test) {
-    final inputDt = _inputDateConverter(input);
+    final inputDt = _inputDateConverter(input)!;
     // final testDt = _testDateConverter(test);
-    return inputDt.year == _test.year &&
-        inputDt.month == _test.month &&
-        inputDt.day == _test.day;
+    return inputDt.year == _test!.year &&
+        inputDt.month == _test!.month &&
+        inputDt.day == _test!.day;
   };
-  final want = (input, test) => '${_test.year}-${_test.month}-${_test.day}';
-  final got = (input, test) {
-    final date = _inputDateConverter(input);
+  final Object Function(Object, Object?) want = (input, test) => '${_test!.year}-${_test!.month}-${_test!.day}';
+  final Object Function(Object, Object?) got = (input, test) {
+    final date = _inputDateConverter(input)!;
     return '${date.year}-${date.month}-${date.day}';
   };
   final errorMsg =
-      (input, test) => 'Must be on ${_test.year}-${_test.month}-${_test.day}';
-  final cleanup = () => _test = null;
+      (input, test) => 'Must be on ${_test!.year}-${_test!.month}-${_test!.day}';
+  final void Function() cleanup = () => _test = null;
 }
 
 class MatchesPatternRule extends ValueRule {
   final name = 'MatchesPattern';
   final check = (input, test) {
     try {
-      final regExp = RegExp(test);
+      final regExp = RegExp(test as String);
     } catch (e) {
       return 'Pattern "$test" is not a valid RegExp';
     }
@@ -370,15 +370,15 @@ class MatchesPatternRule extends ValueRule {
   final pass = (input, test) {
     return RegExp(test as String).hasMatch(input as String);
   };
-  final want = (input, test) => 'Has match with ${test as String}';
-  final got = (input, test) => 'No matches in ${input as String}';
+  final Object Function(Object, Object?) want = (input, test) => 'Has match with ${test as String?}';
+  final Object Function(Object, Object?) got = (input, test) => 'No matches in ${input as String}';
   final errorMsg = (input, test) =>
-      '${test as String} does not have a match in ${input as String}';
+      '${test as String?} does not have a match in ${input as String}';
 }
 
 class IsEmailRule extends MatchesPatternRule {
   final name = 'IsEmail';
-  final want = (input, test) => 'A valid email.';
+  final Object Function(Object, Object?) want = (input, test) => 'A valid email.';
   final got = (input, test) => input;
   final errorMsg = (input, test) => '$input is not a valid email address.';
 }
@@ -387,7 +387,7 @@ class IsEmailRule extends MatchesPatternRule {
 /* HELPER FUNCTIONS */
 /********************/
 
-DateTime _inputDateConverter(Object input) {
+DateTime? _inputDateConverter(Object? input) {
   if (input is DateTime) {
     return input.toUtc();
   } else if (input is String) {
@@ -401,7 +401,7 @@ DateTime _inputDateConverter(Object input) {
   }
 }
 
-DateTime _testDateConverter(String test) {
+DateTime? _testDateConverter(String test) {
   if ('now' == test.toLowerCase()) {
     return DateTime.now();
   } else if (test.startsWith('today')) {

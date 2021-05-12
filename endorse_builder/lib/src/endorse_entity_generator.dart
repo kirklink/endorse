@@ -19,7 +19,7 @@ class EndorseEntityGenerator extends GeneratorForAnnotation<EndorseEntity> {
     final classNamePrefix = '${element.name}';
 
     final endorseClassName = '${classNamePrefix}Endorse';
-    final $endorse = (element as ClassElement).getField('\$endorse');
+    final $endorse = element.getField('\$endorse');
     if ($endorse == null || !$endorse.isStatic) {
       final notReadyBuf = StringBuffer();
       notReadyBuf.writeln(

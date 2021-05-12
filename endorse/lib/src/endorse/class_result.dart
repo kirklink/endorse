@@ -4,22 +4,22 @@ import 'package:endorse/src/endorse/validation_error.dart';
 
 class ClassResult extends ResultObject {
   final Map<String, ResultObject> _elements;
-  final ValueResult _field;
+  final ValueResult? _field;
   final String _fieldName;
-  bool _isValid;
+  bool? _isValid;
   final bool _hasElementErrors;
   List<ValidationError> _errors = [];
 
   ClassResult(this._elements, [this._fieldName = '', this._field])
       : _hasElementErrors = _elements.values.any((e) => e.$isNotValid) {
-    _isValid = (_field == null || _field.$isValid) && !_hasElementErrors;
+    _isValid = (_field == null || _field!.$isValid) && !_hasElementErrors;
   }
 
   String get $fieldName => _fieldName;
 
-  bool get $isValid => _isValid;
+  bool? get $isValid => _isValid;
 
-  bool get $isNotValid => !_isValid;
+  bool get $isNotValid => !_isValid!;
 
   bool get $hasElementErrors => _hasElementErrors;
 
@@ -27,7 +27,7 @@ class ClassResult extends ResultObject {
 
   List<ValidationError> get $errors {
     if (_errors.isNotEmpty) return _errors;
-    if (_isValid) {
+    if (_isValid!) {
       return const [];
     } else if (_field != null) {
       if (_hasElementErrors) {
@@ -45,12 +45,12 @@ class ClassResult extends ResultObject {
             'Validation failed for $count element(s).',
             errorFields,
             '0 errors.');
-        final errors = List<ValidationError>.from(_field.$errors);
+        final errors = List<ValidationError>.from(_field!.$errors);
         errors.add(elementError);
         _errors.addAll(errors);
         return _errors;
       } else {
-        return _field.$errors;
+        return _field!.$errors;
       }
     } else {
       return const [];
@@ -60,7 +60,7 @@ class ClassResult extends ResultObject {
   Object get $value {
     final r = <String, Object>{};
     for (final k in _elements.keys) {
-      final value = _elements[k].$value;
+      final value = _elements[k]!.$value;
       if (value == null) {
         continue;
       }
@@ -70,13 +70,13 @@ class ClassResult extends ResultObject {
   }
 
   Object get $errorsJson {
-    if (_field != null && _field.$isNotValid) {
-      return _field.$errorsJson;
+    if (_field != null && _field!.$isNotValid) {
+      return _field!.$errorsJson;
     } else {
       final r = <String, Object>{};
       for (final k in _elements.keys) {
-        if (!_elements[k].$isValid) {
-          r[k] = _elements[k].$errorsJson;
+        if (!_elements[k]!.$isValid!) {
+          r[k] = _elements[k]!.$errorsJson;
         }
       }
       return r;

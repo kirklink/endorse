@@ -16,11 +16,11 @@ abstract class EndorseResult {
       return null;
     }
     for (final k in _fields.keys) {
-      final value = _fields[k].$value;
+      final value = _fields[k]!.$value;
       if (value == null) {
         continue;
       }
-      r[k] = _fields[k].$value;
+      r[k] = _fields[k]!.$value;
     }
     return r;
   }
@@ -28,8 +28,8 @@ abstract class EndorseResult {
   Object get $errorsJson {
     final r = <String, Object>{};
     for (final k in _fields.keys) {
-      if (!_fields[k].$isValid) {
-        r[k] = _fields[k].$errorsJson;
+      if (!_fields[k]!.$isValid!) {
+        r[k] = _fields[k]!.$errorsJson;
       }
     }
     return r;

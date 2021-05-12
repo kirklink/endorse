@@ -6,8 +6,8 @@ import 'package:endorse/src/endorse/class_result.dart';
 
 class ValidateList {
   final ValidateValue _fieldRules;
-  ValidateValue _itemRules;
-  EndorseClassValidator _validator;
+  ValidateValue? _itemRules;
+  EndorseClassValidator? _validator;
 
   ValidateList.fromCore(this._fieldRules, this._itemRules);
 
@@ -21,15 +21,15 @@ class ValidateList {
     } else {
       if (_validator != null) {
         final elements = <ClassResult>[];
-        (items as List).asMap().forEach((index, item) {
-          final r = _validator.validate(item);
+        items.asMap().forEach((index, item) {
+          final r = _validator!.validate(item);
           elements.add(r);
         });
         return ListResult(fieldName, fieldResult, elements);
       } else {
         final elements = <ValueResult>[];
-        (items as List).asMap().forEach((index, item) {
-          final r = _itemRules.from(item, '[$index]');
+        items.asMap().forEach((index, item) {
+          final r = _itemRules!.from(item, '[$index]');
           elements.add(r);
         });
         return ListResult(fieldName, fieldResult, elements);

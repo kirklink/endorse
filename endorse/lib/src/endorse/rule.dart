@@ -1,9 +1,9 @@
-typedef String PreCondition(Object input, Object test);
-typedef bool PassFuntion(Object input, Object test);
-typedef Object GotFunction(Object input, Object test);
-typedef Object WantFunction(Object input, Object test);
-typedef Object CastFunction(Object input);
-typedef String ErrorMessage(Object input, Object test);
+typedef String PreCondition(Object? input, Object? test);
+typedef bool PassFuntion(Object? input, Object? test);
+typedef Object? GotFunction(Object input, Object? test);
+typedef Object? WantFunction(Object input, Object? test);
+typedef Object? CastFunction(Object? input);
+typedef String ErrorMessage(Object input, Object? test);
 typedef void CleanUp();
 
 abstract class Rule {
