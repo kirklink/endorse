@@ -114,7 +114,7 @@ StringBuffer convertToEndorse(
           jsonName = rename;
         }
 
-        final validate = reader.peek('valudate')?.listValue;
+        final validate = reader.peek('validate')?.listValue;
         if (validate != null) {
           validations.addAll(validate);
         }

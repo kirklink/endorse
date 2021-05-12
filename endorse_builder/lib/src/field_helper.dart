@@ -10,7 +10,7 @@ final _checkForEndorseEntity = const TypeChecker.fromRuntime(EndorseEntity);
 final _checkForEndorseField = const TypeChecker.fromRuntime(EndorseField);
 
 String processValidations(List<DartObject> validations, Type? type) {
-  if (validations == null || validations.isEmpty) {
+  if (validations.isEmpty) {
     return '';
   }
   var ruleCall = '';
@@ -123,7 +123,7 @@ ProcessedFieldHolder processField(FieldElement field, String fieldName) {
   if (_checkForEndorseField.hasAnnotationOfExact(field)) {
     final reader =
         ConstantReader(_checkForEndorseField.firstAnnotationOf(field));
-    final validate = reader.peek('valudate')?.listValue;
+    final validate = reader.peek('validate')?.listValue;
     if (validate != null) {
       validations.addAll(validate);
     }
