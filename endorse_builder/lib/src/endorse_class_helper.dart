@@ -48,7 +48,7 @@ StringBuffer convertToEndorse(
   final resultBufFields = StringBuffer();
   final resultBufConstructor = StringBuffer();
   resultBufConstructor
-      .writeln('${resultClassName}(Map<String, ResultObject> fieldMap, [');
+      .writeln('${resultClassName}(Map<String, ResultObject> fieldMap, ');
   // CLOSE
   // resultBufConstructor.writeln(']) : super(fields);');
 
@@ -60,11 +60,14 @@ StringBuffer convertToEndorse(
   valBufValidate.writeln('@override');
   valBufValidate
       .writeln('${resultClassName} validate(Map<String, Object> input) {');
-  valBufValidate.writeln('final r = <String, ResultObject>{');
+  // valBufValidate.writeln('final r = <String, ResultObject>{');
   // CLOSE
   // valBufValidate.writeln('};');
   final valBufConstructor = StringBuffer();
-  valBufConstructor.write('return ${resultClassName}(r, ');
+  final valBufConstructorMap = StringBuffer();
+  final valBufConstructorFields = StringBuffer();
+  valBufConstructor.write('return ${resultClassName}( ');
+  valBufConstructorMap.writeln('{');
   // CLOSE
   // valBufConstructor.write(']);');
   // CLOSE
@@ -238,44 +241,49 @@ StringBuffer convertToEndorse(
 
       if (isValue && !isList) {
         rulesBuf
-            .write('ValueResult ${appName}(Object value) => (ValidateValue()');
+            .write('ValueResult ${appName}(Object? value) => (ValidateValue()');
         resultBufFields.writeln('final ValueResult ${appName};');
         resultBufConstructor.write('this.${appName}, ');
         valBufValidate.writeln(
-            "'${appName}': rules.${appName}((input ?? const {})['${jsonName}']),");
-        valBufConstructor.write("r['${appName}'], ");
+            "final ${appName} = rules.${appName}(input['${jsonName}']);");
+
+        valBufConstructorMap.writeln("'${appName}': $appName,");
+        valBufConstructorFields.writeln('$appName,');
       }
 
       if (isList && isValue) {
         rulesBuf.write(
-            'ListResult ${appName}(Object value) => (ValidateList.fromCore(ValidateValue()');
+            'ListResult ${appName}(Object? value) => (ValidateList.fromCore(ValidateValue()');
         resultBufFields.writeln('final ListResult ${appName};');
         resultBufConstructor.write('this.${appName}, ');
         valBufValidate.writeln(
-            "'${appName}': rules.${appName}((input ?? const {})['${jsonName}']),");
-        valBufConstructor.write("r['${appName}'], ");
+            "final ${appName} = rules.${appName}(input['${jsonName}']);");
+        valBufConstructorMap.writeln("'${appName}': $appName,");
+        valBufConstructorFields.writeln('$appName,');
       }
 
       if (isList && isClass) {
         rulesBuf.write(
-            'ListResult ${appName}(Object value) => (ValidateList.fromEndorse(ValidateValue()');
+            'ListResult ${appName}(Object? value) => (ValidateList.fromEndorse(ValidateValue()');
         resultBufFields.writeln('final ListResult ${appName};');
         resultBufConstructor.write('this.${appName}, ');
         valBufValidate.writeln(
-            "'${appName}': rules.${appName}((input ?? const {})['${jsonName}']),");
-        valBufConstructor.write("r['${appName}'], ");
+            "final ${appName} = rules.${appName}(input['${jsonName}']);");
+        valBufConstructorMap.writeln("'${appName}': $appName,");
+        valBufConstructorFields.writeln('$appName,');
       }
 
       if (isClass && !isList) {
         rulesBuf.write(
-            'ClassResult ${appName}(Object value) => (ValidateClass(ValidateValue()');
+            'ClassResult ${appName}(Object? value) => (ValidateClass(ValidateValue()');
         final classResultName =
             "__\$${field.type.getDisplayString(withNullability: false)}ValidationResult";
         resultBufFields.writeln('final ${classResultName} ${appName};');
         resultBufConstructor.write('this.${appName}, ');
         valBufValidate.writeln(
-            "'${appName}': rules.${appName}((input ?? const {})['${jsonName}']),");
-        valBufConstructor.write("r['${appName}'], ");
+            "final ${appName} = rules.${appName}(input['${jsonName}']);");
+        valBufConstructorMap.writeln("'${appName}': $appName,");
+        valBufConstructorFields.writeln('$appName,');
       }
 
       const fromString = 'fromString: true';
@@ -361,14 +369,16 @@ StringBuffer convertToEndorse(
   // CLOSE
   rulesBuf.writeln('}');
   // CLOSE
-  resultBufConstructor.writeln(']) : super(fieldMap);');
+  resultBufConstructor.writeln(') : super(fieldMap);');
   // CLOSE
   resultBuf.writeln(resultBufFields);
   resultBuf.writeln(resultBufConstructor);
   resultBuf.writeln('}');
   // CLOSE
-  valBufValidate.writeln('};');
+  // valBufValidate.writeln('};');
   // CLOSE
+  valBufConstructorMap.writeln('},');
+  valBufConstructor.writeAll([valBufConstructorMap, valBufConstructorFields]);
   valBufConstructor.write(');');
   // CLOSE
   valBuf.writeln(valBufValidate);

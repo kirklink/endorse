@@ -7,35 +7,30 @@ class ClassResult extends ResultObject {
   final ValueResult _field;
   final String _fieldName;
   bool _isValid;
-  bool _hasElementErrors;
+  final bool _hasElementErrors;
+  List<ValidationError> _errors = [];
 
-  ClassResult(this._elements, [this._fieldName, this._field]);
+  ClassResult(this._elements, [this._fieldName = '', this._field])
+      : _hasElementErrors = _elements.values.any((e) => e.$isNotValid) {
+    _isValid = (_field == null || _field.$isValid) && !_hasElementErrors;
+  }
 
   String get $fieldName => _fieldName;
 
-  bool get $isValid {
-    if (_isValid != null) {
-      return _isValid;
-    }
-    _isValid = (_field == null || _field.$isValid) && !$hasElementErrors;
-    return _isValid;
-  }
+  bool get $isValid => _isValid;
 
-  bool get $isNotValid => !$isValid;
+  bool get $isNotValid => !_isValid;
 
-  bool get $hasElementErrors {
-    if (_hasElementErrors != null) {
-      return _hasElementErrors;
-    }
-    _hasElementErrors = _elements.values.any((e) => e.$isNotValid);
-    return _hasElementErrors;
-  }
+  bool get $hasElementErrors => _hasElementErrors;
+
+  // List<ValidationError> get $errors => _errors;
 
   List<ValidationError> get $errors {
-    if ($isValid) {
+    if (_errors.isNotEmpty) return _errors;
+    if (_isValid) {
       return const [];
     } else if (_field != null) {
-      if ($hasElementErrors) {
+      if (_hasElementErrors) {
         var errorFields = '';
         var count = 0;
         _elements.forEach((key, value) {
@@ -52,7 +47,8 @@ class ClassResult extends ResultObject {
             '0 errors.');
         final errors = List<ValidationError>.from(_field.$errors);
         errors.add(elementError);
-        return errors;
+        _errors.addAll(errors);
+        return _errors;
       } else {
         return _field.$errors;
       }
