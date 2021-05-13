@@ -58,9 +58,17 @@ class ClassResult extends ResultObject {
   }
 
   Object get $value {
+    
+    // Gotta find a way to send a signal that if the field has errors, the
+    // object (name and value) should not be included in the $value output.
+    // A null value cannot be the signal because a null value might be a
+    // legitimate value.
+    // Value result needs to signal up that it has errpors.
+    
     final r = <String, Object>{};
+    
     for (final k in _elements.keys) {
-      final value = _elements[k]!.$value;
+      final value = _elements[k]?.$value;
       if (value == null) {
         continue;
       }

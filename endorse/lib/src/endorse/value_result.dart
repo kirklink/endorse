@@ -8,7 +8,7 @@ class ValueResult extends ResultObject {
 
   ValueResult(this.$fieldName, this._value, this._validationErrors);
 
-  Object get $value => _value ?? const {};
+  Object? get $value => _validationErrors.isNotEmpty ? null : _value;
 
   bool get $isValid => _validationErrors.isEmpty;
   bool get $isNotValid => _validationErrors.isNotEmpty;

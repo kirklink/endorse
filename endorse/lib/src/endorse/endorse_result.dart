@@ -20,7 +20,7 @@ abstract class EndorseResult {
       if (value == null) {
         continue;
       }
-      r[k] = _fields[k]!.$value;
+      r[k] = value;
     }
     return r;
   }
