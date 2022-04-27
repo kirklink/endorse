@@ -1,6 +1,10 @@
 # Endorse Builder Changelog
 
 
+## 0.1.0-nullsafety.0
+- Null safety
+- Build devcontainer with dart 2.16.2
+
 ## 0.0.28
 - Separate validations into sub-library
 

@@ -3,7 +3,7 @@
 # Licensed under the MIT License. See https://go.microsoft.com/fwlink/?linkid=2090316 for license information.
 #-------------------------------------------------------------------------------------------------------------
 
-FROM google/dart:2.12.2
+FROM dart:2.16.2
 
 
 # Docker script args, location, and expected SHA - SHA generated on release
@@ -46,11 +46,16 @@ RUN apt-get update \
     && apt-get -y install git openssh-client less iproute2 procps lsb-release
     
     # Install nodejs and nodemon
-RUN curl -sL https://deb.nodesource.com/setup_10.x | bash - \
-    && apt-get install -y nodejs \
-    && npm i -g nodemon \
-    && nodejs -v \
-    && npm -v
+ENV NODE_VERSION=16.13.0
+ENV NVM_DIR="$HOME/.nvm"
+RUN curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.0/install.sh | bash
+RUN . "$NVM_DIR/nvm.sh" && nvm install ${NODE_VERSION}
+RUN . "$NVM_DIR/nvm.sh" && nvm use v${NODE_VERSION}
+RUN . "$NVM_DIR/nvm.sh" && nvm alias default v${NODE_VERSION}
+ENV PATH="$NVM_DIR/versions/node/v${NODE_VERSION}/bin/:${PATH}"
+RUN node --version
+RUN npm --version
+RUN npm i -g nodemon
     #
     # Create a non-root user to use if preferred - see https://aka.ms/vscode-remote/containers/non-root-user.
 RUN groupadd --gid $USER_GID $USERNAME \
@@ -80,8 +85,8 @@ RUN curl https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.tar.gz > /tm
 ENV PATH $PATH:/usr/local/gcloud/google-cloud-sdk/bin
 
 # Install kubectl and make sure gcloud is up to date
-RUN gcloud components install kubectl \
-  && gcloud components update --quiet
+# RUN gcloud components install kubectl
+RUN gcloud components update --quiet
 
 
 # Switch back to dialog for any ad-hoc use of apt-get
