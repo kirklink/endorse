@@ -1,6 +1,6 @@
 import 'package:endorse/annotations.dart';
 import 'package:endorse/src/endorse/result_object.dart';
-import 'package:endorse/src/endorse/validation_error.dart';
+// import 'package:endorse/src/endorse/validation_error.dart';
 
 abstract class EndorseResult {
   Map<String, ResultObject> _fields;

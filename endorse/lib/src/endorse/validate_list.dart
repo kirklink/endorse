@@ -16,7 +16,7 @@ class ValidateList {
   ListResult from(Object items, String fieldName) {
     final fieldResult = _fieldRules.from(items, fieldName);
 
-    if (items == null || !(items is List)) {
+    if (!(items is List)) {
       return ListResult(fieldName, fieldResult, const []);
     } else {
       if (_validator != null) {

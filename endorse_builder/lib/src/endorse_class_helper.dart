@@ -75,9 +75,9 @@ StringBuffer convertToEndorse(
   final classElements = <ClassElement>[];
   classElements.add(clazz);
   for (final superType in clazz.allSupertypes) {
-    if (superType.element is ClassElement) {
-      classElements.add(superType.element);
-    }
+    // if (superType.element is ClassElement) {
+    classElements.add(superType.element);
+    // }
   }
 
   for (final klass in classElements) {

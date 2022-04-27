@@ -4,6 +4,7 @@
 ## 0.1.0-nullsafety.0
 - Null safety
 - Build devcontainer with dart 2.16.2
+- Fix minor lint errors
 
 ## 0.0.28
 - Separate validations into sub-library
