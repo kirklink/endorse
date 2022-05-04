@@ -350,7 +350,7 @@ class IsAtMomentRule extends ValueRule {
       .isAtSameMomentAs(_testDateConverter(test as String)!);
   final WantFunction want = (input, test) => '== ${_test}';
   final GotFunction got = (input, test) => '${input as DateTime}';
-  final ErrorMessage errorMsg = (input, test) => 'Must be after ${_test}.';
+  final ErrorMessage errorMsg = (input, test) => 'Must be at ${_test}.';
   final void Function() cleanup = () => _test = null;
 }
 

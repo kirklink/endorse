@@ -99,3 +99,4 @@ pubspec.lock
 **/build/
 .packages
 **/.dart_tool/
+doc/

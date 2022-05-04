@@ -1,5 +1,9 @@
 # Endorse Changelog
 
+## 0.1.0-nullsafety.1
+- Add now() constructor to DateTime validation rules
+- Some Dart docs added
+
 ## 0.1.0-nullsafety.0
 - Null safety
 - Build devcontainer with dart 2.16.2
