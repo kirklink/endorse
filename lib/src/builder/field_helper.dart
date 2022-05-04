@@ -1,10 +1,10 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/constant/value.dart';
-import 'package:endorse_builder/src/endorse_builder_exception.dart';
-import 'package:endorse_builder/src/processed_field_holder.dart';
+import 'package:endorse/src/builder/endorse_builder_exception.dart';
+import 'package:endorse/src/builder/processed_field_holder.dart';
 import 'package:source_gen/source_gen.dart';
 import 'package:endorse/annotations.dart';
-import 'package:endorse_builder/src/case_helper.dart';
+import 'package:endorse/src/builder/case_helper.dart';
 
 final _checkForEndorseEntity = const TypeChecker.fromRuntime(EndorseEntity);
 final _checkForEndorseField = const TypeChecker.fromRuntime(EndorseField);
@@ -182,7 +182,7 @@ ProcessedFieldHolder processField(FieldElement field, String fieldName) {
         .split('<')
         .map((p) => p.replaceAll('>', ''))
         .toList()
-          ..removeWhere((s) => s.isEmpty));
+      ..removeWhere((s) => s.isEmpty));
     for (final p in listTypeParts.getRange(1, listTypeParts.length)) {
       if (p == 'List') {
         fieldRules = '$fieldRules..ofList()';

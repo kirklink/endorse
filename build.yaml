@@ -6,7 +6,7 @@ targets:
   
 builders:
   endorse_builder:
-    import: "package:endorse_builder/endorse_builder.dart"
+    import: "package:endorse/endorse.dart"
     builder_factories: ["EndorseBuilder"]
     build_extensions: {".dart": [".endorse.g.part"]}
     auto_apply: dependents
