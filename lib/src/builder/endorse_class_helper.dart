@@ -5,10 +5,10 @@ import 'package:source_gen/source_gen.dart';
 
 import 'package:endorse/annotations.dart';
 
-import 'package:endorse_builder/src/endorse_builder_exception.dart';
-import 'package:endorse_builder/src/recase_helper.dart';
-import 'package:endorse_builder/src/field_helper.dart';
-import 'package:endorse_builder/src/build_tracker.dart';
+import 'package:endorse/src/builder/endorse_builder_exception.dart';
+import 'package:endorse/src/builder/recase_helper.dart';
+import 'package:endorse/src/builder/field_helper.dart';
+import 'package:endorse/src/builder/build_tracker.dart';
 
 final _checkForEndorseEntity = const TypeChecker.fromRuntime(EndorseEntity);
 final _checkForEndorseMap = const TypeChecker.fromRuntime(EndorseMap);

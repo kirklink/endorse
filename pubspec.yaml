@@ -1,19 +1,15 @@
-name: endorse_builder
+name: endorse
 homepage: "https://github.com/kirklink/endorse"
-description: "Library for validating random objects like API responses. This is the code generator."
+description: "Library for validating arbitrary objects such as API responses."
 version: 0.0.28
 environment:
   sdk: '>=2.9.0 <3.0.0'
 dependencies:
   recase: ^3.0.0
-  # endorse:
-  #   path: ../endorse
-  endorse: ^0.0.2
   source_gen: ^0.9.8
   analyzer: ^0.40.4
   build: ^1.5.1
 dev_dependencies:
   build_runner: ^1.10.6
   pedantic: ^1.9.0
-# dependency_overrides:
-#   analyzer: ^0.39.10
+  

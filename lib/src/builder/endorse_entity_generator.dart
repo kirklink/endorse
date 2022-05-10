@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:build/src/builder/build_step.dart';
-import 'package:endorse_builder/src/endorse_class_helper.dart';
+import 'package:endorse/src/builder/endorse_class_helper.dart';
 import 'package:source_gen/source_gen.dart';
 
 import 'package:endorse/annotations.dart';
-import 'package:endorse_builder/src/endorse_builder_exception.dart';
-import 'package:endorse_builder/src/build_tracker.dart';
+import 'package:endorse/src/builder/endorse_builder_exception.dart';
+import 'package:endorse/src/builder/build_tracker.dart';
 
 class EndorseEntityGenerator extends GeneratorForAnnotation<EndorseEntity> {
   @override
