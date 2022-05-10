@@ -3,7 +3,7 @@
 # Licensed under the MIT License. See https://go.microsoft.com/fwlink/?linkid=2090316 for license information.
 #-------------------------------------------------------------------------------------------------------------
 
-FROM google/dart:2.10.2
+FROM google/dart:2.15.0
 
 
 # Docker script args, location, and expected SHA - SHA generated on release
@@ -44,13 +44,6 @@ RUN apt-get update \
     #
     # Verify git, process tools, lsb-release (common in install instructions for CLIs) installed
     && apt-get -y install git openssh-client less iproute2 procps lsb-release
-    
-    # Install nodejs and nodemon
-RUN curl -sL https://deb.nodesource.com/setup_10.x | bash - \
-    && apt-get install -y nodejs \
-    && npm i -g nodemon \
-    && nodejs -v \
-    && npm -v
     #
     # Create a non-root user to use if preferred - see https://aka.ms/vscode-remote/containers/non-root-user.
 RUN groupadd --gid $USER_GID $USERNAME \
@@ -69,20 +62,6 @@ RUN groupadd --gid $USER_GID $USERNAME \
     && apt-get autoremove -y \
     && apt-get clean -y \
     && rm -rf /var/lib/apt/lists/*
-
-RUN curl https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.tar.gz > /tmp/google-cloud-sdk.tar.gz \
-    # Install the gcloud package
-    && mkdir -p /usr/local/gcloud \
-    && tar -C /usr/local/gcloud -xvf /tmp/google-cloud-sdk.tar.gz \
-    && /usr/local/gcloud/google-cloud-sdk/install.sh --quiet
-
-# Add gcloud to path
-ENV PATH $PATH:/usr/local/gcloud/google-cloud-sdk/bin
-
-# Install kubectl and make sure gcloud is up to date
-RUN gcloud components install kubectl \
-  && gcloud components update --quiet
-
 
 # Switch back to dialog for any ad-hoc use of apt-get
 ENV DEBIAN_FRONTEND=dialog
