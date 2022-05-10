@@ -37,7 +37,8 @@ String processValidations(List<DartObject> validations, Type? type) {
   }
 
   for (final rule in validations) {
-    if (rule.type!.getDisplayString(withNullability: false) == 'Required') {
+    if (rule.type!.getDisplayString(withNullability: false) == 'Required' ||
+        rule.type!.getDisplayString(withNullability: false) == 'IsNotNull') {
       continue;
     }
 
@@ -117,6 +118,7 @@ ProcessedFieldHolder processField(FieldElement field, String fieldName) {
   Type? itemType;
   var endorseType = '';
   final isList = field.type.isDartCoreList;
+
   final validations = <DartObject>[];
   final itemValidations = <DartObject>[];
 

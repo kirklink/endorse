@@ -6,9 +6,19 @@ class IsRequiredRule extends ValueRule {
   final name = 'IsRequired';
   final skipIfNull = false;
   final causesBail = true;
-  final PassFunction pass = (input, test) =>
-      input != null && (input is String) ? input.isNotEmpty : true;
+  final PassFunction pass = (input, test) {
+    return input != null && (input is String) ? input.isNotEmpty : true;
+  };
   final ErrorMessage errorMsg = (input, test) => 'Required.';
+}
+
+class IsNotNullRule extends ValueRule {
+  final name = 'IsNotNull';
+  final skipIfNull = false;
+  final causesBail = true;
+  final PassFunction pass = (input, test) => input != null;
+  final ErrorMessage errorMsg = (input, test) => 'Cannot be null.';
+  final WantFunction want = (input, test) => 'Not null';
 }
 
 class IsMapRule extends ValueRule {

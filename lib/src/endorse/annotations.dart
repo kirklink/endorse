@@ -3,7 +3,8 @@ import 'package:endorse/src/endorse/case.dart';
 
 /// The annotation to convert a Dart class into a Endorse validated object.
 ///
-/// [useCase]: automatically convert the object field names to different case schemas.
+/// [useCase]: automatically convert the object's field names to different case schemas.
+/// [requireAll]: shortcut to make all fields required.
 class EndorseEntity {
   final Case useCase;
   final bool requireAll;
@@ -21,6 +22,10 @@ class EndorseEntity {
 ///
 /// [name]: sets an explict name from the object if different than the class field name.
 /// [ignore]: will ignore this field completely; it will not be included in the validation.
+/// [useCase]: automatically convert the field name to a different case schema.
+/// [validate]: a list of validations to perform on the field.
+/// [itemValidate]: a list of validations to perform on the items within a list field.
+/// [name]: the field name in the input object if different than the actual field.
 class EndorseField {
   final List<ValidationBase> validate;
   final List<ValidationBase> itemValidate;

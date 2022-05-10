@@ -2,6 +2,8 @@
 
 ## 0.1.0-nullsafety.1
 - Add now() constructor to DateTime validation rules
+- Merge into single package
+- Clean up Dockerfile and VS Code remote config
 - Some Dart docs added
 
 ## 0.1.0-nullsafety.0

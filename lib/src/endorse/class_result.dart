@@ -2,11 +2,14 @@ import 'package:endorse/annotations.dart';
 // import 'package:endorse/src/endorse/result_object.dart';
 import 'package:endorse/src/endorse/validation_error.dart';
 
+/// The result produced from validatation where the object being validated
+/// is mapped to a Dart class.
+///
 class ClassResult extends ResultObject {
   final Map<String, ResultObject> _elements;
   final ValueResult? _field;
   final String _fieldName;
-  bool? _isValid;
+  bool _isValid = false;
   final bool _hasElementErrors;
   List<ValidationError> _errors = [];
 
@@ -17,9 +20,9 @@ class ClassResult extends ResultObject {
 
   String get $fieldName => _fieldName;
 
-  bool? get $isValid => _isValid;
+  bool get $isValid => _isValid;
 
-  bool get $isNotValid => !_isValid!;
+  bool get $isNotValid => !_isValid;
 
   bool get $hasElementErrors => _hasElementErrors;
 
@@ -27,7 +30,7 @@ class ClassResult extends ResultObject {
 
   List<ValidationError> get $errors {
     if (_errors.isNotEmpty) return _errors;
-    if (_isValid!) {
+    if (_isValid) {
       return const [];
     } else if (_field != null) {
       if (_hasElementErrors) {
@@ -64,11 +67,11 @@ class ClassResult extends ResultObject {
     // legitimate value.
     // Value result needs to signal up that it has errpors.
 
-    final r = <String, Object>{};
+    final r = <String, Object?>{};
 
     for (final k in _elements.keys) {
       final value = _elements[k]?.$value;
-      if (value == null) {
+      if (_elements[k]!.$isNotValid) {
         continue;
       }
       r[k] = value;

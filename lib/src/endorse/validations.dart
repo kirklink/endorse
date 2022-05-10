@@ -22,6 +22,13 @@ class Required extends ValidationBase {
   const Required();
 }
 
+/// Generates the isRequired rule.
+class IsNotNull extends ValidationBase {
+  @override
+  final String call = 'isNotNull()';
+  const IsNotNull();
+}
+
 // class ToString extends Validation {
 //   @override
 //   final String call = 'makeString()';

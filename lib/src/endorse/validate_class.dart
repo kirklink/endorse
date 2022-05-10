@@ -9,7 +9,7 @@ class ValidateClass {
 
   ValidateClass(this._fieldRules, this._validator);
 
-  ClassResult from(Object map, String fieldName) {
+  ClassResult from(Object? map, String fieldName) {
     final fieldResult = _fieldRules.from(map, fieldName);
     if (!fieldResult.$isValid) {
       return ClassResult(const {}, fieldName, fieldResult);

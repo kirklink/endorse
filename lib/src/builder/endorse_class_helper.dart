@@ -1,6 +1,8 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/constant/value.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart'
+    show NullabilitySuffix;
 import 'package:source_gen/source_gen.dart';
 
 import 'package:endorse/annotations.dart';
@@ -59,15 +61,22 @@ StringBuffer convertToEndorse(
   final valBufValidate = StringBuffer();
   valBufValidate.writeln('@override');
   valBufValidate
-      .writeln('${resultClassName} validate(Map<String, Object> input) {');
+      .writeln('${resultClassName} validate(Map<String, Object?> input) {');
   // valBufValidate.writeln('final r = <String, ResultObject>{');
   // CLOSE
   // valBufValidate.writeln('};');
   final valBufConstructor = StringBuffer();
   final valBufConstructorMap = StringBuffer();
   final valBufConstructorFields = StringBuffer();
+  final entityCreateBuf = StringBuffer();
+
   valBufConstructor.write('return ${resultClassName}( ');
   valBufConstructorMap.writeln('{');
+
+  entityCreateBuf.writeln("${clazz.name} entity() {");
+  entityCreateBuf.writeln("if (\$isValid) {");
+  entityCreateBuf.writeln("return ${clazz.name}()");
+
   // CLOSE
   // valBufConstructor.write(']);');
   // CLOSE
@@ -87,8 +96,8 @@ StringBuffer convertToEndorse(
       }
 
       final appName = field.name;
-      var jsonName = field.name;
-      jsonName = recaseFieldName(recase, jsonName);
+      // var jsonName = field.name;
+      var jsonName = recaseFieldName(recase, field.name);
 
       final validations = <DartObject>[];
       final itemValidations = <DartObject>[];
@@ -131,11 +140,19 @@ StringBuffer convertToEndorse(
       bool isValue = false;
       bool isList = false;
       bool isClass = false;
+      bool canBeNull =
+          field.type.nullabilitySuffix == NullabilitySuffix.question;
 
       if (requireAll ||
+          !canBeNull ||
           validations.any((e) =>
               e.type!.getDisplayString(withNullability: false) == 'Required')) {
         fieldRulesBuf.write('..isRequired()');
+      }
+
+      if (validations.any((e) =>
+          e.type!.getDisplayString(withNullability: false) == 'IsNotNull')) {
+        fieldRulesBuf.write('..isNotNull()');
       }
 
       if (field.type.isDartCoreString) {
@@ -245,38 +262,26 @@ StringBuffer convertToEndorse(
         }
       }
 
+      // var entityFieldType = "";
+
       if (isValue && !isList) {
         rulesBuf
             .write('ValueResult ${appName}(Object? value) => (ValidateValue()');
         resultBufFields.writeln('final ValueResult ${appName};');
-        resultBufConstructor.write('this.${appName}, ');
-        valBufValidate.writeln(
-            "final ${appName} = rules.${appName}(input['${jsonName}']);");
-
-        valBufConstructorMap.writeln("'${appName}': $appName,");
-        valBufConstructorFields.writeln('$appName,');
+        // entityFieldType = fieldType.toString();
       }
 
       if (isList && isValue) {
         rulesBuf.write(
             'ListResult ${appName}(Object? value) => (ValidateList.fromCore(ValidateValue()');
         resultBufFields.writeln('final ListResult ${appName};');
-        resultBufConstructor.write('this.${appName}, ');
-        valBufValidate.writeln(
-            "final ${appName} = rules.${appName}(input['${jsonName}']);");
-        valBufConstructorMap.writeln("'${appName}': $appName,");
-        valBufConstructorFields.writeln('$appName,');
+        // entityFieldType
       }
 
       if (isList && isClass) {
         rulesBuf.write(
             'ListResult ${appName}(Object? value) => (ValidateList.fromEndorse(ValidateValue()');
         resultBufFields.writeln('final ListResult ${appName};');
-        resultBufConstructor.write('this.${appName}, ');
-        valBufValidate.writeln(
-            "final ${appName} = rules.${appName}(input['${jsonName}']);");
-        valBufConstructorMap.writeln("'${appName}': $appName,");
-        valBufConstructorFields.writeln('$appName,');
       }
 
       if (isClass && !isList) {
@@ -285,11 +290,21 @@ StringBuffer convertToEndorse(
         final classResultName =
             "__\$${field.type.getDisplayString(withNullability: false)}ValidationResult";
         resultBufFields.writeln('final ${classResultName} ${appName};');
-        resultBufConstructor.write('this.${appName}, ');
-        valBufValidate.writeln(
-            "final ${appName} = rules.${appName}(input['${jsonName}']);");
-        valBufConstructorMap.writeln("'${appName}': $appName,");
-        valBufConstructorFields.writeln('$appName,');
+      }
+
+      valBufValidate.writeln(
+          "final ${appName} = rules.${appName}(input['${jsonName}']);");
+      resultBufConstructor.write('this.${appName}, ');
+      valBufConstructorMap.writeln("'${appName}': $appName,");
+      valBufConstructorFields.writeln('$appName,');
+      entityCreateBuf.write("..${appName} = ");
+
+      if (!canBeNull || fieldType == List || fieldType == Map) {
+        entityCreateBuf.writeln(
+            "${appName}.\$value as ${field.type.getDisplayString(withNullability: false)}");
+      } else {
+        entityCreateBuf.writeln(
+            "${appName}.\$value == null ? null : ${appName}.\$value as ${field.type.getDisplayString(withNullability: false)}");
       }
 
       const fromString = 'fromString: true';
@@ -377,13 +392,21 @@ StringBuffer convertToEndorse(
   // CLOSE
   resultBufConstructor.writeln(') : super(fieldMap);');
   // CLOSE
+  entityCreateBuf.write(';');
+  entityCreateBuf.writeln("} else {");
+  entityCreateBuf.writeln("return ${clazz.name}();");
+  entityCreateBuf.writeln("}");
+  entityCreateBuf.writeln("}");
+  // CLOSE
   resultBuf.writeln(resultBufFields);
   resultBuf.writeln(resultBufConstructor);
+  resultBuf.writeln(entityCreateBuf);
   resultBuf.writeln('}');
   // CLOSE
   // valBufValidate.writeln('};');
   // CLOSE
   valBufConstructorMap.writeln('},');
+
   valBufConstructor.writeAll([valBufConstructorMap, valBufConstructorFields]);
   valBufConstructor.write(');');
   // CLOSE

@@ -6,33 +6,25 @@ class ListResult extends ResultObject {
   final ValueResult _value;
   final List<ResultObject> _elements;
   final String _fieldName;
-  bool? _isValid;
-  bool? _hasElementErrors;
+  bool _isValid = false;
+  bool _hasElementErrors;
 
-  ListResult(this._fieldName, this._value, this._elements);
+  ListResult(this._fieldName, this._value, this._elements)
+      : _hasElementErrors = _elements.any((e) => e.$isNotValid);
 
   String get $fieldName => _fieldName;
 
-  bool? get $isValid {
-    if (_isValid != null) {
-      return _isValid;
-    }
-    _isValid = _value.$isValid && !$hasElementErrors!;
+  bool get $isValid {
+    _isValid = _value.$isValid && !$hasElementErrors;
     return _isValid;
   }
 
-  bool get $isNotValid => !$isValid!;
+  bool get $isNotValid => !$isValid;
 
-  bool? get $hasElementErrors {
-    if (_hasElementErrors != null) {
-      return _hasElementErrors;
-    }
-    _hasElementErrors = _elements.any((e) => e.$isNotValid);
-    return _hasElementErrors;
-  }
+  bool get $hasElementErrors => _hasElementErrors;
 
   List<ValidationError> get $errors {
-    if (_isValid!) {
+    if (_isValid) {
       return const [];
     }
     var errorElements = List<ResultObject>.from(_elements);
@@ -59,7 +51,7 @@ class ListResult extends ResultObject {
   }
 
   Object get $errorsJson {
-    if ($isValid!) {
+    if ($isValid) {
       return const [];
     } else {
       return _elements.map((e) => e.$errorsJson).toList();

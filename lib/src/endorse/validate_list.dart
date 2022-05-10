@@ -13,7 +13,7 @@ class ValidateList {
 
   ValidateList.fromEndorse(this._fieldRules, this._validator);
 
-  ListResult from(Object items, String fieldName) {
+  ListResult from(Object? items, String fieldName) {
     final fieldResult = _fieldRules.from(items, fieldName);
 
     if (!(items is List)) {
