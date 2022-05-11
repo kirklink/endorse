@@ -1,4 +1,4 @@
-import 'package:endorse/annotations.dart';
+import 'package:endorse/src/endorse/value_result.dart';
 import 'package:endorse/src/endorse/result_object.dart';
 import 'package:endorse/src/endorse/validation_error.dart';
 
@@ -9,7 +9,7 @@ class ClassResult extends ResultObject {
   bool _isValid;
   bool _hasElementErrors;
 
-  ClassResult(this._elements, [this._fieldName, this._field]);
+  ClassResult(this._elements, [this._fieldName = "", this._field]);
 
   String get $fieldName => _fieldName;
 

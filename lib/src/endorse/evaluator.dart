@@ -18,12 +18,12 @@ class Evaluator {
 
   ValueResult evaluate() {
     for (final rule in rules) {
-      _runRule(rule.rule, rule.test);
+      _runRule(rule.rule as ValueRule, rule.test);
     }
     return ValueResult(_field, _input, _errors);
   }
 
-  void _runRule(ValueRule rule, [Object test = null]) {
+  void _runRule(ValueRule rule, [Object? test = null]) {
     if (_bail && !rule.escapesBail) {
       return;
     }
