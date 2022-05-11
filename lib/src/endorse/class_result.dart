@@ -4,31 +4,29 @@ import 'package:endorse/src/endorse/validation_error.dart';
 
 class ClassResult extends ResultObject {
   final Map<String, ResultObject> _elements;
-  final ValueResult _field;
+  final ValueResult? _field;
   final String _fieldName;
-  bool _isValid;
-  bool _hasElementErrors;
+  bool? _isValid;
+  bool? _hasElementErrors;
 
   ClassResult(this._elements, [this._fieldName = "", this._field]);
 
   String get $fieldName => _fieldName;
 
   bool get $isValid {
-    if (_isValid != null) {
-      return _isValid;
+    if (_isValid == null) {
+      _isValid = (_field == null || _field!.$isValid) && !$hasElementErrors;
     }
-    _isValid = (_field == null || _field.$isValid) && !$hasElementErrors;
-    return _isValid;
+    return _isValid!;
   }
 
   bool get $isNotValid => !$isValid;
 
   bool get $hasElementErrors {
-    if (_hasElementErrors != null) {
-      return _hasElementErrors;
+    if (_hasElementErrors == null) {
+      _hasElementErrors = _elements.values.any((e) => e.$isNotValid);
     }
-    _hasElementErrors = _elements.values.any((e) => e.$isNotValid);
-    return _hasElementErrors;
+    return _hasElementErrors!;
   }
 
   List<ValidationError> get $errors {
@@ -50,11 +48,11 @@ class ClassResult extends ResultObject {
             'Validation failed for $count element(s).',
             errorFields,
             '0 errors.');
-        final errors = List<ValidationError>.from(_field.$errors);
+        final errors = List<ValidationError>.from(_field!.$errors);
         errors.add(elementError);
         return errors;
       } else {
-        return _field.$errors;
+        return _field!.$errors;
       }
     } else {
       return const [];
@@ -63,24 +61,25 @@ class ClassResult extends ResultObject {
 
   Object get $value {
     final r = <String, Object>{};
-    for (final k in _elements.keys) {
-      final value = _elements[k].$value;
-      if (value == null) {
-        continue;
+    if (_elements.keys.isNotEmpty) {
+      for (final k in _elements.keys) {
+        final value = _elements[k]!.$value;
+        r[k] = value;
       }
-      r[k] = value;
     }
     return r;
   }
 
   Object get $errorsJson {
-    if (_field != null && _field.$isNotValid) {
-      return _field.$errorsJson;
+    if (_field != null && _field!.$isNotValid) {
+      return _field!.$errorsJson;
     } else {
       final r = <String, Object>{};
-      for (final k in _elements.keys) {
-        if (!_elements[k].$isValid) {
-          r[k] = _elements[k].$errorsJson;
+      if (_elements.keys.isNotEmpty) {
+        for (final k in _elements.keys) {
+          if (_elements[k]!.$isNotValid) {
+            r[k] = _elements[k]!.$errorsJson;
+          }
         }
       }
       return r;
