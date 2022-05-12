@@ -60,7 +60,7 @@ class ClassResult extends ResultObject {
   }
 
   Object get $value {
-    final r = <String, Object>{};
+    final r = <String, Object?>{};
     if (_elements.keys.isNotEmpty) {
       for (final k in _elements.keys) {
         final value = _elements[k]!.$value;

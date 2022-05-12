@@ -19,7 +19,7 @@ class EndorseEntityGenerator extends GeneratorForAnnotation<EndorseEntity> {
     final classNamePrefix = '${element.name}';
 
     final endorseClassName = '${classNamePrefix}Endorse';
-    final $endorse = (element as ClassElement).getField('\$endorse');
+    final $endorse = element.getField('\$endorse');
     if ($endorse == null || !$endorse.isStatic) {
       final notReadyBuf = StringBuffer();
       notReadyBuf.writeln(
@@ -32,31 +32,31 @@ class EndorseEntityGenerator extends GeneratorForAnnotation<EndorseEntity> {
     var recase = annotation
             .peek('useCase')
             ?.objectValue
-            ?.getField('none')
+            .getField('none')
             ?.toIntValue() ??
         0;
     recase = annotation
             .peek('useCase')
             ?.objectValue
-            ?.getField('camelCase')
+            .getField('camelCase')
             ?.toIntValue() ??
         recase;
     recase = annotation
             .peek('useCase')
             ?.objectValue
-            ?.getField('snakeCase')
+            .getField('snakeCase')
             ?.toIntValue() ??
         recase;
     recase = annotation
             .peek('useCase')
             ?.objectValue
-            ?.getField('pascalCase')
+            .getField('pascalCase')
             ?.toIntValue() ??
         recase;
     recase = annotation
             .peek('useCase')
             ?.objectValue
-            ?.getField('kebabCase')
+            .getField('kebabCase')
             ?.toIntValue() ??
         recase;
 

@@ -1,10 +1,9 @@
-typedef String PreCondition(Object? input, Object test);
-typedef bool PassFuntion(Object? input, Object test);
-typedef String GotFunction(Object? input, Object test);
-typedef String WantFunction(Object? input, Object test);
+typedef String PreCondition(Object? input, Object? test);
+typedef bool PassFuntion(Object? input, Object? test);
+typedef String GotFunction(Object? input, Object? test);
+typedef String WantFunction(Object? input, Object? test);
 typedef Object? CastFunction(Object? input);
-typedef String ErrorMessage(Object? input, Object test);
-typedef void CleanUp();
+typedef String ErrorMessage(Object? input, Object? test);
 
 abstract class Rule {
   final String name = '';
@@ -17,5 +16,4 @@ abstract class Rule {
   final WantFunction want = (input, test) => '';
   final CastFunction cast = (input) => input;
   final ErrorMessage errorMsg = (input, test) => '';
-  final CleanUp cleanup = () => null;
 }

@@ -48,7 +48,7 @@ StringBuffer convertToEndorse(
   final resultBufFields = StringBuffer();
   final resultBufConstructor = StringBuffer();
   resultBufConstructor
-      .writeln('${resultClassName}(Map<String, ResultObject> fieldMap, [');
+      .writeln('${resultClassName}(Map<String, ResultObject> fieldMap, ');
   // CLOSE
   // resultBufConstructor.writeln(']) : super(fields);');
 
@@ -59,7 +59,7 @@ StringBuffer convertToEndorse(
   final valBufValidate = StringBuffer();
   valBufValidate.writeln('@override');
   valBufValidate
-      .writeln('${resultClassName} validate(Map<String, Object> input) {');
+      .writeln('${resultClassName} validate(Map<String, Object?> input) {');
   valBufValidate.writeln('final r = <String, ResultObject>{');
   // CLOSE
   // valBufValidate.writeln('};');
@@ -72,9 +72,10 @@ StringBuffer convertToEndorse(
   final classElements = <ClassElement>[];
   classElements.add(clazz);
   for (final superType in clazz.allSupertypes) {
-    if (superType.element is ClassElement) {
-      classElements.add(superType.element);
-    }
+    // if (superType.element is ClassElement) {
+    //   classElements.add(superType.element);
+    // }
+    classElements.add(superType.element);
   }
 
   for (final klass in classElements) {
@@ -111,21 +112,22 @@ StringBuffer convertToEndorse(
           jsonName = rename;
         }
 
-        validations.addAll(reader.peek('validate')?.listValue);
-        itemValidations.addAll(reader.peek('itemValidate')?.listValue);
+        validations.addAll(reader.peek('validate')?.listValue ?? const []);
+        itemValidations
+            .addAll(reader.peek('itemValidate')?.listValue ?? const []);
       }
 
       final fieldRulesBuf = StringBuffer();
       final itemRulesBuf = StringBuffer();
-      Type fieldType;
-      Type itemType;
+      Type? fieldType;
+      Type? itemType;
       bool isValue = false;
       bool isList = false;
       bool isClass = false;
 
       if (requireAll ||
           validations.any((e) =>
-              e.type.getDisplayString(withNullability: false) == 'Required')) {
+              e.type!.getDisplayString(withNullability: false) == 'Required')) {
         fieldRulesBuf.write('..isRequired()');
       }
 
@@ -156,12 +158,12 @@ StringBuffer convertToEndorse(
         isValue = true;
       }
 
-      if (_checkForEndorseMap.hasAnnotationOfExact(field.type.element) ||
-          _checkForEndorseEntity.hasAnnotationOfExact(field.type.element)) {
+      if (_checkForEndorseMap.hasAnnotationOfExact(field.type.element!) ||
+          _checkForEndorseEntity.hasAnnotationOfExact(field.type.element!)) {
         final mapElement = field.type.element;
         if (mapElement is! ClassElement) {
           throw EndorseBuilderException(
-              'EndorseEntity and EdorseMap must only annotate classes. ${field.getDisplayString(withNullability: null)} is not a class.');
+              'EndorseEntity and EdorseMap must only annotate classes. ${field.getDisplayString(withNullability: false)} is not a class.');
         }
 
         pageBuf.writeln(convertToEndorse(
@@ -217,8 +219,8 @@ StringBuffer convertToEndorse(
           itemType = DateTime;
           isValue = true;
         } else if (_checkForEndorseEntity
-                .hasAnnotationOfExact(elementType.element) ||
-            _checkForEndorseMap.hasAnnotationOfExact(elementType.element)) {
+                .hasAnnotationOfExact(elementType.element!) ||
+            _checkForEndorseMap.hasAnnotationOfExact(elementType.element!)) {
           isClass = true;
           itemType = Map;
           // itemRulesBuf.write(', ValidateValue()..isMap()');
@@ -228,7 +230,7 @@ StringBuffer convertToEndorse(
           final mapElement = elementType.element;
           if (mapElement is! ClassElement) {
             throw EndorseBuilderException(
-                'EndorseEntity and EdorseMap must only annotate classes. ${field.getDisplayString(withNullability: null)} is not a class.');
+                'EndorseEntity and EdorseMap must only annotate classes. ${field.getDisplayString(withNullability: false)} is not a class.');
           }
           pageBuf.writeln(convertToEndorse(
               mapElement, recase, requireAll, tracker,
@@ -238,44 +240,44 @@ StringBuffer convertToEndorse(
 
       if (isValue && !isList) {
         rulesBuf
-            .write('ValueResult ${appName}(Object value) => (ValidateValue()');
+            .write('ValueResult ${appName}(Object? value) => (ValidateValue()');
         resultBufFields.writeln('final ValueResult ${appName};');
         resultBufConstructor.write('this.${appName}, ');
-        valBufValidate.writeln(
-            "'${appName}': rules.${appName}((input ?? const {})['${jsonName}']),");
-        valBufConstructor.write("r['${appName}'], ");
+        valBufValidate
+            .writeln("'${appName}': rules.${appName}(input['${jsonName}']),");
+        valBufConstructor.write("r['${appName}'] as ValueResult, ");
       }
 
       if (isList && isValue) {
         rulesBuf.write(
-            'ListResult ${appName}(Object value) => (ValidateList.fromCore(ValidateValue()');
+            'ListResult ${appName}(Object? value) => (ValidateList.fromCore(ValidateValue()');
         resultBufFields.writeln('final ListResult ${appName};');
         resultBufConstructor.write('this.${appName}, ');
-        valBufValidate.writeln(
-            "'${appName}': rules.${appName}((input ?? const {})['${jsonName}']),");
-        valBufConstructor.write("r['${appName}'], ");
+        valBufValidate
+            .writeln("'${appName}': rules.${appName}(input['${jsonName}']),");
+        valBufConstructor.write("r['${appName}'] as ListResult, ");
       }
 
       if (isList && isClass) {
         rulesBuf.write(
-            'ListResult ${appName}(Object value) => (ValidateList.fromEndorse(ValidateValue()');
+            'ListResult ${appName}(Object? value) => (ValidateList.fromEndorse(ValidateValue()');
         resultBufFields.writeln('final ListResult ${appName};');
         resultBufConstructor.write('this.${appName}, ');
-        valBufValidate.writeln(
-            "'${appName}': rules.${appName}((input ?? const {})['${jsonName}']),");
-        valBufConstructor.write("r['${appName}'], ");
+        valBufValidate
+            .writeln("'${appName}': rules.${appName}(input['${jsonName}']),");
+        valBufConstructor.write("r['${appName}'] as ListResult, ");
       }
 
       if (isClass && !isList) {
         rulesBuf.write(
-            'ClassResult ${appName}(Object value) => (ValidateClass(ValidateValue()');
+            'ClassResult ${appName}(Object? value) => (ValidateClass(ValidateValue()');
         final classResultName =
             "__\$${field.type.getDisplayString(withNullability: false)}ValidationResult";
         resultBufFields.writeln('final ${classResultName} ${appName};');
         resultBufConstructor.write('this.${appName}, ');
-        valBufValidate.writeln(
-            "'${appName}': rules.${appName}((input ?? const {})['${jsonName}']),");
-        valBufConstructor.write("r['${appName}'], ");
+        valBufValidate
+            .writeln("'${appName}': rules.${appName}(input['${jsonName}']),");
+        valBufConstructor.write("r['${appName}'] as ${classResultName}, ");
       }
 
       const fromString = 'fromString: true';
@@ -291,11 +293,11 @@ StringBuffer convertToEndorse(
         var fieldRules = fieldRulesBuf.toString();
 
         if (validations.any((e) => fromStringRules
-            .contains(e.type.getDisplayString(withNullability: false)))) {
+            .contains(e.type!.getDisplayString(withNullability: false)))) {
           fieldRules = fieldRules.replaceFirst('@', fromString);
         }
 
-        if (validations.any((e) => e.type
+        if (validations.any((e) => e.type!
             .getDisplayString(withNullability: false)
             .startsWith('ToString'))) {
           fieldRules = fieldRules.replaceFirst('#', toString);
@@ -325,11 +327,11 @@ StringBuffer convertToEndorse(
         var itemRules = itemRulesBuf.toString();
 
         if (itemValidations.any((e) => fromStringRules
-            .contains(e.type.getDisplayString(withNullability: false)))) {
+            .contains(e.type!.getDisplayString(withNullability: false)))) {
           itemRules = itemRules.replaceFirst('@', fromString);
         }
 
-        if (itemValidations.any((e) => e.type
+        if (itemValidations.any((e) => e.type!
             .getDisplayString(withNullability: false)
             .startsWith('ToString'))) {
           itemRules = itemRules.replaceFirst('#', toString);
@@ -361,7 +363,7 @@ StringBuffer convertToEndorse(
   // CLOSE
   rulesBuf.writeln('}');
   // CLOSE
-  resultBufConstructor.writeln(']) : super(fieldMap);');
+  resultBufConstructor.writeln(') : super(fieldMap);');
   // CLOSE
   resultBuf.writeln(resultBufFields);
   resultBuf.writeln(resultBufConstructor);
