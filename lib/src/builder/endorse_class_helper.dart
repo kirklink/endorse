@@ -62,7 +62,7 @@ StringBuffer convertToEndorse(
   valBufValidate.writeln('@override');
   valBufValidate
       .writeln('${resultClassName} validate(Map<String, Object?> input) {');
-  // valBufValidate.writeln('final r = <String, ResultObject>{');
+  valBufValidate.writeln('final r = <String, ResultObject>{');
   // CLOSE
   // valBufValidate.writeln('};');
   final valBufConstructor = StringBuffer();
@@ -85,8 +85,9 @@ StringBuffer convertToEndorse(
   classElements.add(clazz);
   for (final superType in clazz.allSupertypes) {
     // if (superType.element is ClassElement) {
-    classElements.add(superType.element);
+    //   classElements.add(superType.element);
     // }
+    classElements.add(superType.element);
   }
 
   for (final klass in classElements) {
@@ -123,14 +124,9 @@ StringBuffer convertToEndorse(
           jsonName = rename;
         }
 
-        final validate = reader.peek('validate')?.listValue;
-        if (validate != null) {
-          validations.addAll(validate);
-        }
-        final itemValidate = reader.peek('itemValidate')?.listValue;
-        if (itemValidate != null) {
-          itemValidations.addAll(itemValidate);
-        }
+        validations.addAll(reader.peek('validate')?.listValue ?? const []);
+        itemValidations
+            .addAll(reader.peek('itemValidate')?.listValue ?? const []);
       }
 
       final fieldRulesBuf = StringBuffer();
@@ -268,20 +264,30 @@ StringBuffer convertToEndorse(
         rulesBuf
             .write('ValueResult ${appName}(Object? value) => (ValidateValue()');
         resultBufFields.writeln('final ValueResult ${appName};');
-        // entityFieldType = fieldType.toString();
+        resultBufConstructor.write('this.${appName}, ');
+        valBufValidate
+            .writeln("'${appName}': rules.${appName}(input['${jsonName}']),");
+        valBufConstructor.write("r['${appName}'] as ValueResult, ");
       }
 
       if (isList && isValue) {
         rulesBuf.write(
             'ListResult ${appName}(Object? value) => (ValidateList.fromCore(ValidateValue()');
         resultBufFields.writeln('final ListResult ${appName};');
-        // entityFieldType
+        resultBufConstructor.write('this.${appName}, ');
+        valBufValidate
+            .writeln("'${appName}': rules.${appName}(input['${jsonName}']),");
+        valBufConstructor.write("r['${appName}'] as ListResult, ");
       }
 
       if (isList && isClass) {
         rulesBuf.write(
             'ListResult ${appName}(Object? value) => (ValidateList.fromEndorse(ValidateValue()');
         resultBufFields.writeln('final ListResult ${appName};');
+        resultBufConstructor.write('this.${appName}, ');
+        valBufValidate
+            .writeln("'${appName}': rules.${appName}(input['${jsonName}']),");
+        valBufConstructor.write("r['${appName}'] as ListResult, ");
       }
 
       if (isClass && !isList) {
@@ -290,21 +296,10 @@ StringBuffer convertToEndorse(
         final classResultName =
             "__\$${field.type.getDisplayString(withNullability: false)}ValidationResult";
         resultBufFields.writeln('final ${classResultName} ${appName};');
-      }
-
-      valBufValidate.writeln(
-          "final ${appName} = rules.${appName}(input['${jsonName}']);");
-      resultBufConstructor.write('this.${appName}, ');
-      valBufConstructorMap.writeln("'${appName}': $appName,");
-      valBufConstructorFields.writeln('$appName,');
-      entityCreateBuf.write("..${appName} = ");
-
-      if (!canBeNull || fieldType == List || fieldType == Map) {
-        entityCreateBuf.writeln(
-            "${appName}.\$value as ${field.type.getDisplayString(withNullability: false)}");
-      } else {
-        entityCreateBuf.writeln(
-            "${appName}.\$value == null ? null : ${appName}.\$value as ${field.type.getDisplayString(withNullability: false)}");
+        resultBufConstructor.write('this.${appName}, ');
+        valBufValidate
+            .writeln("'${appName}': rules.${appName}(input['${jsonName}']),");
+        valBufConstructor.write("r['${appName}'] as ${classResultName}, ");
       }
 
       const fromString = 'fromString: true';
@@ -391,12 +386,6 @@ StringBuffer convertToEndorse(
   rulesBuf.writeln('}');
   // CLOSE
   resultBufConstructor.writeln(') : super(fieldMap);');
-  // CLOSE
-  entityCreateBuf.write(';');
-  entityCreateBuf.writeln("} else {");
-  entityCreateBuf.writeln("return ${clazz.name}();");
-  entityCreateBuf.writeln("}");
-  entityCreateBuf.writeln("}");
   // CLOSE
   resultBuf.writeln(resultBufFields);
   resultBuf.writeln(resultBufConstructor);

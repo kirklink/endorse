@@ -37,8 +37,7 @@ String processValidations(List<DartObject> validations, Type? type) {
   }
 
   for (final rule in validations) {
-    if (rule.type!.getDisplayString(withNullability: false) == 'Required' ||
-        rule.type!.getDisplayString(withNullability: false) == 'IsNotNull') {
+    if (rule.type!.getDisplayString(withNullability: false) == 'Required') {
       continue;
     }
 
@@ -87,7 +86,7 @@ String processValidations(List<DartObject> validations, Type? type) {
     }
     ;
 
-    late String value;
+    var value = '';
     if (valueType == null) {
       value = '';
     } else if (valueType.isDartCoreString) {
@@ -100,7 +99,7 @@ String processValidations(List<DartObject> validations, Type? type) {
     // Replace the token with a value
     ruleCall = ruleCall +
         '..' +
-        rule.getField('call')!.toStringValue()!.replaceFirst('@', value);
+        (rule.getField('call')!.toStringValue())!.replaceFirst('@', value);
   }
   return ruleCall;
 }
@@ -125,14 +124,8 @@ ProcessedFieldHolder processField(FieldElement field, String fieldName) {
   if (_checkForEndorseField.hasAnnotationOfExact(field)) {
     final reader =
         ConstantReader(_checkForEndorseField.firstAnnotationOf(field));
-    final validate = reader.peek('validate')?.listValue;
-    if (validate != null) {
-      validations.addAll(validate);
-    }
-    final itemValidate = reader.peek('itemValidate')?.listValue;
-    if (itemValidate != null) {
-      itemValidations.addAll(itemValidate);
-    }
+    validations.addAll(reader.peek('validate')?.listValue ?? const []);
+    itemValidations.addAll(reader.peek('itemValidate')?.listValue ?? const []);
     final ignore = reader.peek('ignore')?.boolValue ?? false;
     final nameOverride = reader.peek('name')?.stringValue ?? '';
 
@@ -184,7 +177,7 @@ ProcessedFieldHolder processField(FieldElement field, String fieldName) {
         .split('<')
         .map((p) => p.replaceAll('>', ''))
         .toList()
-      ..removeWhere((s) => s.isEmpty));
+      ..removeWhere((s) => s == null || s.isEmpty));
     for (final p in listTypeParts.getRange(1, listTypeParts.length)) {
       if (p == 'List') {
         fieldRules = '$fieldRules..ofList()';

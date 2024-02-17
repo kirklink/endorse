@@ -4,6 +4,7 @@
 #-------------------------------------------------------------------------------------------------------------
 
 FROM dart:2.15.0
+FROM google/dart:2.15.0
 
 
 # Docker script args, location, and expected SHA - SHA generated on release
