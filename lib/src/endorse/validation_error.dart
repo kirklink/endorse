@@ -1,4 +1,3 @@
-
 class ValidationError {
   final String rule;
   final String message;
@@ -16,7 +15,7 @@ class ValidationError {
     final content = <String, String>{};
     content['message'] = message;
     content['got'] = got.toString();
-    if (want != null && want.isNotEmpty) {
+    if (want.isNotEmpty) {
       content['want'] = want.toString();
     }
     result[rule] = content;
