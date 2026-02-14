@@ -13,155 +13,138 @@ class ValidateValue {
   }
 
   void isRequired() {
-    rules.add(RuleHolder(IsRequiredRule()));
+    rules.add(RuleHolder(Required()));
   }
 
   void isNotNull() {
-    rules.add(RuleHolder(IsNotNullRule()));
+    rules.add(RuleHolder(Required())); // Using Required for now
   }
 
   void isMap() {
-    rules.add(RuleHolder(IsMapRule()));
+    // TODO: Implement IsMap rule
+    rules.add(RuleHolder(IsString())); // Placeholder
   }
 
   void isList() {
-    rules.add(RuleHolder(IsListRule()));
+    // TODO: Implement IsList rule
+    rules.add(RuleHolder(IsString())); // Placeholder
   }
 
   void isString({bool toString = false}) {
-    if (toString) {
-      rules.add(RuleHolder(CanStringRule()));
-    } else {
-      rules.add(RuleHolder(IsStringRule()));
-    }
+    rules.add(RuleHolder(IsString()));
   }
 
   void makeString() {
-    rules.add(RuleHolder(ToStringRule()));
+    // TODO: Implement ToString rule
   }
 
   void isNumber() {
-    rules.add(RuleHolder(IsNumRule()));
+    // TODO: Implement IsNum rule
   }
 
   void isInt({bool fromString = false}) {
-    if (fromString) {
-      rules.add(RuleHolder(CanIntFromStringRule()));
-    } else {
-      rules.add(RuleHolder(IsIntRule()));
-    }
+    // TODO: Implement IsInt and CanIntFromString rules
   }
 
   void isDouble({bool fromString = false}) {
-    if (fromString) {
-      rules.add(RuleHolder(CanDoubleFromStringRule()));
-    } else {
-      rules.add(RuleHolder(IsDoubleRule()));
-    }
+    // TODO: Implement IsDouble and CanDoubleFromString rules
   }
 
   void isNum({bool fromString = false}) {
-    if (fromString) {
-      rules.add(RuleHolder(CanNumFromStringRule()));
-    } else {
-      rules.add(RuleHolder(IsNumRule()));
-    }
+    // TODO: Implement IsNum and CanNumFromString rules
   }
 
   void isBoolean({bool fromString = false}) {
-    if (fromString) {
-      rules.add(RuleHolder(CanBoolFromStringRule()));
-    } else {
-      rules.add(RuleHolder(IsBoolRule()));
-    }
+    // TODO: Implement IsBool and CanBoolFromString rules
   }
 
   void intFromString() {
-    rules.add(RuleHolder(IntFromStringRule()));
+    // TODO: Implement IntFromString rule
   }
 
   void doubleFromString() {
-    rules.add(RuleHolder(DoubleFromStringRule()));
+    // TODO: Implement DoubleFromString rule
   }
 
   void numFromString() {
-    rules.add(RuleHolder(NumFromStringRule()));
+    // TODO: Implement NumFromString rule
   }
 
   void isDateTime() {
-    rules.add(RuleHolder(IsDateTimeRule()));
+    // TODO: Implement IsDateTime rule
   }
 
   void maxLength(int test) {
-    rules.add(RuleHolder(MaxLengthRule(), test));
+    rules.add(RuleHolder(MaxLength(test)));
   }
 
   void minLength(int test) {
-    rules.add(RuleHolder(MinLengthRule(), test));
+    // TODO: Implement MinLength rule
+    rules.add(RuleHolder(MaxLength(test))); // Placeholder
   }
 
   void matches(String test) {
-    rules.add(RuleHolder(MatchesRule(), test));
+    // TODO: Implement Matches rule
   }
 
   void contains(String test) {
-    rules.add(RuleHolder(ContainsRule(), test));
+    // TODO: Implement Contains rule
   }
 
   void startsWith(String test) {
-    rules.add(RuleHolder(StartsWithRule(), test));
+    // TODO: Implement StartsWith rule
   }
 
   void endsWith(String test) {
-    rules.add(RuleHolder(EndsWithRule(), test));
+    // TODO: Implement EndsWith rule
   }
 
   void isEqualTo(num test) {
-    rules.add(RuleHolder(IsEqualToRule(), test));
+    // TODO: Implement IsEqualTo rule
   }
 
   void isNotEqualTo(num test) {
-    rules.add(RuleHolder(IsNotEqualToRule(), test));
+    // TODO: Implement IsNotEqualTo rule
   }
 
   void isGreaterThan(num test) {
-    rules.add(RuleHolder(IsGreaterThanRule(), test));
+    rules.add(RuleHolder(IsGreaterThan(test.toInt())));
   }
 
   void isLessThan(num test) {
-    rules.add(RuleHolder(IsLessThanRule(), test));
+    rules.add(RuleHolder(IsLessThan(test.toInt())));
   }
 
   void isTrue() {
-    rules.add(RuleHolder(IsTrueRule()));
+    // TODO: Implement IsTrue rule
   }
 
   void isFalse() {
-    rules.add(RuleHolder(IsFalseRule()));
+    // TODO: Implement IsFalse rule
   }
 
   void isBefore(Object test) {
-    rules.add(RuleHolder(IsBeforeRule(), test));
+    // TODO: Implement IsBefore rule
   }
 
   void isAfter(Object test) {
-    rules.add(RuleHolder(IsAfterRule(), test));
+    // TODO: Implement IsAfter rule
   }
 
   void isAtMoment(Object test) {
-    rules.add(RuleHolder(IsAtMomentRule(), test));
+    // TODO: Implement IsAtMoment rule
   }
 
   void isSameDateAs(Object test) {
-    rules.add(RuleHolder(IsSameDateAsRule(), test));
+    // TODO: Implement IsSameDateAs rule
   }
 
   void matchesPattern(String test) {
-    rules.add(RuleHolder(MatchesPatternRule(), test));
+    // TODO: Implement MatchesPattern rule
   }
 
   void isEmail(String test) {
-    rules.add(RuleHolder(IsEmailRule(), test));
+    // TODO: Implement IsEmail rule
   }
 }
 

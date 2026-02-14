@@ -1,3 +1,5 @@
+import 'package:endorse/src/endorse/validation_error.dart';
+
 // typedef String PreCondition(Object? input, Object? test);
 // typedefResultObjectError PassFuntion(Object? input, Object? test);
 // typedef String GotFunction(Object? input, Object? test);
@@ -30,15 +32,9 @@ class RuleError {
   bool get isEmpty => errorDetail.isEmpty && errorName.isEmpty;
 }
 
-class ValidationError {
-  final String errorName;
-  final List path;
-  final String detail;
-
-  ValidationError(this.path, RuleError ruleError)
-      : errorName = ruleError.errorName,
-        detail = ruleError.errorDetail;
-}
+// Note: ValidationError is also defined in validation_error.dart
+// The one in validation_error.dart is the preferred implementation
+// This one is kept for backwards compatibility but should not be used
 
 // class ValidationResult {
 //   final Map<String, Object?> value;
@@ -53,15 +49,38 @@ class ValidationError {
 //   const ValidationBase();
 // }
 
+// Base Rule class with full interface for Evaluator
 abstract class Rule {
-  // final String call = '';
-  // final validOnTypes = const <Type>[];
   const Rule();
-  RuleError evaluate(Object? input);
+
+  // Rule metadata
+  String get name => '';
+  bool get skipIfNull => true;
+  bool get causesBail => false;
+  bool get escapesBail => false;
+
+  // Validation methods
+  String check(Object? input, Object? test) => '';
+  bool pass(Object? input, Object? test);
+  String got(Object? input, Object? test) => '';
+  String want(Object? input, Object? test) => '';
+  String errorMsg(Object? input, Object? test);
+  Object? cast(Object? input) => input;
+
+  // Legacy method for backwards compatibility
+  RuleError evaluate(Object? input) {
+    if (!pass(input, null)) {
+      return RuleError(name, errorMsg(input, null));
+    }
+    return RuleError.empty();
+  }
 }
 
 abstract class ShortCircuitRule extends Rule {
   const ShortCircuitRule();
+
+  @override
+  bool get causesBail => true;
 }
 
 abstract class RuleWithNumTest extends Rule {
@@ -76,68 +95,116 @@ abstract class RuleWithNumTest extends Rule {
 
 class Required extends Rule {
   const Required();
-  RuleError evaluate(Object? input) {
-    if (input == null) {
-      return RuleError('Required');
-    } else {
-      return RuleError.empty();
-    }
-  }
+
+  @override
+  String get name => 'Required';
+
+  @override
+  bool get skipIfNull => false;
+
+  @override
+  bool get causesBail => true;
+
+  @override
+  bool pass(Object? input, Object? test) => input != null;
+
+  @override
+  String errorMsg(Object? input, Object? test) => 'Required.';
 }
 
 class IsString extends ShortCircuitRule {
   const IsString();
-  RuleError evaluate(Object? input) {
-    if (input is! String) {
-      return RuleError('IsString', 'Not a string.');
-    } else {
-      return RuleError.empty();
-    }
-  }
+
+  @override
+  String get name => 'IsString';
+
+  @override
+  bool pass(Object? input, Object? test) => input is String;
+
+  @override
+  String errorMsg(Object? input, Object? test) => 'Must be a String';
+
+  @override
+  String got(Object? input, Object? test) => input.runtimeType.toString();
+
+  @override
+  String want(Object? input, Object? test) => 'String';
 }
 
 class MaxLength extends RuleWithNumTest {
   const MaxLength(int test) : super(test);
-  RuleError evaluate(Object? input) {
-    if (input is! String || input.length > test) {
-      return RuleError('MaxLength', 'Max length is ${test}');
-    } else {
-      return RuleError.empty();
-    }
-  }
+
+  @override
+  String get name => 'MaxLength';
+
+  @override
+  bool pass(Object? input, Object? testParam) =>
+      input is String && input.length <= test;
+
+  @override
+  String errorMsg(Object? input, Object? testParam) =>
+      'Length must be less than or equal to $test.';
+
+  @override
+  String got(Object? input, Object? testParam) =>
+      input is String ? input.length.toString() : 'not a string';
+
+  @override
+  String want(Object? input, Object? testParam) => '<= $test';
 }
 
 class IsLessThan extends RuleWithNumTest {
   const IsLessThan(int test) : super(test);
-  RuleError evaluate(Object? input) {
-    if (input is! num || input >= test) {
-      return RuleError('IsLessThan', 'Must be less than ${test}');
-    } else {
-      return RuleError.empty();
-    }
-  }
+
+  @override
+  String get name => 'IsLessThan';
+
+  @override
+  bool pass(Object? input, Object? testParam) =>
+      input is num && input < test;
+
+  @override
+  String errorMsg(Object? input, Object? testParam) =>
+      'Must be less than $test.';
+
+  @override
+  String want(Object? input, Object? testParam) => '< $test';
 }
 
 class IsGreaterThan extends RuleWithNumTest {
   const IsGreaterThan(int test) : super(test);
-  RuleError evaluate(Object? input) {
-    if (input is! num || input <= test) {
-      return RuleError('IsGreaterThan', 'Must be greater than ${test}');
-    } else {
-      return RuleError.empty();
-    }
-  }
+
+  @override
+  String get name => 'IsGreaterThan';
+
+  @override
+  bool pass(Object? input, Object? testParam) =>
+      input is num && input > test;
+
+  @override
+  String errorMsg(Object? input, Object? testParam) =>
+      'Must be greater than $test.';
+
+  @override
+  String want(Object? input, Object? testParam) => '> $test';
 }
 
 class MaxElements extends RuleWithNumTest {
   const MaxElements(int test) : super(test);
-  RuleError evaluate(Object? input) {
-    if (input is! List || input.length > test) {
-      return RuleError('IsLessThan', 'Max element count is ${test}');
-    } else {
-      return RuleError.empty();
-    }
-  }
+
+  @override
+  String get name => 'MaxElements';
+
+  @override
+  bool pass(Object? input, Object? testParam) =>
+      input is List && input.length <= test;
+
+  @override
+  String errorMsg(Object? input, Object? testParam) =>
+      'Max element count is $test';
+
+  @override
+  String want(Object? input, Object? testParam) => '<= $test elements';
 }
 
 abstract class Validator {
@@ -159,9 +226,14 @@ class ValueValidation implements Validator {
   List<ValidationError> validate(Object? input) {
     final errors = <ValidationError>[];
     for (final rule in rules) {
-      final error = rule.evaluate(input);
-      if (!error.isEmpty) {
-        errors.add(ValidationError([path], error));
+      final ruleError = rule.evaluate(input);
+      if (!ruleError.isEmpty) {
+        errors.add(ValidationError(
+          ruleError.errorName,
+          ruleError.errorDetail,
+          input?.toString() ?? 'null',
+          '', // want - not available in RuleError
+        ));
       }
     }
     return errors;
@@ -172,9 +244,9 @@ class ListValidation implements Validator {
   final List<Rule> listRules;
   final Validator elementValidator;
   ListValidation(this.listRules, this.elementValidator);
-  List<RuleError> validate(Object? input) {
-    print('ListValidation');
-    return <String, Object>{};
+  List<ValidationError> validate(Object? input) {
+    print('ListValidation - not yet implemented');
+    return [];
   }
 }
 
@@ -190,15 +262,12 @@ class ListValidation implements Validator {
 class ClassValidation implements Validator {
   final Map<String, Validator> rules;
   ClassValidation(this.rules);
-  List<RuleError> validate(Object? input) {
-    final Map<String, Object?> values;
-    final Map<String, Object> errors;
+  List<ValidationError> validate(Object? input) {
+    print('ClassValidation - not yet implemented');
     if (input is! Map<String, Object?>) {
-      print('Not a map');
-      return;
+      return [];
     }
     for (final key in rules.keys) {
-      print(key);
       if (rules[key] is ClassValidation) {
         final internal = ClassValidation((rules[key] as ClassValidation).rules);
         final val = internal.validate(input[key]);
@@ -206,13 +275,6 @@ class ClassValidation implements Validator {
         final val = rules[key]!.validate(input[key]);
       }
     }
-    // for (final rule in rules) {
-    //   final error = rule.evaluate(value);
-    //   if (!error.isClear) {
-    //     errors.add(error);
-    //   }
-    // }
-    print('Validation');
-    return;
+    return [];
   }
 }
