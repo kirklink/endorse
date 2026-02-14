@@ -6,12 +6,12 @@
 |-------|--------|------------|
 | Phase 1: Core Infrastructure | **DONE** | Evaluator running, naming conflicts resolved, 12 basic tests |
 | Phase 2: Rule Implementation | **DONE** | 35 rules implemented, wired into ValidateValue, 92 rule tests |
-| Phase 3: Class & List Validation | **PARTIAL** | ClassResult + EndorseClassValidator working. ValidateClass, ValidateList, ListResult still need review/testing |
-| Phase 4: Testing | **IN PROGRESS** | 104 unit tests + 8 e2e tests passing. Need more coverage toward 80% target |
+| Phase 3: Class & List Validation | **DONE** | All classes active: ClassResult, ListResult, ValidateClass, ValidateList. 25 tests |
+| Phase 4: Testing | **IN PROGRESS** | 129 unit tests + 8 e2e tests passing. Need coverage tooling and more edge cases for 80% target |
 | Phase 5: Dependencies & Polish | **PARTIAL** | README updated. Dependencies still outdated (pedantic→lints). Need CHANGELOG, examples |
 | Phase 6: Release | Not started | — |
 
-**Current test counts:** 104 in endorse + 8 end-to-end in arrow_example = 112 total
+**Current test counts:** 129 in endorse + 8 end-to-end in arrow_example = 137 total
 
 **Branch:** `feature/initial-stabilization`
 
@@ -27,8 +27,8 @@ The Endorse package has a solid validation architecture that needs testing, docu
 - ✅ Annotations and code generation working
 - ~~❌ Rule execution engine (Evaluator) commented out (CRITICAL)~~ **DONE**
 - ~~❌ 91% of validation rules commented out~~ **DONE - 35 rules active**
-- ~~❌ Class/List validation infrastructure commented out~~ **PARTIAL - ClassResult done**
-- ~~❌ Zero tests~~ **112 tests passing**
+- ~~❌ Class/List validation infrastructure commented out~~ **DONE**
+- ~~❌ Zero tests~~ **137 tests passing**
 - ⚠️ Outdated dependencies
 - ~~⚠️ Duplicate code and naming conflicts~~ **RESOLVED**
 
@@ -209,10 +209,10 @@ The Endorse package has a solid validation architecture that needs testing, docu
 
 ---
 
-## Phase 3: Class and List Validation (Week 3-4) — PARTIAL
+## Phase 3: Class and List Validation (Week 3-4) — DONE
 **Goal:** Enable nested object and array validation
 
-> **Progress:** ClassResult and EndorseClassValidator are working. entity() generation works end-to-end (tested in arrow_example). ValidateClass, ValidateList, and ListResult still need review and testing.
+> **Progress:** All classes uncommented and active. ClassResult updated with optional field-level ValueResult for pre-validation errors. ValidateClass delegates to EndorseClassValidator after field-level checks. ValidateList supports both primitive items (fromCore) and object items (fromEndorse). 25 tests covering all scenarios.
 
 ### Task 3.1: Uncomment Result Classes
 **Files:**
@@ -293,7 +293,7 @@ The Endorse package has a solid validation architecture that needs testing, docu
 ## Phase 4: Testing Infrastructure (Week 4-5) — IN PROGRESS
 **Goal:** Comprehensive test coverage
 
-> **Progress:** 104 tests in endorse (basic_validation_test.dart + rule_test.dart) and 8 e2e tests in arrow_example. Test helper pattern established. Still need coverage tooling, CI, and more edge case tests to reach 80% target.
+> **Progress:** 129 tests in endorse (basic_validation_test.dart + rule_test.dart + class_list_validation_test.dart) and 8 e2e tests in arrow_example. Test helper pattern established. Still need coverage tooling, CI, and more edge case tests to reach 80% target.
 
 ### Task 4.1: Setup Test Infrastructure
 **New Files:**
