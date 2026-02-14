@@ -19,7 +19,7 @@ class Evaluator {
     for (final rule in rules) {
       _runRule(rule.rule, rule.test);
     }
-    return ValueResult(_field, _input, _errors);
+    return ValueResult(_field, _inputCast, _errors);
   }
 
   void _runRule(Rule rule, [Object? test]) {

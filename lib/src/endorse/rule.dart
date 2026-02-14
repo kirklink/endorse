@@ -1,24 +1,4 @@
-import 'package:endorse/src/endorse/validation_error.dart';
-
-// typedef String PreCondition(Object? input, Object? test);
-// typedefResultObjectError PassFuntion(Object? input, Object? test);
-// typedef String GotFunction(Object? input, Object? test);
-// typedef Object? CastFunction(Object? input);
-// typedef String ErrorMessage(Object? input, Object? test);
-
-// abstract class Rule {
-//   final String name = '';
-//   finalResultObjectError skipIfNull = true;
-//   finalResultObjectError causesBail = false;
-//   finalResultObjectError escapesBail = false;
-//   final PreCondition check = (input, test) => '';
-// typedef String WantFunction(Object? input, Object? test);
-//   final PassFuntion pass = (input, test) => true;
-//   final GotFunction got = (input, test) => '';
-//   final WantFunction want = (input, test) => '';
-//   final CastFunction cast = (input) => input;
-//   final ErrorMessage errorMsg = (input, test) => '';
-// }
+import 'package:endorse/src/endorse/patterns.dart';
 
 class RuleError {
   final String errorName;
@@ -31,23 +11,6 @@ class RuleError {
 
   bool get isEmpty => errorDetail.isEmpty && errorName.isEmpty;
 }
-
-// Note: ValidationError is also defined in validation_error.dart
-// The one in validation_error.dart is the preferred implementation
-// This one is kept for backwards compatibility but should not be used
-
-// class ValidationResult {
-//   final Map<String, Object?> value;
-//   final Map<String, Object> errors;
-
-//   ValidationResult(this.value, this.errors);
-// }
-
-// abstract class ValidationBase {
-//   final String call = '';
-//   final validOnTypes = const <Type>[];
-//   const ValidationBase();
-// }
 
 // Base Rule class with full interface for Evaluator
 abstract class Rule {
@@ -67,7 +30,6 @@ abstract class Rule {
   String errorMsg(Object? input, Object? test);
   Object? cast(Object? input) => input;
 
-  // Legacy method for backwards compatibility
   RuleError evaluate(Object? input) {
     if (!pass(input, null)) {
       return RuleError(name, errorMsg(input, null));
@@ -88,10 +50,14 @@ abstract class RuleWithNumTest extends Rule {
   const RuleWithNumTest(this.test);
 }
 
-// abstract class RuleFlowControl {
-//   finalResultObjectError bailOnFail = false;
-//   const RuleFlowControl();
-// }
+abstract class RuleWithStringTest extends Rule {
+  final String test;
+  const RuleWithStringTest(this.test);
+}
+
+// ============================================================================
+// Required / Type Checking
+// ============================================================================
 
 class Required extends Rule {
   const Required();
@@ -122,7 +88,7 @@ class IsString extends ShortCircuitRule {
   bool pass(Object? input, Object? test) => input is String;
 
   @override
-  String errorMsg(Object? input, Object? test) => 'Must be a String';
+  String errorMsg(Object? input, Object? test) => 'Must be a String.';
 
   @override
   String got(Object? input, Object? test) => input.runtimeType.toString();
@@ -130,6 +96,333 @@ class IsString extends ShortCircuitRule {
   @override
   String want(Object? input, Object? test) => 'String';
 }
+
+class IsMap extends ShortCircuitRule {
+  const IsMap();
+
+  @override
+  String get name => 'IsMap';
+
+  @override
+  bool pass(Object? input, Object? test) => input is Map;
+
+  @override
+  String errorMsg(Object? input, Object? test) =>
+      'Must be a Map<String, Object>.';
+
+  @override
+  String got(Object? input, Object? test) => input.runtimeType.toString();
+
+  @override
+  String want(Object? input, Object? test) => 'Map<String, Object>';
+}
+
+class IsList extends ShortCircuitRule {
+  const IsList();
+
+  @override
+  String get name => 'IsList';
+
+  @override
+  bool pass(Object? input, Object? test) => input is List;
+
+  @override
+  String errorMsg(Object? input, Object? test) => 'Must be a List.';
+
+  @override
+  String got(Object? input, Object? test) => input.runtimeType.toString();
+
+  @override
+  String want(Object? input, Object? test) => 'List';
+}
+
+// ============================================================================
+// Numeric Type Checking
+// ============================================================================
+
+class IsInt extends ShortCircuitRule {
+  const IsInt();
+
+  @override
+  String get name => 'IsInt';
+
+  @override
+  bool pass(Object? input, Object? test) => input is int;
+
+  @override
+  String errorMsg(Object? input, Object? test) => 'Must be an integer.';
+
+  @override
+  String got(Object? input, Object? test) => input.runtimeType.toString();
+
+  @override
+  String want(Object? input, Object? test) => 'int';
+}
+
+class IsDouble extends ShortCircuitRule {
+  const IsDouble();
+
+  @override
+  String get name => 'IsDouble';
+
+  @override
+  bool pass(Object? input, Object? test) => input is double;
+
+  @override
+  String errorMsg(Object? input, Object? test) => 'Must be a double.';
+
+  @override
+  String got(Object? input, Object? test) => input.runtimeType.toString();
+
+  @override
+  String want(Object? input, Object? test) => 'double';
+}
+
+class IsNum extends ShortCircuitRule {
+  const IsNum();
+
+  @override
+  String get name => 'IsNum';
+
+  @override
+  bool pass(Object? input, Object? test) => input is num;
+
+  @override
+  String errorMsg(Object? input, Object? test) => 'Must be a number.';
+
+  @override
+  String got(Object? input, Object? test) => input.runtimeType.toString();
+
+  @override
+  String want(Object? input, Object? test) => 'num';
+}
+
+// ============================================================================
+// Boolean Type Checking
+// ============================================================================
+
+class IsBool extends ShortCircuitRule {
+  const IsBool();
+
+  @override
+  String get name => 'IsBool';
+
+  @override
+  bool pass(Object? input, Object? test) => input is bool;
+
+  @override
+  String errorMsg(Object? input, Object? test) => 'Must be a boolean.';
+
+  @override
+  String got(Object? input, Object? test) => input.runtimeType.toString();
+
+  @override
+  String want(Object? input, Object? test) => 'bool';
+}
+
+// ============================================================================
+// DateTime Type Checking
+// ============================================================================
+
+class IsDateTime extends ShortCircuitRule {
+  const IsDateTime();
+
+  @override
+  String get name => 'IsDateTime';
+
+  @override
+  bool pass(Object? input, Object? test) => _inputDateConverter(input) != null;
+
+  @override
+  String errorMsg(Object? input, Object? test) => 'Must be a datetime.';
+
+  @override
+  Object? cast(Object? input) => _inputDateConverter(input);
+}
+
+// ============================================================================
+// String-from-type coercion (check + cast)
+// ============================================================================
+
+class CanIntFromString extends ShortCircuitRule {
+  const CanIntFromString();
+
+  @override
+  String get name => 'IntFromString';
+
+  @override
+  bool pass(Object? input, Object? test) =>
+      input is String && int.tryParse(input) != null;
+
+  @override
+  String errorMsg(Object? input, Object? test) =>
+      'Could not cast to integer from ${input.runtimeType}.';
+
+  @override
+  String got(Object? input, Object? test) => input.runtimeType.toString();
+
+  @override
+  String want(Object? input, Object? test) => 'String parseable to int';
+}
+
+class IntFromStringCast extends ShortCircuitRule {
+  const IntFromStringCast();
+
+  @override
+  String get name => 'IntFromString';
+
+  @override
+  bool pass(Object? input, Object? test) =>
+      input is String && int.tryParse(input) != null;
+
+  @override
+  String errorMsg(Object? input, Object? test) =>
+      'Could not cast to integer from string.';
+
+  @override
+  Object? cast(Object? input) =>
+      input is String ? int.tryParse(input) : input;
+}
+
+class CanDoubleFromString extends ShortCircuitRule {
+  const CanDoubleFromString();
+
+  @override
+  String get name => 'DoubleFromString';
+
+  @override
+  bool pass(Object? input, Object? test) =>
+      input is String && double.tryParse(input) != null;
+
+  @override
+  String errorMsg(Object? input, Object? test) =>
+      'Could not cast to double from ${input.runtimeType}.';
+
+  @override
+  String got(Object? input, Object? test) => input.runtimeType.toString();
+
+  @override
+  String want(Object? input, Object? test) => 'String parseable to double';
+}
+
+class DoubleFromStringCast extends ShortCircuitRule {
+  const DoubleFromStringCast();
+
+  @override
+  String get name => 'DoubleFromString';
+
+  @override
+  bool pass(Object? input, Object? test) =>
+      input is String && double.tryParse(input) != null;
+
+  @override
+  String errorMsg(Object? input, Object? test) =>
+      'Could not cast to double from string.';
+
+  @override
+  Object? cast(Object? input) =>
+      input is String ? double.tryParse(input) : input;
+}
+
+class CanNumFromString extends ShortCircuitRule {
+  const CanNumFromString();
+
+  @override
+  String get name => 'NumFromString';
+
+  @override
+  bool pass(Object? input, Object? test) =>
+      input is String && num.tryParse(input) != null;
+
+  @override
+  String errorMsg(Object? input, Object? test) =>
+      'Could not cast to number from ${input.runtimeType}.';
+
+  @override
+  String got(Object? input, Object? test) => input.runtimeType.toString();
+
+  @override
+  String want(Object? input, Object? test) => 'String parseable to num';
+}
+
+class NumFromStringCast extends ShortCircuitRule {
+  const NumFromStringCast();
+
+  @override
+  String get name => 'NumFromString';
+
+  @override
+  bool pass(Object? input, Object? test) =>
+      input is String && num.tryParse(input) != null;
+
+  @override
+  String errorMsg(Object? input, Object? test) =>
+      'Could not cast to number from string.';
+
+  @override
+  Object? cast(Object? input) =>
+      input is String ? num.tryParse(input) : input;
+}
+
+class CanBoolFromString extends ShortCircuitRule {
+  const CanBoolFromString();
+
+  @override
+  String get name => 'BoolFromString';
+
+  @override
+  bool pass(Object? input, Object? test) =>
+      input is String && (input == 'true' || input == 'false');
+
+  @override
+  String errorMsg(Object? input, Object? test) =>
+      'Could not cast to boolean from ${input.runtimeType}.';
+}
+
+class BoolFromStringCast extends ShortCircuitRule {
+  const BoolFromStringCast();
+
+  @override
+  String get name => 'BoolFromString';
+
+  @override
+  bool pass(Object? input, Object? test) =>
+      input is String && (input == 'true' || input == 'false');
+
+  @override
+  String errorMsg(Object? input, Object? test) =>
+      'Could not cast to boolean from string.';
+
+  @override
+  String got(Object? input, Object? test) => input.runtimeType.toString();
+
+  @override
+  String want(Object? input, Object? test) => 'String';
+
+  @override
+  Object? cast(Object? input) => input == 'true' ? true : false;
+}
+
+class ToStringCast extends ShortCircuitRule {
+  const ToStringCast();
+
+  @override
+  String get name => 'ToString';
+
+  @override
+  bool pass(Object? input, Object? test) => true;
+
+  @override
+  String errorMsg(Object? input, Object? test) =>
+      'Cannot be coerced to String.';
+
+  @override
+  Object? cast(Object? input) => input?.toString();
+}
+
+// ============================================================================
+// String Rules
+// ============================================================================
 
 class MaxLength extends RuleWithNumTest {
   const MaxLength(int test) : super(test);
@@ -152,6 +445,106 @@ class MaxLength extends RuleWithNumTest {
   @override
   String want(Object? input, Object? testParam) => '<= $test';
 }
+
+class MinLength extends RuleWithNumTest {
+  const MinLength(int test) : super(test);
+
+  @override
+  String get name => 'MinLength';
+
+  @override
+  bool pass(Object? input, Object? testParam) =>
+      input is String && input.length >= test;
+
+  @override
+  String errorMsg(Object? input, Object? testParam) =>
+      'Length must be greater than or equal to $test.';
+
+  @override
+  String got(Object? input, Object? testParam) =>
+      input is String ? input.length.toString() : 'not a string';
+
+  @override
+  String want(Object? input, Object? testParam) => '>= $test';
+}
+
+class MatchesValue extends RuleWithStringTest {
+  const MatchesValue(String test) : super(test);
+
+  @override
+  String get name => 'Matches';
+
+  @override
+  bool pass(Object? input, Object? testParam) =>
+      input is String && input == test;
+
+  @override
+  String errorMsg(Object? input, Object? testParam) =>
+      'Must match: "$test".';
+}
+
+class ContainsValue extends RuleWithStringTest {
+  const ContainsValue(String test) : super(test);
+
+  @override
+  String get name => 'Contains';
+
+  @override
+  bool pass(Object? input, Object? testParam) =>
+      input is String && input.contains(test);
+
+  @override
+  String errorMsg(Object? input, Object? testParam) =>
+      'Must contain: "$test".';
+}
+
+class StartsWithValue extends RuleWithStringTest {
+  const StartsWithValue(String test) : super(test);
+
+  @override
+  String get name => 'StartsWith';
+
+  @override
+  bool pass(Object? input, Object? testParam) =>
+      input is String && input.startsWith(test);
+
+  @override
+  String errorMsg(Object? input, Object? testParam) =>
+      'Must start with: "$test".';
+
+  @override
+  String got(Object? input, Object? testParam) {
+    if (input is! String) return 'not a string';
+    final length = input.length < test.length ? input.length : test.length;
+    return input.substring(0, length);
+  }
+}
+
+class EndsWithValue extends RuleWithStringTest {
+  const EndsWithValue(String test) : super(test);
+
+  @override
+  String get name => 'EndsWith';
+
+  @override
+  bool pass(Object? input, Object? testParam) =>
+      input is String && input.endsWith(test);
+
+  @override
+  String errorMsg(Object? input, Object? testParam) =>
+      'Must end with: "$test".';
+
+  @override
+  String got(Object? input, Object? testParam) {
+    if (input is! String) return 'not a string';
+    final length = input.length < test.length ? input.length : test.length;
+    return input.substring(input.length - length);
+  }
+}
+
+// ============================================================================
+// Numeric Comparison Rules
+// ============================================================================
 
 class IsLessThan extends RuleWithNumTest {
   const IsLessThan(int test) : super(test);
@@ -189,6 +582,74 @@ class IsGreaterThan extends RuleWithNumTest {
   String want(Object? input, Object? testParam) => '> $test';
 }
 
+class IsEqualTo extends RuleWithNumTest {
+  const IsEqualTo(num test) : super(test);
+
+  @override
+  String get name => 'IsEqualTo';
+
+  @override
+  bool pass(Object? input, Object? testParam) => input == test;
+
+  @override
+  String errorMsg(Object? input, Object? testParam) =>
+      'Must equal $test.';
+}
+
+class IsNotEqualTo extends RuleWithNumTest {
+  const IsNotEqualTo(num test) : super(test);
+
+  @override
+  String get name => 'IsNotEqualTo';
+
+  @override
+  bool pass(Object? input, Object? testParam) => input != test;
+
+  @override
+  String errorMsg(Object? input, Object? testParam) =>
+      'Must not equal $test.';
+}
+
+// ============================================================================
+// Boolean Rules
+// ============================================================================
+
+class IsTrueRule extends Rule {
+  const IsTrueRule();
+
+  @override
+  String get name => 'IsTrue';
+
+  @override
+  bool pass(Object? input, Object? test) => input == true;
+
+  @override
+  String errorMsg(Object? input, Object? test) => 'Must be true.';
+
+  @override
+  String want(Object? input, Object? test) => 'true';
+}
+
+class IsFalseRule extends Rule {
+  const IsFalseRule();
+
+  @override
+  String get name => 'IsFalse';
+
+  @override
+  bool pass(Object? input, Object? test) => input == false;
+
+  @override
+  String errorMsg(Object? input, Object? test) => 'Must be false.';
+
+  @override
+  String want(Object? input, Object? test) => 'false';
+}
+
+// ============================================================================
+// Collection Rules
+// ============================================================================
+
 class MaxElements extends RuleWithNumTest {
   const MaxElements(int test) : super(test);
 
@@ -201,80 +662,260 @@ class MaxElements extends RuleWithNumTest {
 
   @override
   String errorMsg(Object? input, Object? testParam) =>
-      'Max element count is $test';
+      'Max element count is $test.';
 
   @override
   String want(Object? input, Object? testParam) => '<= $test elements';
 }
 
-abstract class Validator {
-  List<ValidationError> validate(Object? input);
+class MinElements extends RuleWithNumTest {
+  const MinElements(int test) : super(test);
+
+  @override
+  String get name => 'MinElements';
+
+  @override
+  bool pass(Object? input, Object? testParam) =>
+      input is List && input.length >= test;
+
+  @override
+  String errorMsg(Object? input, Object? testParam) =>
+      'Min element count is $test.';
+
+  @override
+  String want(Object? input, Object? testParam) => '>= $test elements';
 }
 
-// class ValidateMap implements Validator {
-//   final Map<String, Object?> map;
+// ============================================================================
+// DateTime Rules
+// ============================================================================
 
-//   ValidateMap(this.map);
+class IsBeforeRule extends RuleWithStringTest {
+  const IsBeforeRule(String test) : super(test);
 
-//   ResultObject validate() {}
-// }
+  @override
+  String get name => 'IsBefore';
 
-class ValueValidation implements Validator {
-  final List<Rule> rules;
-  final List path;
-  ValueValidation(this.rules, [this.path = const []]);
-  List<ValidationError> validate(Object? input) {
-    final errors = <ValidationError>[];
-    for (final rule in rules) {
-      final ruleError = rule.evaluate(input);
-      if (!ruleError.isEmpty) {
-        errors.add(ValidationError(
-          ruleError.errorName,
-          ruleError.errorDetail,
-          input?.toString() ?? 'null',
-          '', // want - not available in RuleError
-        ));
-      }
-    }
-    return errors;
+  @override
+  String check(Object? input, Object? testParam) {
+    final converted = _testDateConverter(test);
+    return converted != null ? '' : 'Could not parse "$test" to DateTime.';
+  }
+
+  @override
+  bool pass(Object? input, Object? testParam) {
+    final inputDt = _inputDateConverter(input);
+    final testDt = _testDateConverter(test);
+    return inputDt != null && testDt != null && inputDt.isBefore(testDt);
+  }
+
+  @override
+  String errorMsg(Object? input, Object? testParam) =>
+      'Must be before $test.';
+
+  @override
+  String want(Object? input, Object? testParam) => '< $test';
+
+  @override
+  String got(Object? input, Object? testParam) {
+    final converted = _inputDateConverter(input);
+    return converted?.toIso8601String() ?? 'null';
   }
 }
 
-class ListValidation implements Validator {
-  final List<Rule> listRules;
-  final Validator elementValidator;
-  ListValidation(this.listRules, this.elementValidator);
-  List<ValidationError> validate(Object? input) {
-    print('ListValidation - not yet implemented');
-    return [];
+class IsAfterRule extends RuleWithStringTest {
+  const IsAfterRule(String test) : super(test);
+
+  @override
+  String get name => 'IsAfter';
+
+  @override
+  String check(Object? input, Object? testParam) {
+    final converted = _testDateConverter(test);
+    return converted != null ? '' : 'Could not parse "$test" to DateTime.';
+  }
+
+  @override
+  bool pass(Object? input, Object? testParam) {
+    final inputDt = _inputDateConverter(input);
+    final testDt = _testDateConverter(test);
+    return inputDt != null && testDt != null && inputDt.isAfter(testDt);
+  }
+
+  @override
+  String errorMsg(Object? input, Object? testParam) =>
+      'Must be after $test.';
+
+  @override
+  String want(Object? input, Object? testParam) => '> $test';
+
+  @override
+  String got(Object? input, Object? testParam) {
+    final converted = _inputDateConverter(input);
+    return converted?.toIso8601String() ?? 'null';
   }
 }
 
-// class MapValidation implements Validator {
-//   final Map<String, Validator> mapRules;
-//   MapValidation(this.mapRules);
-//   List<ValidationError> validate(Object? input) {
-//     print('MapValidation');
-//     return <String, Object>{};
-//   }
-// }
+class IsAtMomentRule extends RuleWithStringTest {
+  const IsAtMomentRule(String test) : super(test);
 
-class ClassValidation implements Validator {
-  final Map<String, Validator> rules;
-  ClassValidation(this.rules);
-  List<ValidationError> validate(Object? input) {
-    print('ClassValidation - not yet implemented');
-    if (input is! Map<String, Object?>) {
-      return [];
-    }
-    for (final key in rules.keys) {
-      if (rules[key] is ClassValidation) {
-        final internal = ClassValidation((rules[key] as ClassValidation).rules);
-        final val = internal.validate(input[key]);
-      } else {
-        final val = rules[key]!.validate(input[key]);
-      }
-    }
-    return [];
+  @override
+  String get name => 'IsAtMoment';
+
+  @override
+  String check(Object? input, Object? testParam) {
+    final converted = _testDateConverter(test);
+    return converted != null ? '' : 'Could not parse "$test" to DateTime.';
   }
+
+  @override
+  bool pass(Object? input, Object? testParam) {
+    final inputDt = _inputDateConverter(input);
+    final testDt = _testDateConverter(test);
+    return inputDt != null &&
+        testDt != null &&
+        inputDt.isAtSameMomentAs(testDt);
+  }
+
+  @override
+  String errorMsg(Object? input, Object? testParam) =>
+      'Must be at moment $test.';
+
+  @override
+  String want(Object? input, Object? testParam) => '== $test';
+}
+
+class IsSameDateAsRule extends RuleWithStringTest {
+  const IsSameDateAsRule(String test) : super(test);
+
+  @override
+  String get name => 'IsSameDateAs';
+
+  @override
+  String check(Object? input, Object? testParam) {
+    final converted = _testDateConverter(test);
+    return converted != null ? '' : 'Could not parse "$test" to DateTime.';
+  }
+
+  @override
+  bool pass(Object? input, Object? testParam) {
+    final inputDt = _inputDateConverter(input);
+    final testDt = _testDateConverter(test);
+    if (inputDt == null || testDt == null) return false;
+    return inputDt.year == testDt.year &&
+        inputDt.month == testDt.month &&
+        inputDt.day == testDt.day;
+  }
+
+  @override
+  String errorMsg(Object? input, Object? testParam) {
+    final testDt = _testDateConverter(test);
+    if (testDt == null) return 'Must be on same date as $test.';
+    return 'Must be on ${testDt.year}-${testDt.month}-${testDt.day}.';
+  }
+
+  @override
+  String got(Object? input, Object? testParam) {
+    final date = _inputDateConverter(input);
+    if (date == null) return 'null';
+    return '${date.year}-${date.month}-${date.day}';
+  }
+}
+
+// ============================================================================
+// Pattern Matching Rules
+// ============================================================================
+
+class MatchesPatternRule extends RuleWithStringTest {
+  const MatchesPatternRule(String test) : super(test);
+
+  @override
+  String get name => 'MatchesPattern';
+
+  @override
+  String check(Object? input, Object? testParam) {
+    try {
+      RegExp(test);
+    } catch (e) {
+      return 'Pattern "$test" is not a valid RegExp.';
+    }
+    return '';
+  }
+
+  @override
+  bool pass(Object? input, Object? testParam) =>
+      input is String && RegExp(test).hasMatch(input);
+
+  @override
+  String errorMsg(Object? input, Object? testParam) =>
+      '$test does not have a match in $input.';
+
+  @override
+  String want(Object? input, Object? testParam) => 'Has match with $test';
+
+  @override
+  String got(Object? input, Object? testParam) =>
+      'No matches in $input';
+}
+
+class IsEmailRule extends MatchesPatternRule {
+  const IsEmailRule() : super(Patterns.email);
+
+  @override
+  String get name => 'IsEmail';
+
+  @override
+  String errorMsg(Object? input, Object? testParam) =>
+      '$input is not a valid email address.';
+
+  @override
+  String want(Object? input, Object? testParam) => 'A valid email.';
+
+  @override
+  String got(Object? input, Object? testParam) => input.toString();
+}
+
+// ============================================================================
+// DateTime Helper Functions
+// ============================================================================
+
+DateTime? _inputDateConverter(Object? input) {
+  if (input is DateTime) {
+    return input.toUtc();
+  } else if (input is String) {
+    try {
+      return DateTime.parse(input).toUtc();
+    } catch (e) {
+      return null;
+    }
+  } else {
+    return null;
+  }
+}
+
+DateTime? _testDateConverter(String test) {
+  if ('now' == test.toLowerCase()) {
+    return DateTime.now();
+  } else if (test.startsWith('today')) {
+    final now = DateTime.now();
+    final safeDate = DateTime.utc(now.year, now.month, now.day);
+    if (test == 'today') {
+      return safeDate;
+    }
+    final forward = test.split('+');
+    if (forward.length == 2 &&
+        forward[0] == 'today' &&
+        int.tryParse(forward[1]) != null) {
+      return safeDate.add(Duration(days: int.parse(forward[1])));
+    }
+    final back = test.split('-');
+    if (back.length == 2 &&
+        back[0] == 'today' &&
+        int.tryParse(back[1]) != null) {
+      return safeDate.subtract(Duration(days: int.parse(back[1])));
+    }
+  } else if (DateTime.tryParse(test) != null) {
+    return DateTime.parse(test);
+  }
+  return null;
 }
