@@ -1,24 +1,34 @@
 import 'package:endorse/src/endorse/result_object.dart';
 import 'package:endorse/src/endorse/validation_error.dart';
+import 'package:endorse/src/endorse/value_result.dart';
 
 class ClassResult extends ResultObject {
   final Map<String, ResultObject> _elements;
   final String _fieldName;
+  final ValueResult? _fieldResult;
   bool? _isValid;
   bool? _hasElementErrors;
 
-  ClassResult(Map<String, ResultObject> fieldMap, [this._fieldName = ""])
+  ClassResult(Map<String, ResultObject> fieldMap,
+      [this._fieldName = "", this._fieldResult])
       : _elements = fieldMap;
 
+  @override
   String get $fieldName => _fieldName;
 
+  @override
   bool get $isValid {
     if (_isValid == null) {
-      _isValid = !$hasElementErrors;
+      if (_fieldResult != null && _fieldResult!.$isNotValid) {
+        _isValid = false;
+      } else {
+        _isValid = !$hasElementErrors;
+      }
     }
     return _isValid!;
   }
 
+  @override
   bool get $isNotValid => !$isValid;
 
   bool get $hasElementErrors {
@@ -34,8 +44,12 @@ class ClassResult extends ResultObject {
     return _hasElementErrors!;
   }
 
+  @override
   List<ValidationError> get $errors {
     final errors = <ValidationError>[];
+    if (_fieldResult != null) {
+      errors.addAll(_fieldResult!.$errors);
+    }
     for (final element in _elements.values) {
       errors.addAll(element.$errors);
     }
@@ -44,7 +58,7 @@ class ClassResult extends ResultObject {
 
   @override
   Object? get $value {
-    // ClassResult doesn't have a single value, it has multiple field values
-    throw UnsupportedError('ClassResult does not have a \$value. Use entity() instead.');
+    throw UnsupportedError(
+        'ClassResult does not have a \$value. Use entity() instead.');
   }
 }
