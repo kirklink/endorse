@@ -1,5 +1,4 @@
-import 'package:endorse/annotations.dart';
-import 'package:endorse/src/endorse/rules.dart';
+import 'package:endorse/src/endorse/rule.dart'; // Runtime Rule classes
 import 'package:endorse/src/endorse/value_result.dart';
 import 'package:endorse/src/endorse/rule_holder.dart';
 import 'package:endorse/src/endorse/evaluator.dart';

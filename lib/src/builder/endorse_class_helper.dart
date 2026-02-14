@@ -81,12 +81,10 @@ StringBuffer convertToEndorse(
   // valBufConstructor.write(']);');
   // CLOSE
   // valBuf.writeln('}');
-  final classElements = <ClassElement>[];
+  final classElements = <InterfaceElement>[];
   classElements.add(clazz);
   for (final superType in clazz.allSupertypes) {
-    // if (superType.element is ClassElement) {
-    //   classElements.add(superType.element);
-    // }
+    // Analyzer 6.x returns InterfaceElement instead of ClassElement
     classElements.add(superType.element);
   }
 
