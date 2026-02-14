@@ -49,8 +49,7 @@ StringBuffer convertToEndorse(
   // resultBuf.writeln('}');
   final resultBufFields = StringBuffer();
   final resultBufConstructor = StringBuffer();
-  resultBufConstructor
-      .writeln('${resultClassName}(Map<String, ResultObject> fieldMap, ');
+  resultBufConstructor.write('${resultClassName}(');
   // CLOSE
   // resultBufConstructor.writeln(']) : super(fields);');
 
@@ -66,16 +65,14 @@ StringBuffer convertToEndorse(
   // CLOSE
   // valBufValidate.writeln('};');
   final valBufConstructor = StringBuffer();
-  final valBufConstructorMap = StringBuffer();
   final valBufConstructorFields = StringBuffer();
   final entityCreateBuf = StringBuffer();
 
   valBufConstructor.write('return ${resultClassName}( ');
-  valBufConstructorMap.writeln('{');
 
   entityCreateBuf.writeln("${clazz.name} entity() {");
   entityCreateBuf.writeln("if (\$isValid) {");
-  entityCreateBuf.writeln("return ${clazz.name}()");
+  entityCreateBuf.write("return ${clazz.name}()");
 
   // CLOSE
   // valBufConstructor.write(']);');
@@ -265,7 +262,8 @@ StringBuffer convertToEndorse(
         resultBufConstructor.write('this.${appName}, ');
         valBufValidate
             .writeln("'${appName}': rules.${appName}(input['${jsonName}']),");
-        valBufConstructor.write("r['${appName}'] as ValueResult, ");
+        valBufConstructorFields.write("r['${appName}'] as ValueResult, ");
+        entityCreateBuf.writeln("..${appName} = ${appName}.\$value as ${field.type.getDisplayString(withNullability: false)}");
       }
 
       if (isList && isValue) {
@@ -275,7 +273,8 @@ StringBuffer convertToEndorse(
         resultBufConstructor.write('this.${appName}, ');
         valBufValidate
             .writeln("'${appName}': rules.${appName}(input['${jsonName}']),");
-        valBufConstructor.write("r['${appName}'] as ListResult, ");
+        valBufConstructorFields.write("r['${appName}'] as ListResult, ");
+        entityCreateBuf.writeln("..${appName} = ${appName}.\$value as ${field.type.getDisplayString(withNullability: false)}");
       }
 
       if (isList && isClass) {
@@ -285,7 +284,8 @@ StringBuffer convertToEndorse(
         resultBufConstructor.write('this.${appName}, ');
         valBufValidate
             .writeln("'${appName}': rules.${appName}(input['${jsonName}']),");
-        valBufConstructor.write("r['${appName}'] as ListResult, ");
+        valBufConstructorFields.write("r['${appName}'] as ListResult, ");
+        entityCreateBuf.writeln("..${appName} = ${appName}.\$value as ${field.type.getDisplayString(withNullability: false)}");
       }
 
       if (isClass && !isList) {
@@ -297,7 +297,8 @@ StringBuffer convertToEndorse(
         resultBufConstructor.write('this.${appName}, ');
         valBufValidate
             .writeln("'${appName}': rules.${appName}(input['${jsonName}']),");
-        valBufConstructor.write("r['${appName}'] as ${classResultName}, ");
+        valBufConstructorFields.write("r['${appName}'] as ${classResultName}, ");
+        entityCreateBuf.writeln("..${appName} = ${appName}.entity()");
       }
 
       const fromString = 'fromString: true';
@@ -380,22 +381,32 @@ StringBuffer convertToEndorse(
       rulesBuf.writeln(fieldRulesBuf);
     }
   }
+  // CLOSE entityCreateBuf
+  entityCreateBuf.writeln(";");
+  entityCreateBuf.writeln("}");
+  entityCreateBuf.writeln("throw Exception('Cannot create entity from invalid data');");
+  entityCreateBuf.writeln("}");
+
   // CLOSE
   rulesBuf.writeln('}');
   // CLOSE
-  resultBufConstructor.writeln(') : super(fieldMap);');
+  resultBufConstructor.writeln('Map<String, ResultObject> fieldMap, ) : super(fieldMap);');
   // CLOSE
   resultBuf.writeln(resultBufFields);
   resultBuf.writeln(resultBufConstructor);
   resultBuf.writeln(entityCreateBuf);
   resultBuf.writeln('}');
-  // CLOSE
-  // valBufValidate.writeln('};');
-  // CLOSE
-  valBufConstructorMap.writeln('},');
+  // CLOSE valBufValidate map
+  valBufValidate.writeln('};');
+  // CLOSE - prepend the fieldMap to valBufConstructor
+  final valBufResult = StringBuffer();
+  valBufResult.write('return ${resultClassName}( ');
+  valBufResult.write(valBufConstructorFields);
+  valBufResult.write('r, ');
+  valBufResult.write(');');
 
-  valBufConstructor.writeAll([valBufConstructorMap, valBufConstructorFields]);
-  valBufConstructor.write(');');
+  valBufConstructor.clear();
+  valBufConstructor.write(valBufResult);
   // CLOSE
   valBuf.writeln(valBufValidate);
   valBuf.writeln(valBufConstructor);

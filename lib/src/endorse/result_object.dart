@@ -5,6 +5,6 @@ abstract class ResultObject {
   String get $fieldName;
   bool get $isValid;
   bool get $isNotValid;
-  // List<ValidationError> get $errors;
+  List<ValidationError> get $errors;
   // Object get $errorsJson;
 }

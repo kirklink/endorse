@@ -10,5 +10,5 @@ builders:
     builder_factories: ["EndorseBuilder"]
     build_extensions: {".dart": [".endorse.g.part"]}
     auto_apply: dependents
-    build_to: cache
+    build_to: source
     applies_builders: ["source_gen|combining_builder"]
