@@ -1,25 +1,42 @@
 # Endorse Package Stabilization Plan
 
+## Progress Summary (Updated 2026-02-13)
+
+| Phase | Status | Key Result |
+|-------|--------|------------|
+| Phase 1: Core Infrastructure | **DONE** | Evaluator running, naming conflicts resolved, 12 basic tests |
+| Phase 2: Rule Implementation | **DONE** | 35 rules implemented, wired into ValidateValue, 92 rule tests |
+| Phase 3: Class & List Validation | **PARTIAL** | ClassResult + EndorseClassValidator working. ValidateClass, ValidateList, ListResult still need review/testing |
+| Phase 4: Testing | **IN PROGRESS** | 104 unit tests + 8 e2e tests passing. Need more coverage toward 80% target |
+| Phase 5: Dependencies & Polish | **PARTIAL** | README updated. Dependencies still outdated (pedantic→lints). Need CHANGELOG, examples |
+| Phase 6: Release | Not started | — |
+
+**Current test counts:** 104 in endorse + 8 end-to-end in arrow_example = 112 total
+
+**Branch:** `feature/initial-stabilization`
+
+---
+
 > **Note:** This plan was created based on initial assessment. The commented code sections may be legacy/unused code rather than incomplete work. We'll verify functionality as we implement and adjust scope accordingly.
 
 ## Executive Summary
 
 The Endorse package has a solid validation architecture that needs testing, documentation, and integration work. This plan will add comprehensive tests, update dependencies, document the existing functionality, and integrate with the Arrow framework.
 
-**Current State:**
+**Current State (original assessment, see progress above):**
 - ✅ Annotations and code generation working
-- ❌ Rule execution engine (Evaluator) commented out (CRITICAL)
-- ❌ 91% of validation rules commented out (406/448 lines in rules.dart)
-- ❌ Class/List validation infrastructure commented out
-- ❌ Zero tests
+- ~~❌ Rule execution engine (Evaluator) commented out (CRITICAL)~~ **DONE**
+- ~~❌ 91% of validation rules commented out~~ **DONE - 35 rules active**
+- ~~❌ Class/List validation infrastructure commented out~~ **PARTIAL - ClassResult done**
+- ~~❌ Zero tests~~ **112 tests passing**
 - ⚠️ Outdated dependencies
-- ⚠️ Duplicate code and naming conflicts
+- ~~⚠️ Duplicate code and naming conflicts~~ **RESOLVED**
 
 **Timeline:** Flexible - work will be done as time allows
 
 ---
 
-## Phase 1: Core Infrastructure Restoration (Week 1)
+## Phase 1: Core Infrastructure Restoration (Week 1) — DONE
 **Goal:** Get the validation engine running with basic rules
 
 ### Task 1.1: Resolve Naming Conflicts
@@ -80,7 +97,7 @@ The Endorse package has a solid validation architecture that needs testing, docu
 
 ---
 
-## Phase 2: Complete Rule Implementation (Week 2-3)
+## Phase 2: Complete Rule Implementation (Week 2-3) — DONE
 **Goal:** Uncomment and implement all rules in rules.dart
 
 ### Task 2.1: String Rules
@@ -192,8 +209,10 @@ The Endorse package has a solid validation architecture that needs testing, docu
 
 ---
 
-## Phase 3: Class and List Validation (Week 3-4)
+## Phase 3: Class and List Validation (Week 3-4) — PARTIAL
 **Goal:** Enable nested object and array validation
+
+> **Progress:** ClassResult and EndorseClassValidator are working. entity() generation works end-to-end (tested in arrow_example). ValidateClass, ValidateList, and ListResult still need review and testing.
 
 ### Task 3.1: Uncomment Result Classes
 **Files:**
@@ -271,8 +290,10 @@ The Endorse package has a solid validation architecture that needs testing, docu
 
 ---
 
-## Phase 4: Testing Infrastructure (Week 4-5)
+## Phase 4: Testing Infrastructure (Week 4-5) — IN PROGRESS
 **Goal:** Comprehensive test coverage
+
+> **Progress:** 104 tests in endorse (basic_validation_test.dart + rule_test.dart) and 8 e2e tests in arrow_example. Test helper pattern established. Still need coverage tooling, CI, and more edge case tests to reach 80% target.
 
 ### Task 4.1: Setup Test Infrastructure
 **New Files:**
@@ -354,8 +375,10 @@ group('RuleName', () {
 
 ---
 
-## Phase 5: Dependencies & Polish (Week 5-6)
+## Phase 5: Dependencies & Polish (Week 5-6) — PARTIAL
 **Goal:** Update dependencies, documentation, and examples
+
+> **Progress:** README fully updated with quick start, all validation rules, annotation docs, and programmatic usage. Dependencies and CHANGELOG still need work.
 
 ### Task 5.1: Update Dependencies
 **File:** `pubspec.yaml`
@@ -624,6 +647,12 @@ router.post('/users', (req, res) async {
 3. **Publishing:** Keep as git submodule for now, pub.dev later
 4. **Arrow Integration:** Yes - arrow_example app is the playground
 5. **Approach:** Verify functionality first, adjust plan based on what actually needs work
+
+**Key fixes discovered during implementation:**
+- **Evaluator cast bug:** `evaluate()` was returning `_input` (original) instead of `_inputCast` (after coercion rules). Fixed so type coercion rules (intFromString, makeString, etc.) properly transform the result value.
+- **build.yaml `build_to`:** Changed from `source` to `cache` so intermediate `.endorse.g.part` files stay in `.dart_tool/build/` and only the final `.g.dart` appears in source.
+- **Builder part name:** Changed SharedPartBuilder name from `'endorse_builder'` to `'endorse'` to follow Dart conventions (affects generated `.endorse.g.part` filename).
+- **Reboot branch review:** Checked `reboot` branch for useful code. Pulled in IsMap, IsList, MinElements rules. The branch's alternative Validator architecture was not adopted — current Rule/Evaluator pattern is cleaner.
 
 ---
 
