@@ -160,6 +160,61 @@ if (result.$isValid) {
 }
 ```
 
+## Nested Objects
+
+Fields that are `@EndorseEntity` classes are automatically validated recursively:
+
+```dart
+@EndorseEntity()
+class Address {
+  @EndorseField(validate: [Required(), MaxLength(100)])
+  late String street;
+
+  @EndorseField(validate: [Required()])
+  late String city;
+
+  Address();
+  static final $endorse = _$AddressEndorse();
+}
+
+@EndorseEntity()
+class User {
+  @EndorseField(validate: [Required()])
+  late String name;
+
+  @EndorseField(validate: [Required()])
+  late Address address;  // Nested entity - validated recursively
+
+  User();
+  static final $endorse = _$UserEndorse();
+}
+```
+
+If the nested field is `null` or not a valid map, validation fails at the field level without attempting to validate the nested fields.
+
+## List Validation
+
+Lists of primitives or objects can be validated with `itemValidate`:
+
+```dart
+@EndorseEntity()
+class Order {
+  @EndorseField(validate: [Required()])
+  late String customer;
+
+  @EndorseField(
+    validate: [Required()],
+    itemValidate: [Required(), IsGreaterThan(0)],
+  )
+  late List<int> quantities;  // Each item must be > 0
+
+  Order();
+  static final $endorse = _$OrderEndorse();
+}
+```
+
+Lists of `@EndorseEntity` objects are also supported - each item in the list is validated against the entity's rules.
+
 ## Programmatic Validation
 
 You can also use `ValidateValue` directly without code generation:
