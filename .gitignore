@@ -100,3 +100,4 @@ pubspec.lock
 .packages
 **/.dart_tool/
 doc/
+coverage/
