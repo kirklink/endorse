@@ -36,12 +36,13 @@ StringBuffer convertToEndorse(
     tracker.builtClasses.add(validatorClassName);
   }
 
-  final rulesBuf = StringBuffer();
   final rulesClassName = '__\$${clazz.name}ValidationRules';
+  final resultClassName = '__\$${clazz.name}ValidationResult';
+
+  final rulesBuf = StringBuffer();
   rulesBuf.writeln('class ${rulesClassName} {');
 
   final resultBuf = StringBuffer();
-  final resultClassName = '__\$${clazz.name}ValidationResult';
   resultBuf.writeln(
       // 'class ${resultClassName} extends ${nestLevel == 0 ? "EndorseResult" : "ClassResult"} {');
       'class ${resultClassName} extends ClassResult {');
@@ -225,7 +226,7 @@ StringBuffer convertToEndorse(
           itemType = num;
           isValue = true;
         } else if (elementType.isDartCoreBool) {
-          itemRulesBuf.write(', ValidateValue()..isBool(@)');
+          itemRulesBuf.write(', ValidateValue()..isBoolean(@)');
           itemType = bool;
           isValue = true;
         } else if (elementType.getDisplayString(withNullability: false) ==
@@ -302,7 +303,6 @@ StringBuffer convertToEndorse(
       }
 
       const fromString = 'fromString: true';
-      const toString = 'toString: true';
       const fromStringRules = const [
         'IntFromString',
         'DoubleFromString',
@@ -321,7 +321,10 @@ StringBuffer convertToEndorse(
         if (validations.any((e) => e.type!
             .getDisplayString(withNullability: false)
             .startsWith('ToString'))) {
-          fieldRules = fieldRules.replaceFirst('#', toString);
+          // Remove the field-type String check entirely.
+          // processValidations adds the correct source type check
+          // (e.g., ..isInt()) followed by the toString cast (..makeString()).
+          fieldRules = fieldRules.replaceFirst('..isString(#)', '');
         }
 
         fieldRules = fieldRules.replaceFirst('@', '');
@@ -337,7 +340,6 @@ StringBuffer convertToEndorse(
 
       if (isValue && isList) {
         const fromString = 'fromString: true';
-        const toString = 'toString: true';
         const fromStringRules = const [
           'IntFromString',
           'DoubleFromString',
@@ -355,7 +357,7 @@ StringBuffer convertToEndorse(
         if (itemValidations.any((e) => e.type!
             .getDisplayString(withNullability: false)
             .startsWith('ToString'))) {
-          itemRules = itemRules.replaceFirst('#', toString);
+          itemRules = itemRules.replaceFirst('..isString(#)', '');
         }
 
         itemRules = itemRules.replaceFirst('@', '');
@@ -411,6 +413,10 @@ StringBuffer convertToEndorse(
   valBuf.writeln(valBufValidate);
   valBuf.writeln(valBufConstructor);
   valBuf.writeln('}}');
-  pageBuf.writeAll([rulesBuf, resultBuf, valBuf]);
+  if (nestLevel == 0) {
+    pageBuf.writeAll([rulesBuf, resultBuf, valBuf]);
+  } else {
+    pageBuf.write(valBuf);
+  }
   return pageBuf;
 }

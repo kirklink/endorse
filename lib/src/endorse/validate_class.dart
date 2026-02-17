@@ -10,10 +10,12 @@ class ValidateClass {
 
   ClassResult from(Object? map, String fieldName) {
     final fieldResult = _fieldRules.from(map, fieldName);
-    if (map is! Map<String, Object?> || fieldResult.$isNotValid) {
-      return ClassResult(const {}, fieldName, fieldResult);
-    } else {
+    if (map is Map<String, Object?> && fieldResult.$isValid) {
       return _validator.validate(map);
+    } else {
+      // Always return the typed result class so generated code casts work.
+      // With an empty map, each sub-field will report its own errors.
+      return _validator.validate(const <String, Object?>{});
     }
   }
 }
