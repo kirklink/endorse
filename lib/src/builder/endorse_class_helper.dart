@@ -275,7 +275,7 @@ StringBuffer convertToEndorse(
         valBufValidate
             .writeln("'${appName}': rules.${appName}(input['${jsonName}']),");
         valBufConstructorFields.write("r['${appName}'] as ListResult, ");
-        entityCreateBuf.writeln("..${appName} = ${appName}.\$value as ${field.type.getDisplayString(withNullability: false)}");
+        entityCreateBuf.writeln("..${appName} = ${field.type.getDisplayString(withNullability: false)}.from(${appName}.\$value as List)");
       }
 
       if (isList && isClass) {
@@ -286,7 +286,7 @@ StringBuffer convertToEndorse(
         valBufValidate
             .writeln("'${appName}': rules.${appName}(input['${jsonName}']),");
         valBufConstructorFields.write("r['${appName}'] as ListResult, ");
-        entityCreateBuf.writeln("..${appName} = ${appName}.\$value as ${field.type.getDisplayString(withNullability: false)}");
+        entityCreateBuf.writeln("..${appName} = ${field.type.getDisplayString(withNullability: false)}.from(${appName}.\$value as List)");
       }
 
       if (isClass && !isList) {

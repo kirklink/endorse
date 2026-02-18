@@ -95,6 +95,10 @@ String processValidations(List<DartObject> validations, Type? type) {
       value = rule.getField('value')!.toIntValue().toString();
     } else if (valueType.isDartCoreDouble) {
       value = rule.getField('value')!.toDoubleValue().toString();
+    } else if (valueType.isDartCoreList) {
+      final listValue = rule.getField('value')!.toListValue()!;
+      final items = listValue.map((e) => "'${e.toStringValue()}'").join(', ');
+      value = '[$items]';
     }
     // Replace the token with a value
     ruleCall = ruleCall +

@@ -259,5 +259,91 @@ void main() {
       expect(v.call, 'isEmail(r@)');
       expect(v.value, isNotEmpty);
     });
+
+    // ── New Validation Annotations ──────────────────────────────────
+
+    test('IsNotEmpty', () {
+      const v = IsNotEmpty();
+      expect(v.call, 'isNotEmpty()');
+      expect(v.validOnTypes, contains(String));
+    });
+
+    test('ExactLength', () {
+      const v = ExactLength(5);
+      expect(v.call, 'exactLength(@)');
+      expect(v.value, 5);
+      expect(v.validOnTypes, contains(String));
+    });
+
+    test('IsAlpha', () {
+      const v = IsAlpha();
+      expect(v.call, 'isAlpha()');
+      expect(v.validOnTypes, contains(String));
+    });
+
+    test('IsAlphanumeric', () {
+      const v = IsAlphanumeric();
+      expect(v.call, 'isAlphanumeric()');
+      expect(v.validOnTypes, contains(String));
+    });
+
+    test('Trim', () {
+      const v = Trim();
+      expect(v.call, 'trim()');
+      expect(v.validOnTypes, contains(String));
+    });
+
+    test('IsGreaterThanOrEqual', () {
+      const v = IsGreaterThanOrEqual(10);
+      expect(v.call, 'isGreaterThanOrEqual(@)');
+      expect(v.value, 10);
+      expect(v.validOnTypes, contains(num));
+    });
+
+    test('IsLessThanOrEqual', () {
+      const v = IsLessThanOrEqual(10);
+      expect(v.call, 'isLessThanOrEqual(@)');
+      expect(v.value, 10);
+      expect(v.validOnTypes, contains(num));
+    });
+
+    test('IsOneOf', () {
+      const v = IsOneOf(['a', 'b', 'c']);
+      expect(v.call, 'isOneOf(@)');
+      expect(v.value, ['a', 'b', 'c']);
+      expect(v.validOnTypes, contains(String));
+    });
+
+    test('MinElements', () {
+      const v = MinElements(2);
+      expect(v.call, 'minElements(@)');
+      expect(v.value, 2);
+      expect(v.validOnTypes, contains(List));
+    });
+
+    test('MaxElements', () {
+      const v = MaxElements(5);
+      expect(v.call, 'maxElements(@)');
+      expect(v.value, 5);
+      expect(v.validOnTypes, contains(List));
+    });
+
+    test('IsUrl', () {
+      const v = IsUrl();
+      expect(v.call, 'isUrl()');
+      expect(v.validOnTypes, contains(String));
+    });
+
+    test('IsUuid', () {
+      const v = IsUuid();
+      expect(v.call, 'isUuid()');
+      expect(v.validOnTypes, contains(String));
+    });
+
+    test('IsPhoneNumber', () {
+      const v = IsPhoneNumber();
+      expect(v.call, 'isPhoneNumber()');
+      expect(v.validOnTypes, contains(String));
+    });
   });
 }

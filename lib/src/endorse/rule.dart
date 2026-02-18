@@ -1,4 +1,4 @@
-import 'package:endorse/src/endorse/patterns.dart';
+import 'patterns.dart';
 
 class RuleError {
   final String errorName;
@@ -873,6 +873,267 @@ class IsEmailRule extends MatchesPatternRule {
 
   @override
   String got(Object? input, Object? testParam) => input.toString();
+}
+
+// ============================================================================
+// New String Rules
+// ============================================================================
+
+class IsNotEmpty extends Rule {
+  const IsNotEmpty();
+
+  @override
+  String get name => 'IsNotEmpty';
+
+  @override
+  bool pass(Object? input, Object? test) =>
+      input is String && input.isNotEmpty;
+
+  @override
+  String errorMsg(Object? input, Object? test) => 'Must not be empty.';
+}
+
+class ExactLengthRule extends RuleWithNumTest {
+  const ExactLengthRule(int test) : super(test);
+
+  @override
+  String get name => 'ExactLength';
+
+  @override
+  bool pass(Object? input, Object? testParam) =>
+      input is String && input.length == test;
+
+  @override
+  String errorMsg(Object? input, Object? testParam) =>
+      'Length must be exactly ${test.toInt()}.';
+
+  @override
+  String got(Object? input, Object? testParam) =>
+      input is String ? input.length.toString() : 'not a string';
+
+  @override
+  String want(Object? input, Object? testParam) => '== ${test.toInt()}';
+}
+
+class IsAlphaRule extends Rule {
+  const IsAlphaRule();
+
+  static final _pattern = RegExp(Patterns.alphaWord);
+
+  @override
+  String get name => 'IsAlpha';
+
+  @override
+  bool pass(Object? input, Object? test) =>
+      input is String && _pattern.hasMatch(input);
+
+  @override
+  String errorMsg(Object? input, Object? test) =>
+      'Must contain only letters.';
+}
+
+class IsAlphanumericRule extends Rule {
+  const IsAlphanumericRule();
+
+  static final _pattern = RegExp(Patterns.alphanumericWord);
+
+  @override
+  String get name => 'IsAlphanumeric';
+
+  @override
+  bool pass(Object? input, Object? test) =>
+      input is String && _pattern.hasMatch(input);
+
+  @override
+  String errorMsg(Object? input, Object? test) =>
+      'Must contain only letters and digits.';
+}
+
+class TrimRule extends Rule {
+  const TrimRule();
+
+  @override
+  String get name => 'Trim';
+
+  @override
+  bool pass(Object? input, Object? test) => true;
+
+  @override
+  String errorMsg(Object? input, Object? test) => '';
+
+  @override
+  Object? cast(Object? input) => input is String ? input.trim() : input;
+}
+
+// ============================================================================
+// New Numeric Comparison Rules
+// ============================================================================
+
+class IsGreaterThanOrEqual extends RuleWithNumTest {
+  const IsGreaterThanOrEqual(num test) : super(test);
+
+  @override
+  String get name => 'IsGreaterThanOrEqual';
+
+  @override
+  bool pass(Object? input, Object? testParam) =>
+      input is num && input >= test;
+
+  @override
+  String errorMsg(Object? input, Object? testParam) =>
+      'Must be greater than or equal to $test.';
+
+  @override
+  String want(Object? input, Object? testParam) => '>= $test';
+}
+
+class IsLessThanOrEqual extends RuleWithNumTest {
+  const IsLessThanOrEqual(num test) : super(test);
+
+  @override
+  String get name => 'IsLessThanOrEqual';
+
+  @override
+  bool pass(Object? input, Object? testParam) =>
+      input is num && input <= test;
+
+  @override
+  String errorMsg(Object? input, Object? testParam) =>
+      'Must be less than or equal to $test.';
+
+  @override
+  String want(Object? input, Object? testParam) => '<= $test';
+}
+
+// ============================================================================
+// Enum / Allowlist Rules
+// ============================================================================
+
+class IsOneOfRule extends Rule {
+  final List<String> allowed;
+  const IsOneOfRule(this.allowed);
+
+  @override
+  String get name => 'IsOneOf';
+
+  @override
+  bool pass(Object? input, Object? test) =>
+      input is String && allowed.contains(input);
+
+  @override
+  String errorMsg(Object? input, Object? test) =>
+      'Must be one of: ${allowed.join(', ')}.';
+
+  @override
+  String want(Object? input, Object? test) => allowed.join(', ');
+
+  @override
+  String got(Object? input, Object? test) => input.toString();
+}
+
+// ============================================================================
+// Collection Rules
+// ============================================================================
+
+class MinElementsRule extends RuleWithNumTest {
+  const MinElementsRule(int test) : super(test);
+
+  @override
+  String get name => 'MinElements';
+
+  @override
+  bool pass(Object? input, Object? testParam) =>
+      input is List && input.length >= test;
+
+  @override
+  String errorMsg(Object? input, Object? testParam) =>
+      'Must have at least ${test.toInt()} element(s).';
+
+  @override
+  String got(Object? input, Object? testParam) =>
+      input is List ? input.length.toString() : 'not a list';
+
+  @override
+  String want(Object? input, Object? testParam) => '>= ${test.toInt()}';
+}
+
+class MaxElementsRule extends RuleWithNumTest {
+  const MaxElementsRule(int test) : super(test);
+
+  @override
+  String get name => 'MaxElements';
+
+  @override
+  bool pass(Object? input, Object? testParam) =>
+      input is List && input.length <= test;
+
+  @override
+  String errorMsg(Object? input, Object? testParam) =>
+      'Must have at most ${test.toInt()} element(s).';
+
+  @override
+  String got(Object? input, Object? testParam) =>
+      input is List ? input.length.toString() : 'not a list';
+
+  @override
+  String want(Object? input, Object? testParam) => '<= ${test.toInt()}';
+}
+
+// ============================================================================
+// New Pattern-based Rules
+// ============================================================================
+
+class IsUrlRule extends Rule {
+  const IsUrlRule();
+
+  static final _pattern = RegExp(
+    r'^https?://'
+    r'(([a-zA-Z0-9$_.+!*,;/?:@&~=-])|%[0-9a-fA-F]{2})+'
+    r'(\b|$)',
+    caseSensitive: false,
+  );
+
+  @override
+  String get name => 'IsUrl';
+
+  @override
+  bool pass(Object? input, Object? test) {
+    if (input is! String) return false;
+    final uri = Uri.tryParse(input);
+    return uri != null && uri.hasScheme && _pattern.hasMatch(input);
+  }
+
+  @override
+  String errorMsg(Object? input, Object? test) =>
+      'Must be a valid URL.';
+}
+
+class IsUuidRule extends Rule {
+  const IsUuidRule();
+
+  static final _pattern = RegExp(UUID.all, caseSensitive: false);
+
+  @override
+  String get name => 'IsUuid';
+
+  @override
+  bool pass(Object? input, Object? test) =>
+      input is String && _pattern.hasMatch(input);
+
+  @override
+  String errorMsg(Object? input, Object? test) =>
+      'Must be a valid UUID.';
+}
+
+class IsPhoneNumberRule extends MatchesPatternRule {
+  const IsPhoneNumberRule() : super(Patterns.phone10digit);
+
+  @override
+  String get name => 'IsPhoneNumber';
+
+  @override
+  String errorMsg(Object? input, Object? testParam) =>
+      'Must be a valid 10-digit phone number.';
 }
 
 // ============================================================================

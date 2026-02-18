@@ -7,7 +7,7 @@ class ValidateValue {
   final rules = <RuleHolder>[];
 
   ValueResult from(Object? input, String field) {
-    final evaluator = Evaluator(this.rules, input, field);
+    final evaluator = Evaluator(rules, input, field);
     return evaluator.evaluate();
   }
 
@@ -181,5 +181,67 @@ class ValidateValue {
 
   void isEmail(String test) {
     rules.add(RuleHolder(IsEmailRule()));
+  }
+
+  // New String Rules
+
+  void isNotEmpty() {
+    rules.add(RuleHolder(IsNotEmpty()));
+  }
+
+  void exactLength(int test) {
+    rules.add(RuleHolder(ExactLengthRule(test)));
+  }
+
+  void isAlpha() {
+    rules.add(RuleHolder(IsAlphaRule()));
+  }
+
+  void isAlphanumeric() {
+    rules.add(RuleHolder(IsAlphanumericRule()));
+  }
+
+  void trim() {
+    rules.add(RuleHolder(TrimRule()));
+  }
+
+  // New Numeric Comparison
+
+  void isGreaterThanOrEqual(num test) {
+    rules.add(RuleHolder(IsGreaterThanOrEqual(test)));
+  }
+
+  void isLessThanOrEqual(num test) {
+    rules.add(RuleHolder(IsLessThanOrEqual(test)));
+  }
+
+  // Enum / Allowlist
+
+  void isOneOf(List<String> allowed) {
+    rules.add(RuleHolder(IsOneOfRule(allowed)));
+  }
+
+  // Collection Rules
+
+  void minElements(int test) {
+    rules.add(RuleHolder(MinElementsRule(test)));
+  }
+
+  void maxElements(int test) {
+    rules.add(RuleHolder(MaxElementsRule(test)));
+  }
+
+  // New Pattern Rules
+
+  void isUrl() {
+    rules.add(RuleHolder(IsUrlRule()));
+  }
+
+  void isUuid() {
+    rules.add(RuleHolder(IsUuidRule()));
+  }
+
+  void isPhoneNumber() {
+    rules.add(RuleHolder(IsPhoneNumberRule()));
   }
 }

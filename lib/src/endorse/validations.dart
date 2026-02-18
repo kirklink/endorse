@@ -366,3 +366,146 @@ class IsEmail extends ValidationBase {
   final String value = Patterns.email;
   const IsEmail();
 }
+
+// ============================================================================
+// String validation
+// ============================================================================
+
+/// Generates the isNotEmpty rule. Rejects empty strings.
+class IsNotEmpty extends ValidationBase {
+  @override
+  final String call = 'isNotEmpty()';
+  @override
+  final validOnTypes = const [String];
+  const IsNotEmpty();
+}
+
+/// Generates the exactLength rule. String must be exactly N characters.
+class ExactLength extends ValidationBase {
+  @override
+  final String call = 'exactLength(@)';
+  @override
+  final validOnTypes = const [String];
+  final int value;
+  const ExactLength(this.value);
+}
+
+/// Generates the isAlpha rule. String must contain only letters.
+class IsAlpha extends ValidationBase {
+  @override
+  final String call = 'isAlpha()';
+  @override
+  final validOnTypes = const [String];
+  const IsAlpha();
+}
+
+/// Generates the isAlphanumeric rule. String must contain only letters and digits.
+class IsAlphanumeric extends ValidationBase {
+  @override
+  final String call = 'isAlphanumeric()';
+  @override
+  final validOnTypes = const [String];
+  const IsAlphanumeric();
+}
+
+/// Generates the trim coercion rule. Trims whitespace before subsequent rules.
+class Trim extends ValidationBase {
+  @override
+  final String call = 'trim()';
+  @override
+  final validOnTypes = const [String];
+  const Trim();
+}
+
+// ============================================================================
+// Numeric comparison
+// ============================================================================
+
+/// Generates the isGreaterThanOrEqual rule.
+class IsGreaterThanOrEqual extends ValidationBase {
+  @override
+  final String call = 'isGreaterThanOrEqual(@)';
+  @override
+  final validOnTypes = const [int, double, num];
+  final num value;
+  const IsGreaterThanOrEqual(this.value);
+}
+
+/// Generates the isLessThanOrEqual rule.
+class IsLessThanOrEqual extends ValidationBase {
+  @override
+  final String call = 'isLessThanOrEqual(@)';
+  @override
+  final validOnTypes = const [int, double, num];
+  final num value;
+  const IsLessThanOrEqual(this.value);
+}
+
+// ============================================================================
+// Enum / allowlist
+// ============================================================================
+
+/// Generates the isOneOf rule. Value must be one of the allowed values.
+class IsOneOf extends ValidationBase {
+  @override
+  final String call = 'isOneOf(@)';
+  @override
+  final validOnTypes = const [String];
+  final List<String> value;
+  const IsOneOf(this.value);
+}
+
+// ============================================================================
+// Collection rules
+// ============================================================================
+
+/// Generates the minElements rule for lists.
+class MinElements extends ValidationBase {
+  @override
+  final String call = 'minElements(@)';
+  @override
+  final validOnTypes = const [List];
+  final int value;
+  const MinElements(this.value);
+}
+
+/// Generates the maxElements rule for lists.
+class MaxElements extends ValidationBase {
+  @override
+  final String call = 'maxElements(@)';
+  @override
+  final validOnTypes = const [List];
+  final int value;
+  const MaxElements(this.value);
+}
+
+// ============================================================================
+// Pattern-based rules
+// ============================================================================
+
+/// Generates the isUrl rule.
+class IsUrl extends ValidationBase {
+  @override
+  final String call = 'isUrl()';
+  @override
+  final validOnTypes = const [String];
+  const IsUrl();
+}
+
+/// Generates the isUuid rule.
+class IsUuid extends ValidationBase {
+  @override
+  final String call = 'isUuid()';
+  @override
+  final validOnTypes = const [String];
+  const IsUuid();
+}
+
+/// Generates the isPhoneNumber rule.
+class IsPhoneNumber extends ValidationBase {
+  @override
+  final String call = 'isPhoneNumber()';
+  @override
+  final validOnTypes = const [String];
+  const IsPhoneNumber();
+}

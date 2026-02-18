@@ -548,6 +548,308 @@ void main() {
     });
   });
 
+  // ── New String Rules ─────────────────────────────────────────────
+
+  group('isNotEmpty', () {
+    test('passes with non-empty string', () {
+      final r = validate('hello', (v) => v.isNotEmpty());
+      expect(r.$isValid, isTrue);
+    });
+
+    test('fails with empty string', () {
+      final r = validate('', (v) => v.isNotEmpty());
+      expect(r.$isNotValid, isTrue);
+    });
+
+    test('fails with non-string', () {
+      final r = validate(42, (v) => v.isNotEmpty());
+      expect(r.$isNotValid, isTrue);
+    });
+  });
+
+  group('exactLength', () {
+    test('passes when length matches', () {
+      final r = validate('abc', (v) => v.exactLength(3));
+      expect(r.$isValid, isTrue);
+    });
+
+    test('fails when too short', () {
+      final r = validate('ab', (v) => v.exactLength(3));
+      expect(r.$isNotValid, isTrue);
+    });
+
+    test('fails when too long', () {
+      final r = validate('abcd', (v) => v.exactLength(3));
+      expect(r.$isNotValid, isTrue);
+    });
+
+    test('fails with non-string', () {
+      final r = validate(123, (v) => v.exactLength(3));
+      expect(r.$isNotValid, isTrue);
+    });
+  });
+
+  group('isAlpha', () {
+    test('passes with only letters', () {
+      final r = validate('Hello', (v) => v.isAlpha());
+      expect(r.$isValid, isTrue);
+    });
+
+    test('fails with digits', () {
+      final r = validate('Hello1', (v) => v.isAlpha());
+      expect(r.$isNotValid, isTrue);
+    });
+
+    test('fails with spaces', () {
+      final r = validate('Hello World', (v) => v.isAlpha());
+      expect(r.$isNotValid, isTrue);
+    });
+
+    test('fails with non-string', () {
+      final r = validate(42, (v) => v.isAlpha());
+      expect(r.$isNotValid, isTrue);
+    });
+  });
+
+  group('isAlphanumeric', () {
+    test('passes with letters and digits', () {
+      final r = validate('Hello123', (v) => v.isAlphanumeric());
+      expect(r.$isValid, isTrue);
+    });
+
+    test('passes with only letters', () {
+      final r = validate('Hello', (v) => v.isAlphanumeric());
+      expect(r.$isValid, isTrue);
+    });
+
+    test('passes with only digits', () {
+      final r = validate('123', (v) => v.isAlphanumeric());
+      expect(r.$isValid, isTrue);
+    });
+
+    test('fails with spaces', () {
+      final r = validate('Hello 123', (v) => v.isAlphanumeric());
+      expect(r.$isNotValid, isTrue);
+    });
+
+    test('fails with special chars', () {
+      final r = validate('Hello!', (v) => v.isAlphanumeric());
+      expect(r.$isNotValid, isTrue);
+    });
+  });
+
+  group('trim', () {
+    test('trims whitespace from string', () {
+      final r = validate('  hello  ', (v) => v.trim());
+      expect(r.$isValid, isTrue);
+      expect(r.$value, 'hello');
+    });
+
+    test('passes through non-string values unchanged', () {
+      final r = validate(42, (v) => v.trim());
+      expect(r.$isValid, isTrue);
+      expect(r.$value, 42);
+    });
+
+    test('always passes validation', () {
+      final r = validate('no trim needed', (v) => v.trim());
+      expect(r.$isValid, isTrue);
+      expect(r.$value, 'no trim needed');
+    });
+  });
+
+  // ── New Numeric Comparison Rules ──────────────────────────────────
+
+  group('isGreaterThanOrEqual', () {
+    test('passes when greater', () {
+      final r = validate(10, (v) => v.isGreaterThanOrEqual(5));
+      expect(r.$isValid, isTrue);
+    });
+
+    test('passes when equal', () {
+      final r = validate(5, (v) => v.isGreaterThanOrEqual(5));
+      expect(r.$isValid, isTrue);
+    });
+
+    test('fails when less', () {
+      final r = validate(3, (v) => v.isGreaterThanOrEqual(5));
+      expect(r.$isNotValid, isTrue);
+    });
+
+    test('fails with non-num', () {
+      final r = validate('five', (v) => v.isGreaterThanOrEqual(5));
+      expect(r.$isNotValid, isTrue);
+    });
+  });
+
+  group('isLessThanOrEqual', () {
+    test('passes when less', () {
+      final r = validate(3, (v) => v.isLessThanOrEqual(5));
+      expect(r.$isValid, isTrue);
+    });
+
+    test('passes when equal', () {
+      final r = validate(5, (v) => v.isLessThanOrEqual(5));
+      expect(r.$isValid, isTrue);
+    });
+
+    test('fails when greater', () {
+      final r = validate(10, (v) => v.isLessThanOrEqual(5));
+      expect(r.$isNotValid, isTrue);
+    });
+
+    test('fails with non-num', () {
+      final r = validate('five', (v) => v.isLessThanOrEqual(5));
+      expect(r.$isNotValid, isTrue);
+    });
+  });
+
+  // ── Enum / Allowlist Rules ────────────────────────────────────────
+
+  group('isOneOf', () {
+    test('passes when value is in allowed list', () {
+      final r = validate('a', (v) => v.isOneOf(['a', 'b', 'c']));
+      expect(r.$isValid, isTrue);
+    });
+
+    test('fails when value is not in allowed list', () {
+      final r = validate('d', (v) => v.isOneOf(['a', 'b', 'c']));
+      expect(r.$isNotValid, isTrue);
+    });
+
+    test('fails with non-string', () {
+      final r = validate(42, (v) => v.isOneOf(['a', 'b', 'c']));
+      expect(r.$isNotValid, isTrue);
+    });
+
+    test('is case-sensitive', () {
+      final r = validate('A', (v) => v.isOneOf(['a', 'b', 'c']));
+      expect(r.$isNotValid, isTrue);
+    });
+  });
+
+  // ── Collection Rules ──────────────────────────────────────────────
+
+  group('minElements', () {
+    test('passes when list has enough elements', () {
+      final r = validate([1, 2, 3], (v) => v.minElements(2));
+      expect(r.$isValid, isTrue);
+    });
+
+    test('passes when list has exactly min elements', () {
+      final r = validate([1, 2], (v) => v.minElements(2));
+      expect(r.$isValid, isTrue);
+    });
+
+    test('fails when list has too few elements', () {
+      final r = validate([1], (v) => v.minElements(2));
+      expect(r.$isNotValid, isTrue);
+    });
+
+    test('fails with non-list', () {
+      final r = validate('hello', (v) => v.minElements(2));
+      expect(r.$isNotValid, isTrue);
+    });
+  });
+
+  group('maxElements', () {
+    test('passes when list has fewer elements', () {
+      final r = validate([1, 2], (v) => v.maxElements(3));
+      expect(r.$isValid, isTrue);
+    });
+
+    test('passes when list has exactly max elements', () {
+      final r = validate([1, 2, 3], (v) => v.maxElements(3));
+      expect(r.$isValid, isTrue);
+    });
+
+    test('fails when list has too many elements', () {
+      final r = validate([1, 2, 3, 4], (v) => v.maxElements(3));
+      expect(r.$isNotValid, isTrue);
+    });
+
+    test('fails with non-list', () {
+      final r = validate('hello', (v) => v.maxElements(3));
+      expect(r.$isNotValid, isTrue);
+    });
+  });
+
+  // ── New Pattern Rules ─────────────────────────────────────────────
+
+  group('isUrl', () {
+    test('passes with valid http URL', () {
+      final r = validate('http://example.com', (v) => v.isUrl());
+      expect(r.$isValid, isTrue);
+    });
+
+    test('passes with valid https URL', () {
+      final r = validate('https://example.com/path?q=1', (v) => v.isUrl());
+      expect(r.$isValid, isTrue);
+    });
+
+    test('fails with missing scheme', () {
+      final r = validate('example.com', (v) => v.isUrl());
+      expect(r.$isNotValid, isTrue);
+    });
+
+    test('fails with non-string', () {
+      final r = validate(42, (v) => v.isUrl());
+      expect(r.$isNotValid, isTrue);
+    });
+
+    test('fails with empty string', () {
+      final r = validate('', (v) => v.isUrl());
+      expect(r.$isNotValid, isTrue);
+    });
+  });
+
+  group('isUuid', () {
+    test('passes with valid UUID v4', () {
+      final r = validate(
+        '550e8400-e29b-41d4-a716-446655440000',
+        (v) => v.isUuid(),
+      );
+      expect(r.$isValid, isTrue);
+    });
+
+    test('fails with invalid UUID', () {
+      final r = validate('not-a-uuid', (v) => v.isUuid());
+      expect(r.$isNotValid, isTrue);
+    });
+
+    test('fails with non-string', () {
+      final r = validate(42, (v) => v.isUuid());
+      expect(r.$isNotValid, isTrue);
+    });
+  });
+
+  group('isPhoneNumber', () {
+    test('passes with valid 10-digit phone number', () {
+      final r = validate('1234567890', (v) => v.isPhoneNumber());
+      expect(r.$isValid, isTrue);
+    });
+
+    test('fails with too few digits', () {
+      final r = validate('123456789', (v) => v.isPhoneNumber());
+      expect(r.$isNotValid, isTrue);
+    });
+
+    test('fails with too many digits', () {
+      final r = validate('12345678901', (v) => v.isPhoneNumber());
+      expect(r.$isNotValid, isTrue);
+    });
+
+    test('fails with letters', () {
+      final r = validate('123456789a', (v) => v.isPhoneNumber());
+      expect(r.$isNotValid, isTrue);
+    });
+
+    test('fails with non-string', () {
+      final r = validate(1234567890, (v) => v.isPhoneNumber());
+      expect(r.$isNotValid, isTrue);
+    });
+  });
+
   // ── Combined Rules ────────────────────────────────────────────────
 
   group('Combined validation', () {
