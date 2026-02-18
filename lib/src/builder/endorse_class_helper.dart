@@ -140,6 +140,18 @@ StringBuffer convertToEndorse(
           validations.any((e) =>
               e.type!.getDisplayString(withNullability: false) == 'Required')) {
         fieldRulesBuf.write('..isRequired()');
+        // Emit custom message for Required if provided
+        final requiredAnnotation = validations.cast<DartObject?>().firstWhere(
+            (e) =>
+                e!.type!.getDisplayString(withNullability: false) == 'Required',
+            orElse: () => null);
+        if (requiredAnnotation != null) {
+          final requiredMessage =
+              requiredAnnotation.getField('message')?.toStringValue();
+          if (requiredMessage != null) {
+            fieldRulesBuf.write("..withMessage('$requiredMessage')");
+          }
+        }
       }
 
       if (validations.any((e) =>

@@ -16,13 +16,13 @@ class Evaluator {
   Evaluator(this.rules, this._input, this._field) : _inputCast = _input;
 
   ValueResult evaluate() {
-    for (final rule in rules) {
-      _runRule(rule.rule, rule.test);
+    for (final holder in rules) {
+      _runRule(holder.rule, holder.test, holder.customMessage);
     }
     return ValueResult(_field, _inputCast, _errors);
   }
 
-  void _runRule(Rule rule, [Object? test]) {
+  void _runRule(Rule rule, [Object? test, String? customMessage]) {
     if (_bail && !rule.escapesBail) {
       return;
     }
@@ -38,8 +38,8 @@ class Evaluator {
     final ruleWant = rule.want(_input, test);
     final want = ruleWant.isNotEmpty ? ruleWant : test.toString();
     if (!rule.pass(_inputCast, test)) {
-      _errors.add(
-          ValidationError(rule.name, rule.errorMsg(_input, test), got, want));
+      final message = customMessage ?? rule.errorMsg(_input, test);
+      _errors.add(ValidationError(rule.name, message, got, want));
       if (rule.causesBail) {
         _bail = true;
       }

@@ -11,6 +11,14 @@ class ValidateValue {
     return evaluator.evaluate();
   }
 
+  /// Sets a custom error message on the most recently added rule.
+  /// When this rule fails, the custom message is used instead of the
+  /// rule's default error message.
+  void withMessage(String message) {
+    final last = rules.removeLast();
+    rules.add(RuleHolder(last.rule, last.test, message));
+  }
+
   // Required / Type Checking
 
   void isRequired() {

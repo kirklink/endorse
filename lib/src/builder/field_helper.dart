@@ -86,11 +86,17 @@ String processValidations(List<DartObject> validations, Type? type) {
     }
     ;
 
+    // Read the method name (pure string, no template tokens)
+    final method = rule.getField('method')!.toStringValue()!;
+    final isRawString = rule.getField('rawString')?.toBoolValue() ?? false;
+
+    // Serialize the value based on its type
     var value = '';
     if (valueType == null) {
       value = '';
     } else if (valueType.isDartCoreString) {
-      value = "'${rule.getField('value')!.toStringValue().toString()}'";
+      final stringVal = rule.getField('value')!.toStringValue().toString();
+      value = isRawString ? "r'$stringVal'" : "'$stringVal'";
     } else if (valueType.isDartCoreInt) {
       value = rule.getField('value')!.toIntValue().toString();
     } else if (valueType.isDartCoreDouble) {
@@ -100,10 +106,15 @@ String processValidations(List<DartObject> validations, Type? type) {
       final items = listValue.map((e) => "'${e.toStringValue()}'").join(', ');
       value = '[$items]';
     }
-    // Replace the token with a value
-    ruleCall = ruleCall +
-        '..' +
-        (rule.getField('call')!.toStringValue())!.replaceFirst('@', value);
+
+    // Construct the method call
+    ruleCall += value.isEmpty ? '..$method()' : '..$method($value)';
+
+    // Emit custom error message if provided
+    final customMessage = rule.getField('message')?.toStringValue();
+    if (customMessage != null) {
+      ruleCall += "..withMessage('$customMessage')";
+    }
   }
   return ruleCall;
 }
@@ -285,7 +296,12 @@ ProcessedFieldHolder processField(FieldElement field, String fieldName) {
 
   if (validations.any(
       (e) => e.type!.getDisplayString(withNullability: false) == 'Required')) {
-    fieldRules = '..isRequired()' + fieldRules;
+    final requiredRule = validations.firstWhere(
+        (e) => e.type!.getDisplayString(withNullability: false) == 'Required');
+    final requiredMessage = requiredRule.getField('message')?.toStringValue();
+    fieldRules = '..isRequired()' +
+        (requiredMessage != null ? "..withMessage('$requiredMessage')" : '') +
+        fieldRules;
   }
 
   if (validations.any((e) => fromStringRules
@@ -309,7 +325,15 @@ ProcessedFieldHolder processField(FieldElement field, String fieldName) {
   if (isList && isCore) {
     if (itemValidations.any((e) =>
         e.type!.getDisplayString(withNullability: false) == 'Required')) {
-      itemRules = '..isRequired()' + itemRules;
+      final itemRequiredRule = itemValidations.firstWhere(
+          (e) => e.type!.getDisplayString(withNullability: false) == 'Required');
+      final itemRequiredMessage =
+          itemRequiredRule.getField('message')?.toStringValue();
+      itemRules = '..isRequired()' +
+          (itemRequiredMessage != null
+              ? "..withMessage('$itemRequiredMessage')"
+              : '') +
+          itemRules;
     }
     if (itemValidations.any((e) => fromStringRules
         .contains(e.type!.getDisplayString(withNullability: false)))) {

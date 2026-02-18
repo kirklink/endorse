@@ -65,135 +65,135 @@ void main() {
   group('Validation annotations', () {
     test('Required', () {
       const v = Required();
-      expect(v.call, 'isRequired()');
+      expect(v.method, 'isRequired');
     });
 
     test('IsNotNull', () {
       const v = IsNotNull();
-      expect(v.call, 'isNotNull()');
+      expect(v.method, 'isNotNull');
     });
 
     test('MaxLength', () {
       const v = MaxLength(50);
-      expect(v.call, 'maxLength(@)');
+      expect(v.method, 'maxLength');
       expect(v.value, 50);
       expect(v.validOnTypes, contains(String));
     });
 
     test('MinLength', () {
       const v = MinLength(5);
-      expect(v.call, 'minLength(@)');
+      expect(v.method, 'minLength');
       expect(v.value, 5);
     });
 
     test('StartsWith', () {
       const v = StartsWith('hello');
-      expect(v.call, 'startsWith(@)');
+      expect(v.method, 'startsWith');
       expect(v.value, 'hello');
     });
 
     test('EndsWith', () {
       const v = EndsWith('world');
-      expect(v.call, 'endsWith(@)');
+      expect(v.method, 'endsWith');
       expect(v.value, 'world');
     });
 
     test('Contains', () {
       const v = Contains('foo');
-      expect(v.call, 'contains(@)');
+      expect(v.method, 'contains');
       expect(v.value, 'foo');
     });
 
     test('Matches', () {
       const v = Matches('exact');
-      expect(v.call, 'matches(@)');
+      expect(v.method, 'matches');
       expect(v.value, 'exact');
     });
 
     test('IsLessThan', () {
       const v = IsLessThan(10);
-      expect(v.call, 'isLessThan(@)');
+      expect(v.method, 'isLessThan');
       expect(v.value, 10);
       expect(v.validOnTypes, contains(int));
     });
 
     test('IsGreaterThan', () {
       const v = IsGreaterThan(0);
-      expect(v.call, 'isGreaterThan(@)');
+      expect(v.method, 'isGreaterThan');
       expect(v.value, 0);
     });
 
     test('IsEqualTo', () {
       const v = IsEqualTo(42);
-      expect(v.call, 'isEqualTo(@)');
+      expect(v.method, 'isEqualTo');
       expect(v.value, 42);
     });
 
     test('IsNotEqualTo', () {
       const v = IsNotEqualTo(0);
-      expect(v.call, 'isNotEqualTo(@)');
+      expect(v.method, 'isNotEqualTo');
       expect(v.value, 0);
     });
 
     test('IsTrue', () {
       const v = IsTrue();
-      expect(v.call, 'isTrue()');
+      expect(v.method, 'isTrue');
       expect(v.validOnTypes, contains(bool));
     });
 
     test('IsFalse', () {
       const v = IsFalse();
-      expect(v.call, 'isFalse()');
+      expect(v.method, 'isFalse');
     });
 
     test('IntFromString', () {
       const v = IntFromString();
-      expect(v.call, 'intFromString()');
+      expect(v.method, 'intFromString');
       expect(v.validOnTypes, contains(int));
     });
 
     test('DoubleFromString', () {
       const v = DoubleFromString();
-      expect(v.call, 'doubleFromString()');
+      expect(v.method, 'doubleFromString');
       expect(v.validOnTypes, contains(double));
     });
 
     test('NumFromString', () {
       const v = NumFromString();
-      expect(v.call, 'numFromString()');
+      expect(v.method, 'numFromString');
       expect(v.validOnTypes, contains(num));
     });
 
     test('BoolFromString', () {
       const v = BoolFromString();
-      expect(v.call, 'boolFromString()');
+      expect(v.method, 'boolFromString');
       expect(v.validOnTypes, contains(bool));
     });
 
     test('ToStringFromInt', () {
       const v = ToStringFromInt();
-      expect(v.call, 'makeString()');
+      expect(v.method, 'makeString');
       expect(v.validOnTypes, contains(String));
     });
 
     test('ToStringFromDouble', () {
       const v = ToStringFromDouble();
-      expect(v.call, 'makeString()');
+      expect(v.method, 'makeString');
     });
 
     test('ToStringFromNum', () {
       const v = ToStringFromNum();
-      expect(v.call, 'makeString()');
+      expect(v.method, 'makeString');
     });
 
     test('ToStringFromBool', () {
       const v = ToStringFromBool();
-      expect(v.call, 'makeString()');
+      expect(v.method, 'makeString');
     });
 
     test('IsBefore', () {
       const v = IsBefore('2024-01-01');
-      expect(v.call, 'isBefore(@)');
+      expect(v.method, 'isBefore');
       expect(v.value, '2024-01-01');
       expect(v.validOnTypes, contains(DateTime));
     });
@@ -205,7 +205,7 @@ void main() {
 
     test('IsAfter', () {
       const v = IsAfter('2024-01-01');
-      expect(v.call, 'isAfter(@)');
+      expect(v.method, 'isAfter');
       expect(v.value, '2024-01-01');
     });
 
@@ -216,7 +216,7 @@ void main() {
 
     test('IsAtMoment', () {
       const v = IsAtMoment('2024-06-15');
-      expect(v.call, 'isAtMoment(@)');
+      expect(v.method, 'isAtMoment');
       expect(v.value, '2024-06-15');
     });
 
@@ -227,7 +227,7 @@ void main() {
 
     test('IsSameDateAs', () {
       const v = IsSameDateAs('2024-06-15');
-      expect(v.call, 'isSameDateAs(@)');
+      expect(v.method, 'isSameDateAs');
       expect(v.value, '2024-06-15');
     });
 
@@ -238,25 +238,29 @@ void main() {
 
     test('MatchesPattern', () {
       const v = MatchesPattern(r'^\d+$');
-      expect(v.call, 'matchesPattern(r@)');
+      expect(v.method, 'matchesPattern');
+      expect(v.rawString, isTrue);
       expect(v.value, r'^\d+$');
       expect(v.validOnTypes, contains(String));
     });
 
     test('MatchesRawPattern', () {
       const v = MatchesRawPattern(r'^\w+$');
-      expect(v.call, 'matchesPattern(r@)');
+      expect(v.method, 'matchesPattern');
+      expect(v.rawString, isTrue);
       expect(v.value, r'^\w+$');
     });
 
     test('MatchesEscapedPattern', () {
       const v = MatchesEscapedPattern(r'test');
-      expect(v.call, 'matchesPattern(@)');
+      expect(v.method, 'matchesPattern');
+      expect(v.rawString, isFalse);
     });
 
     test('IsEmail', () {
       const v = IsEmail();
-      expect(v.call, 'isEmail(r@)');
+      expect(v.method, 'isEmail');
+      expect(v.rawString, isTrue);
       expect(v.value, isNotEmpty);
     });
 
@@ -264,86 +268,154 @@ void main() {
 
     test('IsNotEmpty', () {
       const v = IsNotEmpty();
-      expect(v.call, 'isNotEmpty()');
+      expect(v.method, 'isNotEmpty');
       expect(v.validOnTypes, contains(String));
     });
 
     test('ExactLength', () {
       const v = ExactLength(5);
-      expect(v.call, 'exactLength(@)');
+      expect(v.method, 'exactLength');
       expect(v.value, 5);
       expect(v.validOnTypes, contains(String));
     });
 
     test('IsAlpha', () {
       const v = IsAlpha();
-      expect(v.call, 'isAlpha()');
+      expect(v.method, 'isAlpha');
       expect(v.validOnTypes, contains(String));
     });
 
     test('IsAlphanumeric', () {
       const v = IsAlphanumeric();
-      expect(v.call, 'isAlphanumeric()');
+      expect(v.method, 'isAlphanumeric');
       expect(v.validOnTypes, contains(String));
     });
 
     test('Trim', () {
       const v = Trim();
-      expect(v.call, 'trim()');
+      expect(v.method, 'trim');
       expect(v.validOnTypes, contains(String));
     });
 
     test('IsGreaterThanOrEqual', () {
       const v = IsGreaterThanOrEqual(10);
-      expect(v.call, 'isGreaterThanOrEqual(@)');
+      expect(v.method, 'isGreaterThanOrEqual');
       expect(v.value, 10);
       expect(v.validOnTypes, contains(num));
     });
 
     test('IsLessThanOrEqual', () {
       const v = IsLessThanOrEqual(10);
-      expect(v.call, 'isLessThanOrEqual(@)');
+      expect(v.method, 'isLessThanOrEqual');
       expect(v.value, 10);
       expect(v.validOnTypes, contains(num));
     });
 
     test('IsOneOf', () {
       const v = IsOneOf(['a', 'b', 'c']);
-      expect(v.call, 'isOneOf(@)');
+      expect(v.method, 'isOneOf');
       expect(v.value, ['a', 'b', 'c']);
       expect(v.validOnTypes, contains(String));
     });
 
     test('MinElements', () {
       const v = MinElements(2);
-      expect(v.call, 'minElements(@)');
+      expect(v.method, 'minElements');
       expect(v.value, 2);
       expect(v.validOnTypes, contains(List));
     });
 
     test('MaxElements', () {
       const v = MaxElements(5);
-      expect(v.call, 'maxElements(@)');
+      expect(v.method, 'maxElements');
       expect(v.value, 5);
       expect(v.validOnTypes, contains(List));
     });
 
     test('IsUrl', () {
       const v = IsUrl();
-      expect(v.call, 'isUrl()');
+      expect(v.method, 'isUrl');
       expect(v.validOnTypes, contains(String));
     });
 
     test('IsUuid', () {
       const v = IsUuid();
-      expect(v.call, 'isUuid()');
+      expect(v.method, 'isUuid');
       expect(v.validOnTypes, contains(String));
     });
 
     test('IsPhoneNumber', () {
       const v = IsPhoneNumber();
-      expect(v.call, 'isPhoneNumber()');
+      expect(v.method, 'isPhoneNumber');
       expect(v.validOnTypes, contains(String));
+    });
+  });
+
+  // ── Custom message support ───────────────────────────────────────
+
+  group('Custom message on annotations', () {
+    test('message defaults to null', () {
+      const v = Required();
+      expect(v.message, isNull);
+    });
+
+    test('Required accepts message', () {
+      const v = Required(message: 'Name is required');
+      expect(v.message, 'Name is required');
+    });
+
+    test('MaxLength accepts message', () {
+      const v = MaxLength(50, message: 'Too long');
+      expect(v.message, 'Too long');
+      expect(v.value, 50);
+    });
+
+    test('MinLength accepts message', () {
+      const v = MinLength(3, message: 'Too short');
+      expect(v.message, 'Too short');
+    });
+
+    test('IsGreaterThan accepts message', () {
+      const v = IsGreaterThan(0, message: 'Must be positive');
+      expect(v.message, 'Must be positive');
+      expect(v.value, 0);
+    });
+
+    test('IsEmail accepts message', () {
+      const v = IsEmail(message: 'Invalid email address');
+      expect(v.message, 'Invalid email address');
+    });
+
+    test('IsBefore accepts message', () {
+      const v = IsBefore('2024-01-01', message: 'Must be in the past');
+      expect(v.message, 'Must be in the past');
+    });
+
+    test('IsBefore.now accepts message', () {
+      const v = IsBefore.now(message: 'Must be before now');
+      expect(v.message, 'Must be before now');
+      expect(v.value, 'now');
+    });
+
+    test('IsOneOf accepts message', () {
+      const v = IsOneOf(['a', 'b'], message: 'Pick a or b');
+      expect(v.message, 'Pick a or b');
+    });
+
+    test('MatchesPattern accepts message', () {
+      const v = MatchesPattern(r'^\d+$', message: 'Numbers only');
+      expect(v.message, 'Numbers only');
+    });
+
+    test('no-value annotations accept message', () {
+      const v1 = IsNotNull(message: 'Cannot be null');
+      const v2 = IsTrue(message: 'Must be true');
+      const v3 = IsNotEmpty(message: 'Cannot be empty');
+      const v4 = IsUrl(message: 'Must be a URL');
+      expect(v1.message, 'Cannot be null');
+      expect(v2.message, 'Must be true');
+      expect(v3.message, 'Cannot be empty');
+      expect(v4.message, 'Must be a URL');
     });
   });
 }

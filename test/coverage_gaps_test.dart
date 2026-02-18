@@ -446,4 +446,95 @@ void main() {
       expect(result.errorName, 'Required');
     });
   });
+
+  // ── Custom error messages (withMessage) ────────────────────────────
+
+  group('withMessage', () {
+    test('overrides default error on validation failure', () {
+      final r = validate(null, (v) {
+        v.isRequired();
+        v.withMessage('Name is required');
+      });
+      expect(r.$isNotValid, isTrue);
+      expect(r.$errors.first.message, 'Name is required');
+    });
+
+    test('does not affect passing validation', () {
+      final r = validate('hello', (v) {
+        v.isRequired();
+        v.withMessage('Name is required');
+      });
+      expect(r.$isValid, isTrue);
+      expect(r.$errors, isEmpty);
+    });
+
+    test('applies to the most recent rule only', () {
+      final r = validate('', (v) {
+        v.isRequired();
+        v.isNotEmpty();
+        v.withMessage('Cannot be blank');
+      });
+      // isRequired passes (value is not null), isNotEmpty fails
+      expect(r.$errors, hasLength(1));
+      expect(r.$errors.first.message, 'Cannot be blank');
+    });
+
+    test('works with parameterized rules', () {
+      final r = validate('toolong', (v) {
+        v.isString();
+        v.maxLength(3);
+        v.withMessage('Max 3 chars please');
+      });
+      expect(r.$isNotValid, isTrue);
+      expect(r.$errors.first.message, 'Max 3 chars please');
+    });
+
+    test('works with numeric rules', () {
+      final r = validate(100, (v) {
+        v.isNumber();
+        v.isLessThan(50);
+        v.withMessage('Must be under 50');
+      });
+      expect(r.$isNotValid, isTrue);
+      expect(r.$errors.first.message, 'Must be under 50');
+    });
+
+    test('multiple withMessage calls on different rules', () {
+      final r = validate('', (v) {
+        v.isNotEmpty();
+        v.withMessage('First error');
+        v.minLength(5);
+        v.withMessage('Second error');
+      });
+      // isNotEmpty fails, minLength would also fail but bails after isNotEmpty?
+      // Actually isNotEmpty doesn't bail, so both should fail
+      expect(r.$errors.length, greaterThanOrEqualTo(1));
+      expect(r.$errors.first.message, 'First error');
+    });
+
+    test('RuleHolder preserves customMessage', () {
+      final holder = RuleHolder(Required(), null, 'custom msg');
+      expect(holder.customMessage, 'custom msg');
+    });
+
+    test('RuleHolder customMessage defaults to null', () {
+      final holder = RuleHolder(Required());
+      expect(holder.customMessage, isNull);
+    });
+
+    test('Evaluator uses customMessage over default', () {
+      final rules = [RuleHolder(Required(), null, 'My custom error')];
+      final evaluator = Evaluator(rules, null, 'field');
+      final result = evaluator.evaluate();
+      expect(result.$errors.first.message, 'My custom error');
+    });
+
+    test('Evaluator uses default message when no customMessage', () {
+      final rules = [RuleHolder(Required())];
+      final evaluator = Evaluator(rules, null, 'field');
+      final result = evaluator.evaluate();
+      expect(result.$errors.first.message, isNot('My custom error'));
+      expect(result.$errors.first.message, isNotEmpty);
+    });
+  });
 }
