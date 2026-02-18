@@ -6,8 +6,8 @@ import 'package:source_gen/source_gen.dart';
 import 'package:endorse/annotations.dart';
 import 'package:endorse/src/builder/case_helper.dart';
 
-final _checkForEndorseEntity = const TypeChecker.fromRuntime(EndorseEntity);
-final _checkForEndorseField = const TypeChecker.fromRuntime(EndorseField);
+final _checkForEndorseEntity = const TypeChecker.typeNamed(EndorseEntity);
+final _checkForEndorseField = const TypeChecker.typeNamed(EndorseField);
 
 String processValidations(List<DartObject> validations, Type? type) {
   if (validations.isEmpty) {

@@ -12,9 +12,9 @@ import 'package:endorse/src/builder/recase_helper.dart';
 import 'package:endorse/src/builder/field_helper.dart';
 import 'package:endorse/src/builder/build_tracker.dart';
 
-final _checkForEndorseEntity = const TypeChecker.fromRuntime(EndorseEntity);
-final _checkForEndorseMap = const TypeChecker.fromRuntime(EndorseMap);
-final _checkForEndorseField = const TypeChecker.fromRuntime(EndorseField);
+final _checkForEndorseEntity = const TypeChecker.typeNamed(EndorseEntity);
+final _checkForEndorseMap = const TypeChecker.typeNamed(EndorseMap);
+final _checkForEndorseField = const TypeChecker.typeNamed(EndorseField);
 
 Iterable<DartType> _getGenericTypes(DartType type) {
   return type is ParameterizedType ? type.typeArguments : const [];
@@ -92,9 +92,9 @@ StringBuffer convertToEndorse(
         continue;
       }
 
-      final appName = field.name;
+      final appName = field.name!;
       // var jsonName = field.name;
-      var jsonName = recaseFieldName(recase, field.name);
+      var jsonName = recaseFieldName(recase, appName);
 
       final validations = <DartObject>[];
       final itemValidations = <DartObject>[];
@@ -179,7 +179,7 @@ StringBuffer convertToEndorse(
         final mapElement = field.type.element;
         if (mapElement is! ClassElement) {
           throw EndorseBuilderException(
-              'EndorseEntity and EdorseMap must only annotate classes. ${field.getDisplayString(withNullability: false)} is not a class.');
+              'EndorseEntity and EdorseMap must only annotate classes. ${field.name} is not a class.');
         }
 
         pageBuf.writeln(convertToEndorse(
@@ -246,7 +246,7 @@ StringBuffer convertToEndorse(
           final mapElement = elementType.element;
           if (mapElement is! ClassElement) {
             throw EndorseBuilderException(
-                'EndorseEntity and EdorseMap must only annotate classes. ${field.getDisplayString(withNullability: false)} is not a class.');
+                'EndorseEntity and EdorseMap must only annotate classes. ${field.name} is not a class.');
           }
           pageBuf.writeln(convertToEndorse(
               mapElement, recase, requireAll, tracker,

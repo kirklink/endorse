@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:build/src/builder/build_step.dart';
+import 'package:build/build.dart';
 import 'package:endorse/src/builder/endorse_class_helper.dart';
 import 'package:source_gen/source_gen.dart';
 
