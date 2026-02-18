@@ -1,6 +1,6 @@
 import 'package:endorse/src/endorse/endorse_exception.dart';
 import 'package:endorse/src/endorse/validation_error.dart';
-import 'package:endorse/src/endorse/rule.dart' hide ValidationError;
+import 'package:endorse/src/endorse/rule.dart';
 import 'package:endorse/src/endorse/rule_holder.dart';
 import 'package:endorse/src/endorse/value_result.dart';
 

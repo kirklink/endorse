@@ -1,17 +1,17 @@
 # Endorse Package Stabilization Plan
 
-## Progress Summary (Updated 2026-02-13)
+## Progress Summary (Updated 2026-02-18)
 
 | Phase | Status | Key Result |
 |-------|--------|------------|
 | Phase 1: Core Infrastructure | **DONE** | Evaluator running, naming conflicts resolved, 12 basic tests |
 | Phase 2: Rule Implementation | **DONE** | 35 rules implemented, wired into ValidateValue, 92 rule tests |
 | Phase 3: Class & List Validation | **DONE** | All classes active: ClassResult, ListResult, ValidateClass, ValidateList. 25 tests |
-| Phase 4: Testing | **IN PROGRESS** | 129 unit tests + 8 e2e tests passing. Need coverage tooling and more edge cases for 80% target |
-| Phase 5: Dependencies & Polish | **PARTIAL** | README updated. Dependencies still outdated (pedantic→lints). Need CHANGELOG, examples |
-| Phase 6: Release | Not started | — |
+| Phase 4: Testing | **DONE** | 226 unit tests + 76 e2e tests = 302 total. Comprehensive entity tests cover all code generation paths |
+| Phase 5: Dependencies & Polish | **DONE** | pedantic→lints, SDK >=3.0.0, CHANGELOG updated, lint warnings fixed |
+| Phase 6: Release | Not started | Ready when needed |
 
-**Current test counts:** 129 in endorse + 8 end-to-end in arrow_example = 137 total
+**Current test counts:** 226 in endorse + 76 end-to-end in arrow_example = 302 total
 
 **Branch:** `feature/initial-stabilization`
 
@@ -28,8 +28,8 @@ The Endorse package has a solid validation architecture that needs testing, docu
 - ~~❌ Rule execution engine (Evaluator) commented out (CRITICAL)~~ **DONE**
 - ~~❌ 91% of validation rules commented out~~ **DONE - 35 rules active**
 - ~~❌ Class/List validation infrastructure commented out~~ **DONE**
-- ~~❌ Zero tests~~ **137 tests passing**
-- ⚠️ Outdated dependencies
+- ~~❌ Zero tests~~ **302 tests passing (226 unit + 76 e2e)**
+- ~~⚠️ Outdated dependencies~~ **pedantic→lints, SDK >=3.0.0**
 - ~~⚠️ Duplicate code and naming conflicts~~ **RESOLVED**
 
 **Timeline:** Flexible - work will be done as time allows
@@ -290,10 +290,10 @@ The Endorse package has a solid validation architecture that needs testing, docu
 
 ---
 
-## Phase 4: Testing Infrastructure (Week 4-5) — IN PROGRESS
+## Phase 4: Testing Infrastructure (Week 4-5) — DONE
 **Goal:** Comprehensive test coverage
 
-> **Progress:** 129 tests in endorse (basic_validation_test.dart + rule_test.dart + class_list_validation_test.dart) and 8 e2e tests in arrow_example. Test helper pattern established. Still need coverage tooling, CI, and more edge case tests to reach 80% target.
+> **Progress:** 226 tests in endorse (annotations_test + basic_validation_test + rule_test + class_list_validation_test + coverage_gaps_test) and 76 e2e tests in arrow_example (8 UserEntity + 68 ComprehensiveEntity). ComprehensiveEntity tests exercise all code generation paths: 6 value types, nullable fields, nested entities, List<primitive>, List<entity>, field rename/ignore, fromString/toString coercion, requireAll, itemValidate. Found and fixed 4 builder/runtime bugs through e2e testing.
 
 ### Task 4.1: Setup Test Infrastructure
 **New Files:**
@@ -375,10 +375,10 @@ group('RuleName', () {
 
 ---
 
-## Phase 5: Dependencies & Polish (Week 5-6) — PARTIAL
+## Phase 5: Dependencies & Polish (Week 5-6) — DONE
 **Goal:** Update dependencies, documentation, and examples
 
-> **Progress:** README fully updated with quick start, all validation rules, annotation docs, and programmatic usage. Dependencies and CHANGELOG still need work.
+> **Progress:** README fully updated. Replaced deprecated pedantic with lints (^5.0.0), updated SDK constraint to >=3.0.0, fixed all lint warnings (dead code, unnecessary null checks, invalid hide directives). CHANGELOG updated with all stabilization work. Note: major dependency upgrades (analyzer 6→10, source_gen 1→4, build 2→4) deferred — these require builder code changes and are a separate effort.
 
 ### Task 5.1: Update Dependencies
 **File:** `pubspec.yaml`
@@ -653,6 +653,10 @@ router.post('/users', (req, res) async {
 - **build.yaml `build_to`:** Changed from `source` to `cache` so intermediate `.endorse.g.part` files stay in `.dart_tool/build/` and only the final `.g.dart` appears in source.
 - **Builder part name:** Changed SharedPartBuilder name from `'endorse_builder'` to `'endorse'` to follow Dart conventions (affects generated `.endorse.g.part` filename).
 - **Reboot branch review:** Checked `reboot` branch for useful code. Pulled in IsMap, IsList, MinElements rules. The branch's alternative Validator architecture was not adopted — current Rule/Evaluator pattern is cleaner.
+- **List\<bool\> code gen:** Builder generated `..isBool()` but ValidateValue method is `isBoolean()`. Fixed in endorse_class_helper.dart.
+- **Duplicate class generation:** Nested entities generated duplicate Rules/Result classes (once standalone, once from parent). Fixed with `nestLevel == 0` guard — nested processing only emits the validator class.
+- **ValidateClass cast error:** When input was null/non-map, `ValidateClass.from()` returned plain `ClassResult` instead of the typed subclass, causing cast errors in generated code. Fixed to always call `_validator.validate()` (with empty map for invalid input).
+- **ToStringFromX rule ordering:** Builder generated `..isString(toString: true)..isInt()..makeString()` — the ToStringCast ran before IsInt, converting the value to string before the int check. Fixed by removing `..isString()` entirely when ToString annotations are present, since `processValidations` already adds the correct source type check followed by conversion.
 
 ---
 

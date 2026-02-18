@@ -177,7 +177,7 @@ ProcessedFieldHolder processField(FieldElement field, String fieldName) {
         .split('<')
         .map((p) => p.replaceAll('>', ''))
         .toList()
-      ..removeWhere((s) => s == null || s.isEmpty));
+      ..removeWhere((s) => s.isEmpty));
     for (final p in listTypeParts.getRange(1, listTypeParts.length)) {
       if (p == 'List') {
         fieldRules = '$fieldRules..ofList()';

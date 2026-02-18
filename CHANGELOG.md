@@ -1,5 +1,35 @@
 # Endorse Changelog
 
+## 0.1.0-nullsafety.3 (Unreleased)
+
+### Stabilization
+- Activate and stabilize the full runtime validation engine (Evaluator, ValidateValue, ValidateClass, ValidateList)
+- Fix evaluator cast pipeline to properly propagate coerced values between rules
+- Fix builder code generation for nested objects to avoid duplicate class definitions
+- Fix ValidateClass to always return typed result class (prevents cast errors in generated code)
+- Fix ToStringFromX rule ordering so source type check runs before string conversion
+- Fix List<bool> code generation to use `isBoolean()` instead of non-existent `isBool()`
+- Fix builder integration: correct part file naming, build_to cache, naming conflicts
+
+### Rules
+- Implement all 35 validation rules across string, numeric, boolean, DateTime, and pattern categories
+- Add IsNotNull, IsMap, IsList, MinElements rules
+- Fix short-circuit evaluation in rule pipeline
+
+### Testing
+- Add 226 unit tests covering annotations, rules, validation classes, and coverage gaps
+- Add 68 comprehensive end-to-end tests in arrow_example exercising all code generation paths
+- Test coverage for all 6 value types, nullable fields, nested entities, list validation, field rename/ignore, fromString/toString coercion, requireAll
+
+### Dependencies
+- Replace deprecated `pedantic` with `lints` (^5.0.0)
+- Update SDK constraint to `>=3.0.0 <4.0.0`
+- Fix all lint warnings (dead code, unnecessary null checks, invalid hide directives)
+
+### Documentation
+- Full README rewrite with quick start, annotation reference, all validation rules, and programmatic usage
+- Add nested object and list validation documentation
+
 ## 0.1.0-nullsafety.1
 - Add now() constructor to DateTime validation rules
 - Merge into single package
