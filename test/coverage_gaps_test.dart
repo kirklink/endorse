@@ -537,4 +537,117 @@ void main() {
       expect(result.$errors.first.message, isNotEmpty);
     });
   });
+
+  // ── Custom validation (CustomRule + ValidateValue.custom) ──────────
+
+  group('CustomRule', () {
+    test('passes when test function returns true', () {
+      final rule = CustomRule('isEven', (v) => v is int && v.isEven, 'Must be even');
+      expect(rule.pass(4, null), isTrue);
+    });
+
+    test('fails when test function returns false', () {
+      final rule = CustomRule('isEven', (v) => v is int && v.isEven, 'Must be even');
+      expect(rule.pass(3, null), isFalse);
+    });
+
+    test('name returns the custom name', () {
+      final rule = CustomRule('myRule', (v) => true, 'Error');
+      expect(rule.name, 'myRule');
+    });
+
+    test('errorMsg returns the custom message', () {
+      final rule = CustomRule('myRule', (v) => true, 'My error');
+      expect(rule.errorMsg(null, null), 'My error');
+    });
+
+    test('got returns input as string', () {
+      final rule = CustomRule('myRule', (v) => true, 'Error');
+      expect(rule.got(42, null), '42');
+    });
+
+    test('want returns error message', () {
+      final rule = CustomRule('myRule', (v) => true, 'Expected something');
+      expect(rule.want(null, null), 'Expected something');
+    });
+
+    test('evaluate returns empty RuleError when passes', () {
+      final rule = CustomRule('myRule', (v) => true, 'Error');
+      expect(rule.evaluate('anything').isEmpty, isTrue);
+    });
+
+    test('evaluate returns RuleError when fails', () {
+      final rule = CustomRule('myRule', (v) => false, 'Bad value');
+      final error = rule.evaluate('anything');
+      expect(error.isEmpty, isFalse);
+      expect(error.errorName, 'myRule');
+      expect(error.errorDetail, 'Bad value');
+    });
+  });
+
+  group('ValidateValue.custom()', () {
+    test('passes with valid input', () {
+      final r = validate(4, (v) {
+        v.custom('isEven', (val) => val is int && val.isEven, 'Must be even');
+      });
+      expect(r.$isValid, isTrue);
+    });
+
+    test('fails with invalid input', () {
+      final r = validate(3, (v) {
+        v.custom('isEven', (val) => val is int && val.isEven, 'Must be even');
+      });
+      expect(r.$isNotValid, isTrue);
+      expect(r.$errors.first.message, 'Must be even');
+      expect(r.$errors.first.rule, 'isEven');
+    });
+
+    test('works with other rules in chain', () {
+      final r = validate(4, (v) {
+        v.isRequired();
+        v.isNumber();
+        v.custom('isEven', (val) => val is int && val.isEven, 'Must be even');
+      });
+      expect(r.$isValid, isTrue);
+    });
+
+    test('fails in chain when custom rule fails', () {
+      final r = validate(3, (v) {
+        v.isRequired();
+        v.isNumber();
+        v.custom('isEven', (val) => val is int && val.isEven, 'Must be even');
+      });
+      expect(r.$isNotValid, isTrue);
+      expect(r.$errors.first.message, 'Must be even');
+    });
+
+    test('null is skipped by custom rule (skipIfNull default)', () {
+      final r = validate(null, (v) {
+        v.custom('isEven', (val) => val is int && val.isEven, 'Must be even');
+      });
+      // Custom rule skips null because Rule.skipIfNull defaults to true
+      expect(r.$isValid, isTrue);
+    });
+
+    test('withMessage overrides custom rule error', () {
+      final r = validate(3, (v) {
+        v.custom('isEven', (val) => val is int && val.isEven, 'Must be even');
+        v.withMessage('Number must be divisible by 2');
+      });
+      expect(r.$errors.first.message, 'Number must be divisible by 2');
+    });
+
+    test('multiple custom rules on same field', () {
+      final r = validate(7, (v) {
+        v.isRequired();
+        v.isNumber();
+        v.custom('isEven', (val) => val is int && val.isEven, 'Must be even');
+        v.custom(
+            'isPositive', (val) => val is num && val > 0, 'Must be positive');
+      });
+      // 7 is positive but not even
+      expect(r.$errors, hasLength(1));
+      expect(r.$errors.first.rule, 'isEven');
+    });
+  });
 }

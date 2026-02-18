@@ -41,6 +41,13 @@ String processValidations(List<DartObject> validations, Type? type) {
       continue;
     }
 
+    // CustomValidation is handled separately in endorse_class_helper
+    // because it needs access to the entity class name.
+    if (rule.type!.getDisplayString(withNullability: false) ==
+        'CustomValidation') {
+      continue;
+    }
+
     if (rule.type!
         .getDisplayString(withNullability: false)
         .startsWith('ToString')) {

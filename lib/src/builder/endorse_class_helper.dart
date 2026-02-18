@@ -348,6 +348,35 @@ StringBuffer convertToEndorse(
         if (validations.isNotEmpty) {
           fieldRulesBuf.write(processValidations(validations, fieldType));
         }
+
+        // Handle CustomValidation annotations (need class context for static method ref)
+        for (final rule in validations) {
+          if (rule.type!.getDisplayString(withNullability: false) ==
+              'CustomValidation') {
+            final functionName =
+                rule.getField('functionName')!.toStringValue()!;
+            final errorMessage =
+                rule.getField('errorMessage')!.toStringValue()!;
+
+            // Validate static method exists on the entity class
+            final hasMethod =
+                clazz.methods.any((m) => m.isStatic && m.name == functionName);
+            if (!hasMethod) {
+              throw EndorseBuilderException(
+                  "CustomValidation references '$functionName' but no static "
+                  "method with that name was found on ${clazz.name}");
+            }
+
+            fieldRulesBuf.write(
+                "..custom('$functionName', ${clazz.name}.$functionName, '$errorMessage')");
+
+            final customMessage =
+                rule.getField('message')?.toStringValue();
+            if (customMessage != null) {
+              fieldRulesBuf.write("..withMessage('$customMessage')");
+            }
+          }
+        }
       }
 
       if (isValue && isList) {
@@ -380,6 +409,34 @@ StringBuffer convertToEndorse(
 
         if (itemValidations.isNotEmpty) {
           itemRulesBuf.write(processValidations(itemValidations, itemType));
+        }
+
+        // Handle CustomValidation on item validations
+        for (final rule in itemValidations) {
+          if (rule.type!.getDisplayString(withNullability: false) ==
+              'CustomValidation') {
+            final functionName =
+                rule.getField('functionName')!.toStringValue()!;
+            final errorMessage =
+                rule.getField('errorMessage')!.toStringValue()!;
+
+            final hasMethod =
+                clazz.methods.any((m) => m.isStatic && m.name == functionName);
+            if (!hasMethod) {
+              throw EndorseBuilderException(
+                  "CustomValidation references '$functionName' but no static "
+                  "method with that name was found on ${clazz.name}");
+            }
+
+            itemRulesBuf.write(
+                "..custom('$functionName', ${clazz.name}.$functionName, '$errorMessage')");
+
+            final customMessage =
+                rule.getField('message')?.toStringValue();
+            if (customMessage != null) {
+              itemRulesBuf.write("..withMessage('$customMessage')");
+            }
+          }
         }
       }
 

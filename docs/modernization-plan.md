@@ -4,7 +4,7 @@
 
 **Prerequisite:** Stabilization plan (Phases 1-5) complete. 48+ annotations, 48+ runtime rules, 400 tests passing.
 
-**Current Status:** Phase 4 and Phase 1 complete
+**Current Status:** Phases 4, 1, and 2 complete
 
 ---
 
@@ -41,8 +41,8 @@
 | Feature | Endorse | class-validator (TS) | Zod (TS) | FluentValidation (.NET) |
 |---------|---------|---------------------|----------|------------------------|
 | Declarative rules | Yes | Yes | Yes (schema) | Yes (fluent) |
-| Custom error messages | No | Yes | Yes | Yes |
-| Custom validators | No | Yes | Yes (.refine) | Yes |
+| Custom error messages | Yes | Yes | Yes | Yes |
+| Custom validators | Yes | Yes | Yes (.refine) | Yes |
 | Conditional validation | No | Yes (@ValidateIf) | Yes | Yes (.When) |
 | Cross-field validation | No | Yes | Yes (.superRefine) | Yes |
 | Async validation | No | Yes | Yes | Yes |
@@ -559,4 +559,4 @@ Phase 4 should come first — it cleans up the annotation/builder contract befor
 ---
 
 **Last Updated:** 2026-02-18
-**Status:** Phases 4 and 1 complete. 312 endorse tests + 117 e2e tests passing.
+**Status:** Phases 4, 1, and 2 complete. 330 endorse tests + 145 e2e tests passing.

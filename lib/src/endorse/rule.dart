@@ -1180,3 +1180,35 @@ DateTime? _testDateConverter(String test) {
   }
   return null;
 }
+
+// ============================================================================
+// Custom validation rule
+// ============================================================================
+
+/// A rule that delegates validation to a user-supplied function.
+///
+/// Used by [ValidateValue.custom] for ad-hoc validation logic,
+/// both in programmatic usage and in code generated from
+/// [CustomValidation] annotations.
+class CustomRule extends Rule {
+  final String _name;
+  final bool Function(Object?) _test;
+  final String _errorMessage;
+
+  CustomRule(this._name, this._test, this._errorMessage);
+
+  @override
+  String get name => _name;
+
+  @override
+  bool pass(Object? input, Object? test) => _test(input);
+
+  @override
+  String errorMsg(Object? input, Object? test) => _errorMessage;
+
+  @override
+  String got(Object? input, Object? test) => input.toString();
+
+  @override
+  String want(Object? input, Object? test) => _errorMessage;
+}

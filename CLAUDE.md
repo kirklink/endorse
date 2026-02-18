@@ -8,16 +8,17 @@ Validation library: annotations + code generation (source_gen/build_runner) + ru
 - `lib/src/builder/` - Code generation: source_gen builder, field/class helpers
 - `lib/annotations.dart` - Public annotation exports
 - `lib/endorse.dart` - Public runtime exports
-- `test/` - Unit tests (291 total)
+- `test/` - Unit tests (330 total)
 - `docs/stabilization-plan.md` - Stabilization roadmap (Phases 1-5 done)
+- `docs/modernization-plan.md` - Modernization roadmap (Phases 4, 1, 2 done)
 
 ## Architecture
 
 Three-layer system:
 
-1. **Annotations** (`validations.dart`) - Const classes with a `call` string (e.g. `'isNotEmpty()'`) and optional `value` field
-2. **Code Generation** (`endorse_class_helper.dart`, `field_helper.dart`) - source_gen builder reads annotations, generates validator classes. The `call` string's `@` token gets replaced with the annotation's `value`.
-3. **Runtime** (`rule.dart`, `validate_value.dart`, `evaluator.dart`) - Rule classes implement `pass()`, ValidateValue provides fluent API, Evaluator runs rules and produces results
+1. **Annotations** (`validations.dart`) - Const classes with a `method` name (e.g. `'isNotEmpty'`), optional `value` field, optional `message` for custom error messages
+2. **Code Generation** (`endorse_class_helper.dart`, `field_helper.dart`) - source_gen builder reads annotations, generates validator classes. Builder constructs method calls from `method` name + serialized `value`.
+3. **Runtime** (`rule.dart`, `validate_value.dart`, `evaluator.dart`) - Rule classes implement `pass()`, ValidateValue provides fluent API, Evaluator runs rules and produces results. Supports custom error messages via `withMessage()` and custom validators via `custom()`.
 
 ## Key Files
 
@@ -30,10 +31,10 @@ Three-layer system:
 
 ## Adding a New Validation Rule
 
-1. Add annotation class to `validations.dart` (extend `ValidationBase`, set `call` string)
+1. Add annotation class to `validations.dart` (extend `ValidationBase`, set `method` name, add `message` parameter)
 2. Add runtime rule class to `rule.dart` (extend `Rule` or `RuleWithNumTest`)
 3. Add method to `validate_value.dart` (creates `RuleHolder` wrapping the rule)
-4. If the rule has a non-standard value type (not String/int/double), update `processValidations()` in `field_helper.dart`
+4. If the rule has a non-standard value type (not String/int/double/List), update `processValidations()` in `field_helper.dart`
 5. Add unit tests to `test/rule_test.dart` and `test/annotations_test.dart`
 6. Test codegen e2e in `arrow_example/`
 
@@ -246,6 +247,43 @@ class StrictEntity {
   late String name;        // auto-required
   String? description;     // also required despite being nullable
 }
+```
+
+**Custom error messages:**
+```dart
+@EndorseField(validate: [
+  Required(message: 'Please provide your name'),
+  MaxLength(100, message: 'Name must be 100 characters or fewer'),
+])
+late String name;
+```
+
+**Custom validators (codegen path):**
+```dart
+@EndorseEntity()
+class MyEntity {
+  @EndorseField(validate: [
+    Required(),
+    CustomValidation('isEven', 'Must be an even number'),
+  ])
+  late int count;
+
+  // Static method referenced by CustomValidation
+  static bool isEven(Object? value) => value is int && value.isEven;
+
+  // ...
+  static final $endorse = _$MyEntityEndorse();
+}
+```
+
+**Custom validators (programmatic path):**
+```dart
+final validator = ValidateValue()
+  ..isRequired()
+  ..isInt()
+  ..custom('isEven', (v) => v is int && v.isEven, 'Must be even');
+
+final result = validator.from(input, 'count');
 ```
 
 ### Supported Field Types

@@ -553,3 +553,41 @@ class IsPhoneNumber extends ValidationBase {
   final String? message;
   const IsPhoneNumber({this.message});
 }
+
+// ============================================================================
+// Custom validation
+// ============================================================================
+
+/// Generates a custom validation rule that calls a static method on the
+/// entity class.
+///
+/// The [functionName] must match a static method on the annotated entity
+/// class with the signature `static bool functionName(Object? value)`.
+///
+/// Example:
+/// ```dart
+/// @EndorseEntity()
+/// class MyEntity {
+///   @EndorseField(validate: [
+///     Required(),
+///     CustomValidation('isEven', 'Must be an even number'),
+///   ])
+///   late int count;
+///
+///   static bool isEven(Object? value) => value is int && value.isEven;
+/// }
+/// ```
+class CustomValidation extends ValidationBase {
+  @override
+  final String method = 'custom';
+  @override
+  final String? message;
+
+  /// The name of the static method on the entity class to call.
+  final String functionName;
+
+  /// The error message to display when validation fails.
+  final String errorMessage;
+
+  const CustomValidation(this.functionName, this.errorMessage, {this.message});
+}

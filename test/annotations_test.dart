@@ -418,4 +418,26 @@ void main() {
       expect(v4.message, 'Must be a URL');
     });
   });
+
+  // ── CustomValidation annotation ──────────────────────────────────
+
+  group('CustomValidation annotation', () {
+    test('stores functionName and errorMessage', () {
+      const v = CustomValidation('isEven', 'Must be even');
+      expect(v.functionName, 'isEven');
+      expect(v.errorMessage, 'Must be even');
+      expect(v.method, 'custom');
+    });
+
+    test('message defaults to null', () {
+      const v = CustomValidation('isEven', 'Must be even');
+      expect(v.message, isNull);
+    });
+
+    test('accepts optional message', () {
+      const v = CustomValidation('isEven', 'Must be even',
+          message: 'Custom override');
+      expect(v.message, 'Custom override');
+    });
+  });
 }

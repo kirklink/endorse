@@ -101,12 +101,20 @@ Configures validation for a specific field. Only needed when adding validation r
 |-----------|-------------|
 | `MaxLength(n)` | String length <= n |
 | `MinLength(n)` | String length >= n |
+| `ExactLength(n)` | String length == n |
+| `IsNotEmpty()` | String must not be empty |
+| `IsAlpha()` | Letters only |
+| `IsAlphanumeric()` | Letters and digits only |
+| `Trim()` | Trim whitespace (coercion, not validation) |
 | `Matches(value)` | Exact string match |
 | `Contains(value)` | String contains substring |
 | `StartsWith(value)` | String starts with prefix |
 | `EndsWith(value)` | String ends with suffix |
 | `MatchesPattern(regex)` | Matches a regex pattern |
 | `IsEmail()` | Valid email format |
+| `IsUrl()` | Valid URL format |
+| `IsUuid()` | Valid UUID format |
+| `IsPhoneNumber()` | Valid phone number format |
 
 ### Numeric
 
@@ -114,6 +122,8 @@ Configures validation for a specific field. Only needed when adding validation r
 |-----------|-------------|
 | `IsGreaterThan(n)` | Value > n |
 | `IsLessThan(n)` | Value < n |
+| `IsGreaterThanOrEqual(n)` | Value >= n |
+| `IsLessThanOrEqual(n)` | Value <= n |
 | `IsEqualTo(n)` | Value == n |
 | `IsNotEqualTo(n)` | Value != n |
 
@@ -134,6 +144,19 @@ Configures validation for a specific field. Only needed when adding validation r
 | `IsSameDateAs(date)` | Same calendar date (ignores time) |
 
 DateTime annotations accept ISO 8601 strings, `'now'`, or `'today'`/`'today+N'`/`'today-N'`.
+
+### Enum / Allowlist
+
+| Annotation | Description |
+|-----------|-------------|
+| `IsOneOf(['a', 'b', 'c'])` | Value must be one of the allowed values |
+
+### Collection
+
+| Annotation | Description |
+|-----------|-------------|
+| `MinElements(n)` | List must have at least n elements |
+| `MaxElements(n)` | List must have at most n elements |
 
 ### Type Coercion
 
@@ -215,6 +238,62 @@ class Order {
 
 Lists of `@EndorseEntity` objects are also supported - each item in the list is validated against the entity's rules.
 
+## Custom Error Messages
+
+All annotations accept an optional `message` parameter to override the default error message:
+
+```dart
+@EndorseEntity()
+class User {
+  @EndorseField(validate: [Required(message: 'Please provide your name')])
+  late String name;
+
+  @EndorseField(validate: [
+    Required(),
+    MaxLength(100, message: 'Email must be 100 characters or fewer'),
+  ])
+  String? email;
+
+  @EndorseField(validate: [
+    Required(message: 'Age is required'),
+    IsGreaterThan(0, message: 'Age must be positive'),
+  ])
+  late int age;
+
+  User();
+  static final $endorse = _$UserEndorse();
+}
+```
+
+## Custom Validators
+
+For validation logic that doesn't fit a built-in rule, use `CustomValidation` to reference a static method on the entity class:
+
+```dart
+@EndorseEntity()
+class Order {
+  @EndorseField(validate: [
+    Required(),
+    CustomValidation('isEven', 'Must be an even number'),
+  ])
+  late int quantity;
+
+  // Static method: must accept Object? and return bool
+  static bool isEven(Object? value) => value is int && value.isEven;
+
+  Order();
+  static final $endorse = _$OrderEndorse();
+}
+```
+
+The builder validates that the referenced static method exists at build time. The generated code calls `..custom('isEven', Order.isEven, 'Must be an even number')`.
+
+`CustomValidation` also supports the `message` parameter for overriding the error message:
+
+```dart
+CustomValidation('isEven', 'Must be even', message: 'Custom override message')
+```
+
 ## Programmatic Validation
 
 You can also use `ValidateValue` directly without code generation:
@@ -230,4 +309,15 @@ final result = validator.from(input, 'fieldName');
 if (result.$isValid) {
   print(result.$value); // The validated (and possibly cast) value
 }
+```
+
+You can also add custom validators and custom error messages programmatically:
+
+```dart
+final validator = ValidateValue()
+  ..isRequired()
+  ..isInt()
+  ..custom('isEven', (v) => v is int && v.isEven, 'Must be an even number')
+  ..isGreaterThan(0)
+  ..withMessage('Must be a positive number');  // overrides previous rule's message
 ```

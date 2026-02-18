@@ -252,4 +252,11 @@ class ValidateValue {
   void isPhoneNumber() {
     rules.add(RuleHolder(IsPhoneNumberRule()));
   }
+
+  // Custom Validation
+
+  void custom(
+      String name, bool Function(Object?) test, String errorMessage) {
+    rules.add(RuleHolder(CustomRule(name, test, errorMessage)));
+  }
 }
