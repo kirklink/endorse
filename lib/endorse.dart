@@ -7,3 +7,4 @@ export 'src/endorse/validate_class.dart';
 export 'src/endorse/validate_list.dart';
 export 'src/endorse/result_object.dart';
 export 'src/endorse/endorse_class_validator.dart';
+export 'src/endorse/validation_error.dart';

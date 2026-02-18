@@ -4,7 +4,7 @@
 
 **Prerequisite:** Stabilization plan (Phases 1-5) complete. 48+ annotations, 48+ runtime rules, 400 tests passing.
 
-**Current Status:** Phases 4, 1, and 2 complete
+**Current Status:** Phases 4, 1, 2, and 3 complete
 
 ---
 
@@ -43,8 +43,8 @@
 | Declarative rules | Yes | Yes | Yes (schema) | Yes (fluent) |
 | Custom error messages | Yes | Yes | Yes | Yes |
 | Custom validators | Yes | Yes | Yes (.refine) | Yes |
-| Conditional validation | No | Yes (@ValidateIf) | Yes | Yes (.When) |
-| Cross-field validation | No | Yes | Yes (.superRefine) | Yes |
+| Conditional validation | Yes | Yes (@ValidateIf) | Yes | Yes (.When) |
+| Cross-field validation | Yes | Yes | Yes (.superRefine) | Yes |
 | Async validation | No | Yes | Yes | Yes |
 | Validation groups | No | Yes | No | Yes |
 | Type coercion | Yes | Yes (transform) | Yes (.coerce) | No |
@@ -559,4 +559,4 @@ Phase 4 should come first — it cleans up the annotation/builder contract befor
 ---
 
 **Last Updated:** 2026-02-18
-**Status:** Phases 4, 1, and 2 complete. 330 endorse tests + 145 e2e tests passing.
+**Status:** Phases 4, 1, 2, and 3 complete. 349 endorse tests + 181 e2e tests passing.

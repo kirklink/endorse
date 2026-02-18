@@ -6,11 +6,14 @@ class ClassResult extends ResultObject {
   final Map<String, ResultObject> _elements;
   final String _fieldName;
   final ValueResult? _fieldResult;
+  final List<ValidationError> _crossErrors;
   bool? _isValid;
   bool? _hasElementErrors;
 
   ClassResult(Map<String, ResultObject> fieldMap,
-      [this._fieldName = "", this._fieldResult])
+      [this._fieldName = "",
+      this._fieldResult,
+      this._crossErrors = const []])
       : _elements = fieldMap;
 
   @override
@@ -22,7 +25,7 @@ class ClassResult extends ResultObject {
       if (_fieldResult != null && _fieldResult!.$isNotValid) {
         _isValid = false;
       } else {
-        _isValid = !$hasElementErrors;
+        _isValid = !$hasElementErrors && _crossErrors.isEmpty;
       }
     }
     return _isValid!;
@@ -44,6 +47,8 @@ class ClassResult extends ResultObject {
     return _hasElementErrors!;
   }
 
+  List<ValidationError> get $crossErrors => _crossErrors;
+
   @override
   List<ValidationError> get $errors {
     final errors = <ValidationError>[];
@@ -53,6 +58,7 @@ class ClassResult extends ResultObject {
     for (final element in _elements.values) {
       errors.addAll(element.$errors);
     }
+    errors.addAll(_crossErrors);
     return errors;
   }
 

@@ -73,6 +73,7 @@ Marks a class for validation code generation.
 |-----------|------|---------|-------------|
 | `useCase` | `Case` | `Case.none` | Convert field names to a case format (camel, snake, etc.) |
 | `requireAll` | `bool` | `false` | Make all fields required |
+| `either` | `List<List<String>>` | `[]` | Groups of fields where at least one must be non-null |
 
 ### `@EndorseField()`
 
@@ -85,6 +86,7 @@ Configures validation for a specific field. Only needed when adding validation r
 | `ignore` | `bool` | `false` | Exclude field from validation |
 | `useCase` | `Case` | `Case.none` | Convert this field's name to a case format |
 | `name` | `String` | `''` | Map to a different key name in the input |
+| `when` | `When` | `null` | Only validate this field when a condition on a sibling field is met |
 
 ## Validation Rules
 
@@ -293,6 +295,92 @@ The builder validates that the referenced static method exists at build time. Th
 ```dart
 CustomValidation('isEven', 'Must be even', message: 'Custom override message')
 ```
+
+## Conditional Validation
+
+Use the `when` parameter on `@EndorseField` to conditionally validate a field based on the value of a sibling field. When the condition is not met, the field is treated as optional (validation rules are skipped).
+
+```dart
+@EndorseEntity()
+class ShippingForm {
+  @EndorseField(validate: [Required()])
+  late String country;
+
+  @EndorseField(
+    validate: [Required()],
+    when: When('country', isEqualTo: 'US'),
+  )
+  late String state;  // Only required when country is 'US'
+
+  @EndorseField(
+    validate: [Required(), MinLength(5)],
+    when: When('country', isNotNull: true),
+  )
+  late String postalCode;  // Only required when country is present
+
+  ShippingForm();
+  static final $endorse = _$ShippingFormEndorse();
+}
+```
+
+### `When` Conditions
+
+| Condition | Description | Example |
+|-----------|-------------|---------|
+| `isEqualTo` | Field equals a specific value | `When('type', isEqualTo: 'business')` |
+| `isNotNull` | Field is not null | `When('discount', isNotNull: true)` |
+| `isOneOf` | Field is one of several values | `When('payment', isOneOf: ['credit', 'debit'])` |
+
+## Cross-Field Validation
+
+For validation logic that spans multiple fields, define a static `crossValidate` method on your entity class. The builder detects it by convention and calls it after all field-level validation.
+
+```dart
+@EndorseEntity()
+class DateRange {
+  @EndorseField(validate: [Required()])
+  late String startDate;
+
+  @EndorseField(validate: [Required()])
+  late String endDate;
+
+  static List<ValidationError> crossValidate(Map<String, dynamic> input) {
+    final start = DateTime.tryParse(input['startDate']?.toString() ?? '');
+    final end = DateTime.tryParse(input['endDate']?.toString() ?? '');
+    if (start != null && end != null && end.isBefore(start)) {
+      return [
+        ValidationError('DateOrder', 'endDate must be after startDate', end, start.toString())
+      ];
+    }
+    return [];
+  }
+
+  DateRange();
+  static final $endorse = _$DateRangeEndorse();
+}
+```
+
+Cross-validation errors appear in `result.$errors` and `result.$crossErrors`. Individual field results are unaffected — a field can be valid even when cross-validation fails.
+
+## Either Constraint
+
+Use the `either` parameter on `@EndorseEntity` to require that at least one field in a group is non-null:
+
+```dart
+@EndorseEntity(either: [['email', 'phone']])
+class ContactInfo {
+  @EndorseField(validate: [IsEmail()])
+  String? email;
+
+  @EndorseField(validate: [MinLength(7)])
+  String? phone;
+
+  ContactInfo();
+  static final $endorse = _$ContactInfoEndorse();
+}
+```
+
+If neither `email` nor `phone` is provided, an `Either` error appears in `result.$errors`. Multiple groups are supported: `either: [['email', 'phone'], ['name', 'alias']]`.
 
 ## Programmatic Validation
 

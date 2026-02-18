@@ -61,8 +61,17 @@ class EndorseEntityGenerator extends GeneratorForAnnotation<EndorseEntity> {
         recase;
 
     final requireAll = annotation.peek('requireAll')?.boolValue ?? false;
+
+    final eitherGroups = <List<String>>[];
+    final eitherValue = annotation.peek('either')?.listValue ?? const [];
+    for (final group in eitherValue) {
+      eitherGroups.add(
+          group.toListValue()!.map((f) => f.toStringValue()!).toList());
+    }
+
     final tracker = Tracker();
-    final endorse = convertToEndorse(element, recase, requireAll, tracker);
+    final endorse = convertToEndorse(element, recase, requireAll, tracker,
+        eitherGroups: eitherGroups);
     return endorse.toString();
   }
 }

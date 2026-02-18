@@ -22,7 +22,7 @@ Iterable<DartType> _getGenericTypes(DartType type) {
 
 StringBuffer convertToEndorse(
     ClassElement clazz, int recase, bool globalRequireAll, Tracker tracker,
-    {int nestLevel = 0}) {
+    {int nestLevel = 0, List<List<String>> eitherGroups = const []}) {
   final pageBuf = StringBuffer();
   var privatePrefix = '_';
   if (nestLevel > 0) {
@@ -34,6 +34,21 @@ StringBuffer convertToEndorse(
     return pageBuf;
   } else {
     tracker.builtClasses.add(validatorClassName);
+  }
+
+  // Detect crossValidate static method
+  final hasCrossValidate = clazz.methods
+      .any((m) => m.isStatic && m.name == 'crossValidate');
+  final needsCrossErrors = hasCrossValidate || eitherGroups.isNotEmpty;
+
+  // Collect all field names for When validation
+  final allFieldNames = <String>{};
+  for (final klass in <InterfaceElement>[clazz, ...clazz.allSupertypes.map((t) => t.element)]) {
+    for (final f in klass.fields) {
+      if (!f.isStatic && !f.isSynthetic) {
+        allFieldNames.add(f.name!);
+      }
+    }
   }
 
   final rulesClassName = '__\$${clazz.name}ValidationRules';
@@ -98,6 +113,7 @@ StringBuffer convertToEndorse(
 
       final validations = <DartObject>[];
       final itemValidations = <DartObject>[];
+      DartObject? whenCondition;
 
       final requireAll = globalRequireAll;
 
@@ -123,6 +139,12 @@ StringBuffer convertToEndorse(
         validations.addAll(reader.peek('validate')?.listValue ?? const []);
         itemValidations
             .addAll(reader.peek('itemValidate')?.listValue ?? const []);
+
+        // Read When condition
+        final whenObj = reader.peek('when');
+        if (whenObj != null && !whenObj.isNull) {
+          whenCondition = whenObj.objectValue;
+        }
       }
 
       final fieldRulesBuf = StringBuffer();
@@ -266,17 +288,72 @@ StringBuffer convertToEndorse(
         }
       }
 
-      // var entityFieldType = "";
+      // Validate and generate When condition string
+      String? whenConditionExpr;
+      if (whenCondition != null) {
+        if (isList || isClass) {
+          throw EndorseBuilderException(
+              'When condition is not supported on list or nested entity fields '
+              '(field: $appName on ${clazz.name})');
+        }
+        final whenField = whenCondition.getField('field')!.toStringValue()!;
+        if (!allFieldNames.contains(whenField)) {
+          throw EndorseBuilderException(
+              'When condition on "$appName" references field "$whenField" '
+              'which does not exist on ${clazz.name}');
+        }
+
+        final isNotNullBool =
+            whenCondition.getField('isNotNull')?.toBoolValue() ?? false;
+        final isOneOfField = whenCondition.getField('isOneOf');
+        final isEqualToField = whenCondition.getField('isEqualTo');
+
+        if (isNotNullBool) {
+          whenConditionExpr = "input['$whenField'] != null";
+        } else if (isOneOfField != null && !isOneOfField.isNull) {
+          final values = isOneOfField
+              .toListValue()!
+              .map((v) => "'${v.toStringValue()}'")
+              .join(', ');
+          whenConditionExpr = "[$values].contains(input['$whenField'])";
+        } else if (isEqualToField != null && !isEqualToField.isNull) {
+          final eqType = isEqualToField.type;
+          String eqVal;
+          if (eqType!.isDartCoreString) {
+            eqVal = "'${isEqualToField.toStringValue()}'";
+          } else if (eqType.isDartCoreInt) {
+            eqVal = isEqualToField.toIntValue().toString();
+          } else if (eqType.isDartCoreBool) {
+            eqVal = isEqualToField.toBoolValue().toString();
+          } else {
+            eqVal = "'${isEqualToField.toStringValue()}'";
+          }
+          whenConditionExpr = "input['$whenField'] == $eqVal";
+        } else {
+          throw EndorseBuilderException(
+              'When condition on field "$appName" must specify '
+              'isEqualTo, isNotNull, or isOneOf');
+        }
+      }
 
       if (isValue && !isList) {
         rulesBuf
             .write('ValueResult ${appName}(Object? value) => (ValidateValue()');
         resultBufFields.writeln('final ValueResult ${appName};');
         resultBufConstructor.write('this.${appName}, ');
-        valBufValidate
-            .writeln("'${appName}': rules.${appName}(input['${jsonName}']),");
+        if (whenConditionExpr != null) {
+          valBufValidate.writeln("if ($whenConditionExpr)");
+          valBufValidate.writeln(
+              "  '${appName}': rules.${appName}(input['${jsonName}'])");
+          valBufValidate.writeln("else");
+          valBufValidate.writeln(
+              "  '${appName}': ValueResult('${jsonName}', input['${jsonName}'], const []),");
+        } else {
+          valBufValidate.writeln(
+              "'${appName}': rules.${appName}(input['${jsonName}']),");
+        }
         valBufConstructorFields.write("r['${appName}'] as ValueResult, ");
-        entityCreateBuf.writeln("..${appName} = ${appName}.\$value as ${field.type.getDisplayString(withNullability: false)}");
+        entityCreateBuf.writeln("..${appName} = ${appName}.\$value as ${field.type.getDisplayString(withNullability: true)}");
       }
 
       if (isList && isValue) {
@@ -460,8 +537,15 @@ StringBuffer convertToEndorse(
 
   // CLOSE
   rulesBuf.writeln('}');
-  // CLOSE
-  resultBufConstructor.writeln('Map<String, ResultObject> fieldMap, ) : super(fieldMap);');
+  // CLOSE result constructor
+  if (needsCrossErrors) {
+    resultBufConstructor.writeln(
+        'Map<String, ResultObject> fieldMap, '
+        '[List<ValidationError> crossErrors = const []]'
+        ') : super(fieldMap, "", null, crossErrors);');
+  } else {
+    resultBufConstructor.writeln('Map<String, ResultObject> fieldMap, ) : super(fieldMap);');
+  }
   // CLOSE
   resultBuf.writeln(resultBufFields);
   resultBuf.writeln(resultBufConstructor);
@@ -469,11 +553,39 @@ StringBuffer convertToEndorse(
   resultBuf.writeln('}');
   // CLOSE valBufValidate map
   valBufValidate.writeln('};');
-  // CLOSE - prepend the fieldMap to valBufConstructor
+
+  // Generate crossErrors list for crossValidate and/or either constraints
+  if (needsCrossErrors) {
+    if (hasCrossValidate) {
+      valBufValidate.writeln(
+          'final crossErrors = <ValidationError>[...${clazz.name}.crossValidate(input),];');
+    } else {
+      valBufValidate.writeln('final crossErrors = <ValidationError>[];');
+    }
+
+    // Generate either constraint checks
+    for (final group in eitherGroups) {
+      final fieldChecks =
+          group.map((f) => "input['$f'] != null").join(' || ');
+      final fieldNames = group.join(', ');
+      valBufValidate.writeln("if (!($fieldChecks)) {");
+      valBufValidate.writeln(
+          "  crossErrors.add(ValidationError('Either', "
+          "'At least one of [$fieldNames] must be provided', "
+          "null, '$fieldNames'));");
+      valBufValidate.writeln('}');
+    }
+  }
+
+  // CLOSE - build the return statement
   final valBufResult = StringBuffer();
   valBufResult.write('return ${resultClassName}( ');
   valBufResult.write(valBufConstructorFields);
-  valBufResult.write('r, ');
+  if (needsCrossErrors) {
+    valBufResult.write('r, crossErrors, ');
+  } else {
+    valBufResult.write('r, ');
+  }
   valBufResult.write(');');
 
   valBufConstructor.clear();

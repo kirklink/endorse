@@ -8,17 +8,17 @@ Validation library: annotations + code generation (source_gen/build_runner) + ru
 - `lib/src/builder/` - Code generation: source_gen builder, field/class helpers
 - `lib/annotations.dart` - Public annotation exports
 - `lib/endorse.dart` - Public runtime exports
-- `test/` - Unit tests (330 total)
+- `test/` - Unit tests (349 total)
 - `docs/stabilization-plan.md` - Stabilization roadmap (Phases 1-5 done)
-- `docs/modernization-plan.md` - Modernization roadmap (Phases 4, 1, 2 done)
+- `docs/modernization-plan.md` - Modernization roadmap (Phases 4, 1, 2, 3 done)
 
 ## Architecture
 
 Three-layer system:
 
-1. **Annotations** (`validations.dart`) - Const classes with a `method` name (e.g. `'isNotEmpty'`), optional `value` field, optional `message` for custom error messages
-2. **Code Generation** (`endorse_class_helper.dart`, `field_helper.dart`) - source_gen builder reads annotations, generates validator classes. Builder constructs method calls from `method` name + serialized `value`.
-3. **Runtime** (`rule.dart`, `validate_value.dart`, `evaluator.dart`) - Rule classes implement `pass()`, ValidateValue provides fluent API, Evaluator runs rules and produces results. Supports custom error messages via `withMessage()` and custom validators via `custom()`.
+1. **Annotations** (`validations.dart`, `annotations.dart`) - Const classes with a `method` name (e.g. `'isNotEmpty'`), optional `value` field, optional `message` for custom error messages. Also: `When` conditional, `EndorseEntity.either`, `CustomValidation`.
+2. **Code Generation** (`endorse_class_helper.dart`, `field_helper.dart`) - source_gen builder reads annotations, generates validator classes. Builder constructs method calls from `method` name + serialized `value`. Supports `When` conditionals (collection-if syntax), `crossValidate` detection, `Either` constraint codegen.
+3. **Runtime** (`rule.dart`, `validate_value.dart`, `evaluator.dart`, `class_result.dart`) - Rule classes implement `pass()`, ValidateValue provides fluent API, Evaluator runs rules and produces results. Supports custom error messages via `withMessage()`, custom validators via `custom()`, and cross-field errors via `ClassResult._crossErrors`.
 
 ## Key Files
 
@@ -284,6 +284,38 @@ final validator = ValidateValue()
   ..custom('isEven', (v) => v is int && v.isEven, 'Must be even');
 
 final result = validator.from(input, 'count');
+```
+
+**Conditional validation (When):**
+```dart
+@EndorseField(
+  validate: [Required()],
+  when: When('country', isEqualTo: 'US'),  // also: isNotNull, isOneOf
+)
+late String state;  // only validated when country == 'US'
+```
+
+**Cross-field validation (crossValidate):**
+```dart
+@EndorseEntity()
+class DateRange {
+  // ... fields ...
+  static List<ValidationError> crossValidate(Map<String, dynamic> input) {
+    // return list of ValidationError for cross-field violations
+    return [];
+  }
+}
+// Builder auto-detects the static method and calls it after field validation
+```
+
+**Mutual presence (Either):**
+```dart
+@EndorseEntity(either: [['email', 'phone']])
+class ContactInfo {
+  String? email;
+  String? phone;
+  // At least one must be non-null
+}
 ```
 
 ### Supported Field Types
