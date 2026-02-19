@@ -6,5 +6,5 @@ abstract class ResultObject {
   bool get $isValid;
   bool get $isNotValid;
   List<ValidationError> get $errors;
-  // Object get $errorsJson;
+  Object get $errorsJson;
 }

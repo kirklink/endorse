@@ -63,6 +63,23 @@ class ClassResult extends ResultObject {
   }
 
   @override
+  Object get $errorsJson {
+    final r = <String, Object>{};
+    if (_fieldResult != null && _fieldResult!.$isNotValid) {
+      r['_self'] = _fieldResult!.$errorsJson;
+    }
+    for (final k in _elements.keys) {
+      if (!_elements[k]!.$isValid) {
+        r[k] = _elements[k]!.$errorsJson;
+      }
+    }
+    if (_crossErrors.isNotEmpty) {
+      r['_cross'] = _crossErrors.map((e) => e.toJson()).toList();
+    }
+    return r;
+  }
+
+  @override
   Object? get $value {
     throw UnsupportedError(
         'ClassResult does not have a \$value. Use entity() instead.');

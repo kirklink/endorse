@@ -8,9 +8,9 @@ Validation library: annotations + code generation (source_gen/build_runner) + ru
 - `lib/src/builder/` - Code generation: source_gen builder, field/class helpers
 - `lib/annotations.dart` - Public annotation exports
 - `lib/endorse.dart` - Public runtime exports
-- `test/` - Unit tests (349 total)
+- `test/` - Unit tests (366 total)
 - `docs/stabilization-plan.md` - Stabilization roadmap (Phases 1-5 done)
-- `docs/modernization-plan.md` - Modernization roadmap (Phases 4, 1, 2, 3 done)
+- `docs/modernization-plan.md` - Modernization roadmap (Phases 4, 1, 2, 3, 5 done)
 
 ## Architecture
 
@@ -18,7 +18,7 @@ Three-layer system:
 
 1. **Annotations** (`validations.dart`, `annotations.dart`) - Const classes with a `method` name (e.g. `'isNotEmpty'`), optional `value` field, optional `message` for custom error messages. Also: `When` conditional, `EndorseEntity.either`, `CustomValidation`.
 2. **Code Generation** (`endorse_class_helper.dart`, `field_helper.dart`) - source_gen builder reads annotations, generates validator classes. Builder constructs method calls from `method` name + serialized `value`. Supports `When` conditionals (collection-if syntax), `crossValidate` detection, `Either` constraint codegen.
-3. **Runtime** (`rule.dart`, `validate_value.dart`, `evaluator.dart`, `class_result.dart`) - Rule classes implement `pass()`, ValidateValue provides fluent API, Evaluator runs rules and produces results. Supports custom error messages via `withMessage()`, custom validators via `custom()`, and cross-field errors via `ClassResult._crossErrors`.
+3. **Runtime** (`rule.dart`, `validate_value.dart`, `evaluator.dart`, `class_result.dart`) - Rule classes implement `pass()`, ValidateValue provides fluent API, Evaluator runs rules and produces results. Supports custom error messages via `withMessage()`, custom validators via `custom()`, cross-field errors via `ClassResult._crossErrors`, structured error JSON via `$errorsJson` on all result types, and safe entity access via generated `entityOrNull()`.
 
 ## Key Files
 
@@ -142,6 +142,9 @@ if (result.$isValid) {
   // Or hydrate the full entity
   final entity = result.entity();
   print(entity.name);  // 'Alice'
+
+  // Safe alternative (returns null instead of throwing)
+  final entityOrNull = result.entityOrNull();
 }
 
 // Handle errors
@@ -155,6 +158,10 @@ if (result.$isNotValid) {
   if (result.name.$isNotValid) {
     print(result.name.$errors);
   }
+
+  // Structured JSON for API responses
+  final errorsJson = result.$errorsJson;
+  // {"name": [{"required": {"message": "...", "got": "null"}}]}
 }
 ```
 
@@ -328,5 +335,5 @@ class ContactInfo {
 - Nullable fields (`String?`) are optional by default - validation rules are skipped when null
 - Non-nullable fields (`late String`) automatically get `Required()` unless you explicitly omit it
 - `Trim()` is a transform rule, not a validation - it modifies the value before subsequent rules run
-- `entity()` on a valid result hydrates the entity object; it throws on invalid results
+- `entity()` on a valid result hydrates the entity object; it throws on invalid results. Use `entityOrNull()` for a safe alternative that returns null instead of throwing
 - After changing annotations, always re-run `dart run build_runner build --delete-conflicting-outputs`

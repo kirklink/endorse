@@ -13,8 +13,10 @@ class ValueResult extends ResultObject {
   bool get $isValid => _validationErrors.isEmpty;
   bool get $isNotValid => _validationErrors.isNotEmpty;
 
+  @override
   Object get $errorsJson => _validationErrors.map((e) => e.toJson()).toList();
 
+  @override
   List<ValidationError> get $errors {
     return _validationErrors;
   }

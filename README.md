@@ -181,7 +181,45 @@ result.$isNotValid;   // bool - at least one field failed
 result.$errors;       // List<ValidationError> - all errors across fields
 
 if (result.$isValid) {
-  final user = result.entity(); // Typed entity with validated values
+  final user = result.entity();       // Typed entity (throws if invalid)
+  final user = result.entityOrNull(); // Typed entity or null (safe)
+}
+```
+
+### Structured Error JSON
+
+`$errorsJson` returns structured error data ready for API responses:
+
+```dart
+if (result.$isNotValid) {
+  return Response.json(result.$errorsJson);
+}
+```
+
+Output structure:
+```json
+{
+  "name": [{"required": {"message": "Field is required", "got": "null"}}],
+  "address": {
+    "street": [{"required": {"message": "Field is required", "got": "null"}}]
+  },
+  "_cross": [{"DateOrder": {"message": "end must be after start", "got": "..."}}]
+}
+```
+
+- **ClassResult**: `Map<String, Object>` — keys are field names, only invalid fields included. `_self` for field-level pre-validation errors, `_cross` for cross-field errors.
+- **ListResult**: `Map<String, Object>` — `_self` for list-level errors, indexed keys (`"0"`, `"1"`) for element errors.
+- **ValueResult**: `List<Map>` — list of `{ruleName: {message, got}}` error maps.
+- Empty map/list when valid.
+
+### Safe Entity Access
+
+`entityOrNull()` returns `null` instead of throwing when the result is invalid:
+
+```dart
+final user = result.entityOrNull();
+if (user != null) {
+  // use the validated entity
 }
 ```
 

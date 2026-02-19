@@ -534,6 +534,10 @@ StringBuffer convertToEndorse(
   entityCreateBuf.writeln("}");
   entityCreateBuf.writeln("throw Exception('Cannot create entity from invalid data');");
   entityCreateBuf.writeln("}");
+  entityCreateBuf.writeln("${clazz.name}? entityOrNull() {");
+  entityCreateBuf.writeln("if (\$isNotValid) return null;");
+  entityCreateBuf.writeln("return entity();");
+  entityCreateBuf.writeln("}");
 
   // CLOSE
   rulesBuf.writeln('}');

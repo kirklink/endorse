@@ -53,6 +53,20 @@ class ListResult extends ResultObject {
   List<ResultObject> get $elements => _elements;
 
   @override
+  Object get $errorsJson {
+    final r = <String, Object>{};
+    if (_value.$isNotValid) {
+      r['_self'] = _value.$errorsJson;
+    }
+    for (var i = 0; i < _elements.length; i++) {
+      if (!_elements[i].$isValid) {
+        r['$i'] = _elements[i].$errorsJson;
+      }
+    }
+    return r;
+  }
+
+  @override
   Object get $value {
     return _elements.map((e) => e.$value).toList();
   }
