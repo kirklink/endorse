@@ -1079,6 +1079,62 @@ class MaxElementsRule extends RuleWithNumTest {
   String want(Object? input, Object? testParam) => '<= ${test.toInt()}';
 }
 
+class UniqueElementsRule extends Rule {
+  const UniqueElementsRule();
+
+  @override
+  String get name => 'UniqueElements';
+
+  @override
+  bool pass(Object? input, Object? test) {
+    if (input is! List) return false;
+    return input.length == input.toSet().length;
+  }
+
+  @override
+  String errorMsg(Object? input, Object? test) =>
+      'All elements must be unique.';
+
+  @override
+  String got(Object? input, Object? test) {
+    if (input is! List) return 'not a list';
+    final seen = <Object?>{};
+    final dupes = <Object?>{};
+    for (final e in input) {
+      if (!seen.add(e)) dupes.add(e);
+    }
+    return 'duplicates: $dupes';
+  }
+
+  @override
+  String want(Object? input, Object? test) => 'all unique';
+}
+
+class AnyElementRule extends Rule {
+  final bool Function(Object?) _test;
+  AnyElementRule(this._test);
+
+  @override
+  String get name => 'AnyElement';
+
+  @override
+  bool pass(Object? input, Object? test) {
+    if (input is! List) return false;
+    return input.any(_test);
+  }
+
+  @override
+  String errorMsg(Object? input, Object? test) =>
+      'At least one element must pass the specified rules.';
+
+  @override
+  String got(Object? input, Object? test) =>
+      input is List ? '${input.length} element(s), none passed' : 'not a list';
+
+  @override
+  String want(Object? input, Object? test) => 'at least one match';
+}
+
 // ============================================================================
 // New Pattern-based Rules
 // ============================================================================

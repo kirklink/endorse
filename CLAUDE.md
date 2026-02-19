@@ -8,9 +8,9 @@ Validation library: annotations + code generation (source_gen/build_runner) + ru
 - `lib/src/builder/` - Code generation: source_gen builder, field/class helpers
 - `lib/annotations.dart` - Public annotation exports
 - `lib/endorse.dart` - Public runtime exports
-- `test/` - Unit tests (366 total)
+- `test/` - Unit tests (385 total)
 - `docs/stabilization-plan.md` - Stabilization roadmap (Phases 1-5 done)
-- `docs/modernization-plan.md` - Modernization roadmap (Phases 4, 1, 2, 3, 5 done)
+- `docs/modernization-plan.md` - Modernization roadmap (Phases 4, 1, 2, 3, 5, 9 done)
 
 ## Architecture
 
@@ -199,6 +199,8 @@ if (result.$isNotValid) {
 
 **Collection rules (for List fields):**
 - `MinElements(n)`, `MaxElements(n)`
+- `UniqueElements()` - all elements must be distinct
+- `AnyElement([rules])` - at least one element must pass the nested rules
 
 ### Advanced Patterns
 

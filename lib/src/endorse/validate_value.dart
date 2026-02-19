@@ -239,6 +239,15 @@ class ValidateValue {
     rules.add(RuleHolder(MaxElementsRule(test)));
   }
 
+  void uniqueElements() {
+    rules.add(RuleHolder(UniqueElementsRule()));
+  }
+
+  void anyElement(ValidateValue itemValidator) {
+    rules.add(RuleHolder(
+        AnyElementRule((item) => itemValidator.from(item, '').$isValid)));
+  }
+
   // New Pattern Rules
 
   void isUrl() {

@@ -4,7 +4,7 @@
 
 **Prerequisite:** Stabilization plan (Phases 1-5) complete. 48+ annotations, 48+ runtime rules, 400 tests passing.
 
-**Current Status:** Phases 4, 1, 2, 3, and 5 complete
+**Current Status:** Phases 4, 1, 2, 3, 5, and 9 complete
 
 ---
 
@@ -468,13 +468,15 @@ Transforms use the same `causesBail: false` + cast mechanism as `Trim()`. The ev
 
 ---
 
-## Phase 9: Advanced Collection Validation (Future Consideration)
+## Phase 9: Advanced Collection Validation — DONE
 
 **Goal:** Deeper validation of list contents beyond element-level rules
 
-Current collection support: `MinElements(n)`, `MaxElements(n)`, and per-element validation via `itemValidate`. Missing:
+### 9.1 Bug Fix: List Field-Level Validation Processing
 
-### 9.1 Uniqueness Constraint
+`processValidations(validations, fieldType)` was never called for list field-level annotations in `endorse_class_helper.dart`. The `isValue && !isList` guard meant annotations like `MinElements(2)` in the `validate:` list didn't generate code. Fixed by adding list field-level processing after item-level processing, including `CustomValidation` and `AnyElement` handling.
+
+### 9.2 UniqueElements
 
 ```dart
 @EndorseField(
@@ -484,18 +486,23 @@ Current collection support: `MinElements(n)`, `MaxElements(n)`, and per-element 
 late List<String> tags;
 ```
 
-### 9.2 Conditional Element Matching
+Runtime rule checks `input.length == input.toSet().length`. Error message reports which elements are duplicated.
+
+### 9.3 AnyElement
 
 ```dart
 @EndorseField(
-  validate: [Required(), AnyElement([IsGreaterThan(100)])],  // at least one > 100
+  validate: [Required(), AnyElement([IsGreaterThan(100)])],
 )
 late List<int> scores;
 ```
 
-### 9.3 Implementation
+Takes nested `List<ValidationBase>` annotations. Builder processes nested rules via `processValidations` with the element type for type checking. Runtime uses a closure-based rule to avoid circular dependency between `rule.dart` and `validate_value.dart`.
 
-These are runtime rules that operate on the list as a whole, not per-element. They fit naturally as `Rule` subclasses that check `input is List` and inspect contents.
+### 9.4 Tests
+
+- 19 unit tests: uniqueElements (8) + anyElement (7) + annotation tests (4)
+- 16 e2e tests in `arrow_example/test/collection_entity_test.dart`: MinElements, UniqueElements, AnyElement, MaxElements on nullable, combined field+item validation, entity hydration
 
 ---
 
@@ -546,10 +553,10 @@ Phase 4 should come first — it cleans up the annotation/builder contract befor
 | Conditional validation working e2e | Phase 3 done |
 | `$errorsJson` on all result types + `entityOrNull()` | Phase 5 done |
 | General-purpose transforms working | Phase 8 done |
-| Uniqueness and conditional element constraints | Phase 9 done |
+| UniqueElements + AnyElement collection constraints | Phase 9 done |
 | Feature parity with class-validator (core features) | Phases 1-3 done |
 
 ---
 
 **Last Updated:** 2026-02-19
-**Status:** Phases 4, 1, 2, 3, and 5 complete. 366 endorse tests + 190 e2e tests passing.
+**Status:** Phases 4, 1, 2, 3, 5, and 9 complete. 385 endorse tests + 223 e2e tests passing.

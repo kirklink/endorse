@@ -517,6 +517,51 @@ StringBuffer convertToEndorse(
         }
       }
 
+      // Process field-level validate annotations for list fields
+      // (MinElements, MaxElements, UniqueElements, etc.)
+      if (isList) {
+        if (validations.isNotEmpty) {
+          fieldRulesBuf.write(processValidations(validations, fieldType));
+        }
+        for (final rule in validations) {
+          final ruleName =
+              rule.type!.getDisplayString(withNullability: false);
+          if (ruleName == 'CustomValidation') {
+            final functionName =
+                rule.getField('functionName')!.toStringValue()!;
+            final errorMessage =
+                rule.getField('errorMessage')!.toStringValue()!;
+
+            final hasMethod =
+                clazz.methods.any((m) => m.isStatic && m.name == functionName);
+            if (!hasMethod) {
+              throw EndorseBuilderException(
+                  "CustomValidation references '$functionName' but no static "
+                  "method with that name was found on ${clazz.name}");
+            }
+
+            fieldRulesBuf.write(
+                "..custom('$functionName', ${clazz.name}.$functionName, '$errorMessage')");
+
+            final customMessage =
+                rule.getField('message')?.toStringValue();
+            if (customMessage != null) {
+              fieldRulesBuf.write("..withMessage('$customMessage')");
+            }
+          } else if (ruleName == 'AnyElement') {
+            final nestedRules = rule.getField('rules')!.toListValue()!;
+            final nestedCalls = processValidations(nestedRules, itemType);
+            fieldRulesBuf.write('..anyElement(ValidateValue()$nestedCalls)');
+
+            final customMessage =
+                rule.getField('message')?.toStringValue();
+            if (customMessage != null) {
+              fieldRulesBuf.write("..withMessage('$customMessage')");
+            }
+          }
+        }
+      }
+
       if (isValue && !isList && !isClass) {
         fieldRulesBuf.write(").from(value, '${jsonName}');");
       }

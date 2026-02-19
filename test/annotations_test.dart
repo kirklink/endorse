@@ -332,6 +332,30 @@ void main() {
       expect(v.validOnTypes, contains(List));
     });
 
+    test('UniqueElements', () {
+      const v = UniqueElements();
+      expect(v.method, 'uniqueElements');
+      expect(v.validOnTypes, contains(List));
+    });
+
+    test('UniqueElements with message', () {
+      const v = UniqueElements(message: 'No duplicates allowed');
+      expect(v.message, 'No duplicates allowed');
+    });
+
+    test('AnyElement', () {
+      const v = AnyElement([IsGreaterThan(100)]);
+      expect(v.method, 'anyElement');
+      expect(v.validOnTypes, contains(List));
+      expect(v.rules, hasLength(1));
+    });
+
+    test('AnyElement with message', () {
+      const v = AnyElement([MinLength(5)], message: 'Need at least one long item');
+      expect(v.message, 'Need at least one long item');
+      expect(v.rules, hasLength(1));
+    });
+
     test('IsUrl', () {
       const v = IsUrl();
       expect(v.method, 'isUrl');

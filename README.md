@@ -159,6 +159,8 @@ DateTime annotations accept ISO 8601 strings, `'now'`, or `'today'`/`'today+N'`/
 |-----------|-------------|
 | `MinElements(n)` | List must have at least n elements |
 | `MaxElements(n)` | List must have at most n elements |
+| `UniqueElements()` | All list elements must be distinct |
+| `AnyElement([rules])` | At least one element must pass the specified rules |
 
 ### Type Coercion
 

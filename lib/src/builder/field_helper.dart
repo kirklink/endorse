@@ -48,6 +48,13 @@ String processValidations(List<DartObject> validations, Type? type) {
       continue;
     }
 
+    // AnyElement is handled separately in endorse_class_helper
+    // because it needs nested rule processing with the element type.
+    if (rule.type!.getDisplayString(withNullability: false) ==
+        'AnyElement') {
+      continue;
+    }
+
     if (rule.type!
         .getDisplayString(withNullability: false)
         .startsWith('ToString')) {

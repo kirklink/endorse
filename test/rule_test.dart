@@ -774,6 +774,96 @@ void main() {
     });
   });
 
+  group('uniqueElements', () {
+    test('passes with all unique elements', () {
+      final r = validate([1, 2, 3], (v) => v.uniqueElements());
+      expect(r.$isValid, isTrue);
+    });
+
+    test('passes with empty list', () {
+      final r = validate([], (v) => v.uniqueElements());
+      expect(r.$isValid, isTrue);
+    });
+
+    test('passes with single element', () {
+      final r = validate([42], (v) => v.uniqueElements());
+      expect(r.$isValid, isTrue);
+    });
+
+    test('fails with duplicate ints', () {
+      final r = validate([1, 2, 1], (v) => v.uniqueElements());
+      expect(r.$isNotValid, isTrue);
+    });
+
+    test('fails with duplicate strings', () {
+      final r = validate(['a', 'b', 'a'], (v) => v.uniqueElements());
+      expect(r.$isNotValid, isTrue);
+    });
+
+    test('fails with all identical elements', () {
+      final r = validate([5, 5, 5], (v) => v.uniqueElements());
+      expect(r.$isNotValid, isTrue);
+    });
+
+    test('fails with non-list', () {
+      final r = validate('hello', (v) => v.uniqueElements());
+      expect(r.$isNotValid, isTrue);
+    });
+
+    test('error message reports duplicates', () {
+      final r = validate([1, 2, 1, 3, 2], (v) => v.uniqueElements());
+      expect(r.$isNotValid, isTrue);
+      final error = r.$errors.first;
+      expect(error.got, contains('duplicates'));
+    });
+  });
+
+  group('anyElement', () {
+    test('passes when one element matches', () {
+      final r = validate([50, 150, 30],
+          (v) => v.anyElement(ValidateValue()..isGreaterThan(100)));
+      expect(r.$isValid, isTrue);
+    });
+
+    test('passes when all elements match', () {
+      final r = validate([200, 150, 300],
+          (v) => v.anyElement(ValidateValue()..isGreaterThan(100)));
+      expect(r.$isValid, isTrue);
+    });
+
+    test('fails when no elements match', () {
+      final r = validate([10, 20, 30],
+          (v) => v.anyElement(ValidateValue()..isGreaterThan(100)));
+      expect(r.$isNotValid, isTrue);
+    });
+
+    test('fails with empty list', () {
+      final r = validate([],
+          (v) => v.anyElement(ValidateValue()..isGreaterThan(100)));
+      expect(r.$isNotValid, isTrue);
+    });
+
+    test('fails with non-list', () {
+      final r = validate('hello',
+          (v) => v.anyElement(ValidateValue()..isGreaterThan(100)));
+      expect(r.$isNotValid, isTrue);
+    });
+
+    test('works with string rules', () {
+      final r = validate(['short', 'this is a longer string'],
+          (v) => v.anyElement(ValidateValue()..minLength(10)));
+      expect(r.$isValid, isTrue);
+    });
+
+    test('error message is descriptive', () {
+      final r = validate([1, 2, 3],
+          (v) => v.anyElement(ValidateValue()..isGreaterThan(100)));
+      expect(r.$isNotValid, isTrue);
+      final error = r.$errors.first;
+      expect(error.message, contains('At least one'));
+    });
+  });
+
   // ── New Pattern Rules ─────────────────────────────────────────────
 
   group('isUrl', () {

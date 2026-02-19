@@ -517,6 +517,31 @@ class MaxElements extends ValidationBase {
   const MaxElements(this.value, {this.message});
 }
 
+/// Generates the uniqueElements rule for lists.
+/// Validates that all elements in the list are distinct (by ==).
+class UniqueElements extends ValidationBase {
+  @override
+  final String method = 'uniqueElements';
+  @override
+  final List<Type> validOnTypes = const [List];
+  @override
+  final String? message;
+  const UniqueElements({this.message});
+}
+
+/// Generates the anyElement rule for lists.
+/// Validates that at least one element passes the specified rules.
+class AnyElement extends ValidationBase {
+  @override
+  final String method = 'anyElement';
+  @override
+  final List<Type> validOnTypes = const [List];
+  @override
+  final String? message;
+  final List<ValidationBase> rules;
+  const AnyElement(this.rules, {this.message});
+}
+
 // ============================================================================
 // Pattern-based rules
 // ============================================================================

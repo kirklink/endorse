@@ -11,7 +11,7 @@
 | Phase 5: Dependencies & Polish | **DONE** | pedantic→lints, SDK >=3.0.0, CHANGELOG updated, lint warnings fixed |
 | Phase 6: Release | Not started | Ready when needed |
 
-**Current test counts:** 366 in endorse + 190 end-to-end in arrow_example = 556 total
+**Current test counts:** 385 in endorse + 223 end-to-end in arrow_example = 608 total
 
 **Branch:** `feature/initial-stabilization`
 
