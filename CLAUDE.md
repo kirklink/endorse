@@ -58,8 +58,8 @@ dart pub get
 
 ## Branch
 
-- Current stabilization branch: `feature/initial-stabilization`
-- Major dep upgrade branch: `feature/major-dep-upgrade`
+- Active development branch: `feature/major-dep-upgrade` (merged to `dev`)
+- Default branch: `main`
 
 ## Using Endorse
 

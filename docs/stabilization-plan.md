@@ -13,7 +13,7 @@
 
 **Current test counts:** 385 in endorse + 223 end-to-end in arrow_example = 608 total
 
-**Branch:** `feature/initial-stabilization`
+**Branch:** `feature/major-dep-upgrade` (merged to `dev`)
 
 ---
 
