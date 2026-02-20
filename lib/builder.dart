@@ -9,5 +9,8 @@ import 'package:source_gen/source_gen.dart';
 
 import 'src/builder/endorse_generator.dart';
 
+/// Creates the `SharedPartBuilder` for `build_runner`.
+///
+/// Referenced by `build.yaml` — not called directly by application code.
 Builder endorseBuilder(BuilderOptions options) =>
     SharedPartBuilder([EndorseGenerator()], 'endorse');

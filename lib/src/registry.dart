@@ -10,6 +10,7 @@ import 'validator.dart';
 /// }
 /// ```
 class EndorseRegistry {
+  /// The singleton registry instance.
   static final instance = EndorseRegistry._();
   EndorseRegistry._();
 

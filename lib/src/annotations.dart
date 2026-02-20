@@ -20,6 +20,7 @@ class Endorse {
   /// Example: `either: [['email', 'phone']]` — email or phone required.
   final List<List<String>> either;
 
+  /// Creates an endorse annotation with optional constraints.
   const Endorse({this.requireAll = false, this.either = const []});
 }
 
@@ -45,6 +46,8 @@ class EndorseField {
   /// Conditional validation — only validate when a sibling field meets a condition.
   final When? when;
 
+  /// Creates a field annotation with optional [rules], [itemRules], JSON [name]
+  /// override, [ignore] flag, and conditional [when] clause.
   const EndorseField({
     this.rules = const [],
     this.itemRules = const [],
@@ -80,5 +83,7 @@ class When {
   /// Condition: sibling field must be one of these values.
   final List<Object>? isOneOf;
 
+  /// Creates a condition on the sibling [field]. Provide exactly one of
+  /// [equals], [isNotNull], or [isOneOf].
   const When(this.field, {this.equals, this.isNotNull = false, this.isOneOf});
 }

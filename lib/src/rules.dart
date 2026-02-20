@@ -14,6 +14,7 @@ library;
 /// Subclasses must implement [check]. Override [bail] to stop the chain
 /// on failure, and [coerce] to transform the value before checking.
 abstract class Rule {
+  /// Creates a rule.
   const Rule();
 
   /// If true, validation stops when this rule fails.
@@ -33,7 +34,10 @@ abstract class Rule {
 
 /// Value must be non-null (and non-empty if a String).
 class Required extends Rule {
+  /// Custom error message. Defaults to `'is required'`.
   final String? message;
+
+  /// Creates a required-presence rule.
   const Required({this.message});
 
   @override
@@ -53,6 +57,7 @@ class Required extends Rule {
 
 /// Value must be a String.
 class IsString extends Rule {
+  /// Creates a string type check rule.
   const IsString();
 
   @override
@@ -68,6 +73,7 @@ class IsString extends Rule {
 
 /// Value must be an int. Coerces from double (if whole) and String.
 class IsInt extends Rule {
+  /// Creates an int type check rule with auto-coercion.
   const IsInt();
 
   @override
@@ -91,6 +97,7 @@ class IsInt extends Rule {
 
 /// Value must be a double. Coerces from int and String.
 class IsDouble extends Rule {
+  /// Creates a double type check rule with auto-coercion.
   const IsDouble();
 
   @override
@@ -114,6 +121,7 @@ class IsDouble extends Rule {
 
 /// Value must be a num. Coerces from String.
 class IsNum extends Rule {
+  /// Creates a num type check rule with auto-coercion.
   const IsNum();
 
   @override
@@ -137,6 +145,7 @@ class IsNum extends Rule {
 /// Value must be a bool. Coerces from String ('true'/'false', '1'/'0')
 /// and int (1/0).
 class IsBool extends Rule {
+  /// Creates a bool type check rule with auto-coercion.
   const IsBool();
 
   @override
@@ -167,6 +176,7 @@ class IsBool extends Rule {
 
 /// Value must be a DateTime. Coerces from String via [DateTime.tryParse].
 class IsDateTime extends Rule {
+  /// Creates a DateTime type check rule with auto-coercion.
   const IsDateTime();
 
   @override
@@ -189,6 +199,7 @@ class IsDateTime extends Rule {
 
 /// Value must be a Map.
 class IsMap extends Rule {
+  /// Creates a Map type check rule.
   const IsMap();
 
   @override
@@ -204,6 +215,7 @@ class IsMap extends Rule {
 
 /// Value must be a List.
 class IsList extends Rule {
+  /// Creates a List type check rule.
   const IsList();
 
   @override
@@ -223,8 +235,14 @@ class IsList extends Rule {
 
 /// String must have at least [min] characters.
 class MinLength extends Rule {
+  /// Minimum number of characters.
   final int min;
+
+  /// Custom error message. Defaults to `'must not be empty'` (when min is 1)
+  /// or `'must be at least N characters'`.
   final String? message;
+
+  /// Creates a minimum-length string rule.
   const MinLength(this.min, {this.message});
 
   @override
@@ -242,8 +260,13 @@ class MinLength extends Rule {
 
 /// String must have at most [max] characters.
 class MaxLength extends Rule {
+  /// Maximum number of characters.
   final int max;
+
+  /// Custom error message. Defaults to `'must be at most N characters'`.
   final String? message;
+
+  /// Creates a maximum-length string rule.
   const MaxLength(this.max, {this.message});
 
   @override
@@ -256,8 +279,13 @@ class MaxLength extends Rule {
 
 /// String must match the given regex [pattern].
 class Matches extends Rule {
+  /// The regex pattern to match against.
   final String pattern;
+
+  /// Custom error message. Defaults to `'must match pattern ...'`.
   final String? message;
+
+  /// Creates a regex pattern matching rule.
   const Matches(this.pattern, {this.message});
 
   @override
@@ -272,7 +300,10 @@ class Matches extends Rule {
 
 /// String must be a valid email address.
 class Email extends Rule {
+  /// Custom error message. Defaults to `'must be a valid email address'`.
   final String? message;
+
+  /// Creates an email format validation rule.
   const Email({this.message});
 
   static final _re =
@@ -288,7 +319,10 @@ class Email extends Rule {
 
 /// String must be a valid URL with scheme and authority.
 class Url extends Rule {
+  /// Custom error message. Defaults to `'must be a valid URL'`.
   final String? message;
+
+  /// Creates a URL format validation rule.
   const Url({this.message});
 
   @override
@@ -304,7 +338,10 @@ class Url extends Rule {
 
 /// String must be a valid UUID (v1–v5, lowercase or uppercase hex).
 class Uuid extends Rule {
+  /// Custom error message. Defaults to `'must be a valid UUID'`.
   final String? message;
+
+  /// Creates a UUID format validation rule.
   const Uuid({this.message});
 
   static final _re = RegExp(
@@ -326,8 +363,13 @@ class Uuid extends Rule {
 
 /// Number must be >= [min].
 class Min extends Rule {
+  /// Minimum allowed value (inclusive).
   final num min;
+
+  /// Custom error message. Defaults to `'must be at least N'`.
   final String? message;
+
+  /// Creates a minimum-value numeric rule.
   const Min(this.min, {this.message});
 
   @override
@@ -340,8 +382,13 @@ class Min extends Rule {
 
 /// Number must be <= [max].
 class Max extends Rule {
+  /// Maximum allowed value (inclusive).
   final num max;
+
+  /// Custom error message. Defaults to `'must be at most N'`.
   final String? message;
+
+  /// Creates a maximum-value numeric rule.
   const Max(this.max, {this.message});
 
   @override
@@ -358,8 +405,14 @@ class Max extends Rule {
 
 /// List must have at least [min] elements.
 class MinElements extends Rule {
+  /// Minimum number of elements.
   final int min;
+
+  /// Custom error message. Defaults to `'must not be empty'` (when min is 1)
+  /// or `'must have at least N elements'`.
   final String? message;
+
+  /// Creates a minimum-elements collection rule.
   const MinElements(this.min, {this.message});
 
   @override
@@ -377,8 +430,13 @@ class MinElements extends Rule {
 
 /// List must have at most [max] elements.
 class MaxElements extends Rule {
+  /// Maximum number of elements.
   final int max;
+
+  /// Custom error message. Defaults to `'must have at most N elements'`.
   final String? message;
+
+  /// Creates a maximum-elements collection rule.
   const MaxElements(this.max, {this.message});
 
   @override
@@ -391,7 +449,10 @@ class MaxElements extends Rule {
 
 /// All list elements must be distinct.
 class UniqueElements extends Rule {
+  /// Custom error message. Defaults to `'must contain unique elements'`.
   final String? message;
+
+  /// Creates a unique-elements collection rule.
   const UniqueElements({this.message});
 
   @override
@@ -410,8 +471,13 @@ class UniqueElements extends Rule {
 
 /// Value must be one of the [allowed] values.
 class OneOf extends Rule {
+  /// The set of allowed values.
   final List<Object> allowed;
+
+  /// Custom error message. Defaults to `'must be one of: ...'`.
   final String? message;
+
+  /// Creates an allowlist validation rule.
   const OneOf(this.allowed, {this.message});
 
   @override
@@ -440,8 +506,13 @@ class OneOf extends Rule {
 /// static bool isEven(Object? value) => value is int && value.isEven;
 /// ```
 class Custom extends Rule {
+  /// The name of the static validation method on the annotated class.
   final String methodName;
+
+  /// Error message shown when the custom check fails.
   final String? message;
+
+  /// Creates a custom validation rule referencing [methodName].
   const Custom(this.methodName, {this.message});
 
   @override
@@ -453,8 +524,11 @@ class Custom extends Rule {
 /// Runtime wrapper for custom validation functions.
 /// Generated by codegen — not used directly in annotations.
 class CustomRule extends Rule {
+  /// The validation function. Returns true if the value is valid.
   final bool Function(Object?) test;
   final String _message;
+
+  /// Creates a runtime custom rule with the given [test] function.
   CustomRule(this.test, [this._message = 'is invalid']);
 
   @override
@@ -471,6 +545,7 @@ class CustomRule extends Rule {
 
 /// Trims whitespace from both ends of a String. Transform only — never fails.
 class Trim extends Rule {
+  /// Creates a trim transform rule.
   const Trim();
 
   @override
@@ -482,6 +557,7 @@ class Trim extends Rule {
 
 /// Converts a String to lowercase. Transform only — never fails.
 class LowerCase extends Rule {
+  /// Creates a lowercase transform rule.
   const LowerCase();
 
   @override
@@ -494,6 +570,7 @@ class LowerCase extends Rule {
 
 /// Converts a String to uppercase. Transform only — never fails.
 class UpperCase extends Rule {
+  /// Creates an uppercase transform rule.
   const UpperCase();
 
   @override
@@ -528,8 +605,14 @@ DateTime _parseDateSpec(String spec) {
 
 /// DateTime must be before [date] (day-level comparison, time zeroed).
 class IsBeforeDate extends Rule {
+  /// Date spec to compare against (`'today'`, `'today+N'`, `'today-N'`,
+  /// or ISO 8601).
   final String date;
+
+  /// Custom error message. Defaults to `'must be before ...'`.
   final String? message;
+
+  /// Creates a before-date rule comparing at day granularity.
   const IsBeforeDate(this.date, {this.message});
 
   @override
@@ -544,8 +627,14 @@ class IsBeforeDate extends Rule {
 
 /// DateTime must be after [date] (day-level comparison, time zeroed).
 class IsAfterDate extends Rule {
+  /// Date spec to compare against (`'today'`, `'today+N'`, `'today-N'`,
+  /// or ISO 8601).
   final String date;
+
+  /// Custom error message. Defaults to `'must be after ...'`.
   final String? message;
+
+  /// Creates an after-date rule comparing at day granularity.
   const IsAfterDate(this.date, {this.message});
 
   @override
@@ -560,8 +649,14 @@ class IsAfterDate extends Rule {
 
 /// DateTime must be the same date as [date] (day-level comparison, time zeroed).
 class IsSameDate extends Rule {
+  /// Date spec to compare against (`'today'`, `'today+N'`, `'today-N'`,
+  /// or ISO 8601).
   final String date;
+
+  /// Custom error message. Defaults to `'must be the same date as ...'`.
   final String? message;
+
+  /// Creates a same-date rule comparing at day granularity.
   const IsSameDate(this.date, {this.message});
 
   @override
@@ -577,7 +672,10 @@ class IsSameDate extends Rule {
 
 /// DateTime must be in the future (full precision).
 class IsFutureDatetime extends Rule {
+  /// Custom error message. Defaults to `'must be in the future'`.
   final String? message;
+
+  /// Creates a future-datetime rule.
   const IsFutureDatetime({this.message});
 
   @override
@@ -592,7 +690,10 @@ class IsFutureDatetime extends Rule {
 
 /// DateTime must be in the past (full precision).
 class IsPastDatetime extends Rule {
+  /// Custom error message. Defaults to `'must be in the past'`.
   final String? message;
+
+  /// Creates a past-datetime rule.
   const IsPastDatetime({this.message});
 
   @override
@@ -607,8 +708,13 @@ class IsPastDatetime extends Rule {
 
 /// DateTime must be exactly the same moment as [date] (full precision).
 class IsSameDatetime extends Rule {
+  /// ISO 8601 date string to compare against.
   final String date;
+
+  /// Custom error message. Defaults to `'must be the same moment as ...'`.
   final String? message;
+
+  /// Creates a same-datetime rule at full precision.
   const IsSameDatetime(this.date, {this.message});
 
   @override
@@ -627,7 +733,10 @@ class IsSameDatetime extends Rule {
 
 /// String must be a valid IPv4 or IPv6 address.
 class IpAddress extends Rule {
+  /// Custom error message. Defaults to `'must be a valid IP address'`.
   final String? message;
+
+  /// Creates an IP address format validation rule.
   const IpAddress({this.message});
 
   static final _ipv4Re = RegExp(
