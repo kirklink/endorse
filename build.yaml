@@ -1,13 +1,15 @@
 targets:
   $default:
     builders:
-      endorse_builder:
+      endorse|endorse:
         enabled: true
-  
+        generate_for:
+          - test/samples/**
+
 builders:
-  endorse_builder:
-    import: "package:endorse/endorse.dart"
-    builder_factories: ["EndorseBuilder"]
+  endorse:
+    import: "package:endorse/builder.dart"
+    builder_factories: ["endorseBuilder"]
     build_extensions: {".dart": [".endorse.g.part"]}
     auto_apply: dependents
     build_to: cache

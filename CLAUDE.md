@@ -1,83 +1,191 @@
-# Endorse - Dart Validation Library
+# Endorse — AI Instructions
 
-Validation library: annotations + code generation (source_gen/build_runner) + runtime rules/evaluator.
+## What This Package Is
 
-## Project Structure
+Validation library: annotations + code generation (`source_gen`/`build_runner`) → type-safe validators + `toJson` serialization. Validates `Map<String, Object?>` input and returns either an immutable typed instance or structured field errors.
 
-- `lib/src/endorse/` - Runtime: rules, evaluator, result types, patterns
-- `lib/src/builder/` - Code generation: source_gen builder, field/class helpers
-- `lib/annotations.dart` - Public annotation exports
-- `lib/endorse.dart` - Public runtime exports
-- `test/` - Unit tests (385 total)
-- `docs/stabilization-plan.md` - Stabilization roadmap (Phases 1-5 done)
-- `docs/modernization-plan.md` - Modernization roadmap (Phases 4, 1, 2, 3, 5, 9 done)
+## Package Structure
 
-## Architecture
+```
+lib/
+  endorse.dart              ← barrel export (annotations, result, rules, validator, registry)
+  builder.dart              ← build_runner entry point (SharedPartBuilder)
+  src/
+    annotations.dart        ← @Endorse, @EndorseField, When
+    result.dart             ← sealed EndorseResult<T> → ValidResult<T> | InvalidResult<T>
+    validator.dart          ← EndorseValidator<T> interface
+    registry.dart           ← EndorseRegistry singleton
+    rules.dart              ← Rule base + all rules + checkRules()
+    builder/
+      endorse_generator.dart ← GeneratorForAnnotation<Endorse> (~900 lines)
+```
 
-Three-layer system:
+## Request Class Pattern (the one canonical form)
 
-1. **Annotations** (`validations.dart`, `annotations.dart`) - Const classes with a `method` name (e.g. `'isNotEmpty'`), optional `value` field, optional `message` for custom error messages. Also: `When` conditional, `EndorseEntity.either`, `CustomValidation`.
-2. **Code Generation** (`endorse_class_helper.dart`, `field_helper.dart`) - source_gen builder reads annotations, generates validator classes. Builder constructs method calls from `method` name + serialized `value`. Supports `When` conditionals (collection-if syntax), `crossValidate` detection, `Either` constraint codegen.
-3. **Runtime** (`rule.dart`, `validate_value.dart`, `evaluator.dart`, `class_result.dart`) - Rule classes implement `pass()`, ValidateValue provides fluent API, Evaluator runs rules and produces results. Supports custom error messages via `withMessage()`, custom validators via `custom()`, cross-field errors via `ClassResult._crossErrors`, structured error JSON via `$errorsJson` on all result types, and safe entity access via generated `entityOrNull()`.
+Every validated class MUST follow this exact structure:
 
-## Key Files
+```dart
+import 'package:endorse/endorse.dart';
 
-- `lib/src/endorse/validations.dart` - All annotation classes (48+)
-- `lib/src/endorse/rule.dart` - All runtime rule classes
-- `lib/src/endorse/validate_value.dart` - Fluent validation API (methods map 1:1 with rules)
-- `lib/src/endorse/evaluator.dart` - Runs rules, produces ValueResult
-- `lib/src/builder/endorse_class_helper.dart` - Main codegen: generates validator/result/entity classes
-- `lib/src/builder/field_helper.dart` - `processValidations()` handles annotation value substitution
+part 'my_request.g.dart';
 
-## Adding a New Validation Rule
+@Endorse()
+class MyRequest {
+  @EndorseField(rules: [MinLength(1), MaxLength(100)])
+  final String name;
 
-1. Add annotation class to `validations.dart` (extend `ValidationBase`, set `method` name, add `message` parameter)
-2. Add runtime rule class to `rule.dart` (extend `Rule` or `RuleWithNumTest`)
-3. Add method to `validate_value.dart` (creates `RuleHolder` wrapping the rule)
-4. If the rule has a non-standard value type (not String/int/double/List), update `processValidations()` in `field_helper.dart`
-5. Add unit tests to `test/rule_test.dart` and `test/annotations_test.dart`
-6. Test codegen e2e in `arrow_example/`
+  @EndorseField(rules: [Min(0)])
+  final int quantity;
+
+  final String? description;  // nullable = optional, no annotation needed
+
+  const MyRequest._({
+    required this.name,
+    required this.quantity,
+    this.description,
+  });
+
+  Map<String, dynamic> toJson() => _$MyRequestToJson(this);
+  static final $endorse = _$MyRequestValidator();
+}
+```
+
+**Required elements:**
+- `part 'filename.g.dart';`
+- `@Endorse()` on class
+- All fields `final`
+- Private constructor `const ClassName._({...})`
+- `Map<String, dynamic> toJson() => _$ClassNameToJson(this);`
+- `static final $endorse = _$ClassNameValidator();`
+
+**Inference rules (do NOT add manually):**
+- Non-nullable fields → `Required()` added automatically
+- Dart type → type rule added automatically (`String` → `IsString`, `int` → `IsInt`, etc.)
+- Only add `@EndorseField(rules: [...])` for validation rules beyond type/presence
+
+## Available Rules
+
+All rules accept optional `{message: 'custom error'}` to override defaults.
+
+**String:** `MinLength(n)`, `MaxLength(n)`, `Matches(pattern)`, `Email()`, `Url()`, `Uuid()`, `IpAddress()`
+**Numeric:** `Min(n)`, `Max(n)`
+**Collection:** `MinElements(n)`, `MaxElements(n)`, `UniqueElements()`
+**Enum:** `OneOf([values])`
+**Custom:** `Custom('staticMethodName', message: 'error message')`
+**Presence:** `Required()` (rarely needed — inferred from nullability)
+**Transform:** `Trim()`, `LowerCase()`, `UpperCase()` (no message needed)
+**Date (day granularity):** `IsBeforeDate(date)`, `IsAfterDate(date)`, `IsSameDate(date)` — specs: `'today'`, `'today+N'`, `'today-N'`, ISO 8601
+**Datetime (full precision):** `IsFutureDatetime()`, `IsPastDatetime()`, `IsSameDatetime(date)`
+
+## Nested Objects
+
+Any field typed as another `@Endorse()` class is validated recursively. Errors use dot-paths.
+
+```dart
+final Address address;           // required nested — errors: 'address.street'
+final Address? billingAddress;   // optional nested
+```
+
+## Nested Lists
+
+```dart
+@EndorseField(rules: [MinElements(1)])
+final List<OrderLine> lines;     // errors: 'lines.0.quantity'
+```
+
+## Primitive Lists with Item Rules
+
+```dart
+@EndorseField(rules: [MinElements(1), UniqueElements()], itemRules: [MinLength(1)])
+final List<String> tags;         // errors: 'tags.0', 'tags.1'
+```
+
+## Conditional Validation
+
+```dart
+@EndorseField(rules: [MinLength(2)], when: When('country', equals: 'US'))
+final String? state;  // becomes required when country == 'US'
+```
+
+When conditions: `equals`, `isNotNull: true`, `isOneOf: [...]`
+
+## Either Constraint
+
+```dart
+@Endorse(either: [['email', 'phone']])
+```
+
+At least one field in the group must be non-null.
+
+## Cross-Field Validation
+
+Add a static `crossValidate` method — codegen detects it by name convention:
+
+```dart
+static Map<String, List<String>> crossValidate(Map<String, Object?> input) {
+  final errors = <String, List<String>>{};
+  // validation logic
+  return errors;
+}
+```
+
+## Custom Validation
+
+```dart
+@EndorseField(rules: [Custom('isEven', message: 'must be an even number')])
+final int value;
+
+static bool isEven(Object? value) => value is int && value.isEven;
+```
+
+Method signature: `static bool name(Object? value)` — returns `true` if valid.
+
+## Field Name Mapping
+
+```dart
+@EndorseField(name: 'user_role', rules: [OneOf(['admin', 'user', 'guest'])])
+final String role;  // reads input['user_role'], writes 'user_role' in toJson
+```
+
+## Using the Validator
+
+```dart
+// Full validation (server pipeline)
+final result = MyRequest.$endorse.validate(inputMap);
+switch (result) {
+  case ValidResult(:final value): /* value is MyRequest */
+  case InvalidResult(:final fieldErrors): /* Map<String, List<String>> */
+}
+
+// Single-field validation (frontend forms)
+final errors = MyRequest.$endorse.validateField('name', userInput);
+
+// Field introspection
+final fields = MyRequest.$endorse.fieldNames; // Set<String>
+
+// Registry (server startup)
+EndorseRegistry.instance.register<MyRequest>(MyRequest.$endorse);
+final validator = EndorseRegistry.instance.get<MyRequest>();
+```
+
+## Auto-Coercion
+
+Built into type rules — no annotations needed:
+- `String` → `int`, `double`, `num`, `bool`, `DateTime`
+- `double` → `int` (if whole number)
+- `int` → `double`, `bool` (1/0)
 
 ## Commands
 
 ```bash
-# Run tests
-dart test
-
-# Analyze
-dart analyze
-
-# Get dependencies
-dart pub get
+dart run build_runner build --delete-conflicting-outputs  # generate .g.dart files
+dart test --reporter github 2>/dev/null                   # run tests
+dart analyze                                              # lint
 ```
 
 ## Build Configuration
 
-- `build.yaml`: `build_to: cache`, builder name `endorse`, applies `combining_builder`
-- Builder entry point: `lib/builder.dart`
-
-## Branch
-
-- Active development branch: `feature/major-dep-upgrade` (merged to `dev`)
-- Default branch: `main`
-
-## Using Endorse
-
-### Setup
-
-**pubspec.yaml:**
-```yaml
-dependencies:
-  endorse:
-    git:
-      url: git@github.com:kirklink/endorse.git
-      ref: feature/major-dep-upgrade
-
-dev_dependencies:
-  build_runner: ^2.11.0
-```
-
-**build.yaml** (at project root):
+`build.yaml` at consumer project root:
 ```yaml
 targets:
   $default:
@@ -87,255 +195,38 @@ targets:
           - lib/**
 ```
 
-### Defining an Entity
+Endorse's own `build.yaml` enables generation for `test/samples/**`.
 
-```dart
-import 'package:endorse/annotations.dart';
-import 'package:endorse/endorse.dart';
+## Test Structure
 
-part 'my_entity.g.dart';
+- `test/rules_test.dart` — unit tests for all rules and `checkRules()`
+- `test/result_test.dart` — sealed result type tests
+- `test/registry_test.dart` — registry operations
+- `test/e2e_test.dart` — end-to-end tests using generated validators
+- `test/samples/` — annotated sample classes with generated `.g.dart` files
 
-@EndorseEntity()
-class MyEntity {
-  @EndorseField(validate: [Required(), MaxLength(100)])
-  late String name;
+## Generator Internals (for modifying codegen)
 
-  @EndorseField(validate: [Required(), IsGreaterThan(0)])
-  late int age;
+`lib/src/builder/endorse_generator.dart` — `GeneratorForAnnotation<Endorse>`:
 
-  // Nullable fields are optional by default (no Required needed)
-  @EndorseField(validate: [IsEmail()])
-  String? email;
+1. Reads `@Endorse()` class annotation (requireAll, either)
+2. Processes fields: reads `@EndorseField`, infers type/required/nullable
+3. Generates `_$ClassNameValidator implements EndorseValidator<ClassName>`:
+   - Static rule lists per field
+   - Static `_checkFieldName()` methods calling `checkRules()`
+   - `validateField()` — switch on field name
+   - `validate()` — runs all checks, handles nested/list/when/either/crossValidate
+4. Generates `_$ClassNameToJson()` helper
 
-  MyEntity();
+Key internal types: `_FieldInfo`, `_RuleInfo`, `_WhenInfo`, `_TypeKind` enum.
 
-  // This line is required - connects to generated code
-  // ignore: non_constant_identifier_names
-  static final $endorse = _$MyEntityEndorse();
-}
-```
-
-### Code Generation
-
+After modifying the generator, regenerate test samples:
 ```bash
+cd /workspaces/dart/endorse
 dart run build_runner build --delete-conflicting-outputs
+dart test --reporter github 2>/dev/null
 ```
 
-This generates `my_entity.g.dart` with the validator class.
+## Branch
 
-### Using the Validator
-
-```dart
-// Validate a map (e.g. from JSON body)
-final result = MyEntity.$endorse.validate({
-  'name': 'Alice',
-  'age': 30,
-  'email': 'alice@example.com',
-});
-
-// Check validity
-if (result.$isValid) {
-  // Access individual field values
-  print(result.name.$value);  // 'Alice'
-  print(result.age.$value);   // 30
-
-  // Or hydrate the full entity
-  final entity = result.entity();
-  print(entity.name);  // 'Alice'
-
-  // Safe alternative (returns null instead of throwing)
-  final entityOrNull = result.entityOrNull();
-}
-
-// Handle errors
-if (result.$isNotValid) {
-  // All errors across all fields
-  for (final error in result.$errors) {
-    print('${error.rule}: ${error.message}');
-  }
-
-  // Per-field errors
-  if (result.name.$isNotValid) {
-    print(result.name.$errors);
-  }
-
-  // Structured JSON for API responses
-  final errorsJson = result.$errorsJson;
-  // {"name": [{"required": {"message": "...", "got": "null"}}]}
-}
-```
-
-### Available Validation Annotations
-
-**Type coercion (place before other rules):**
-- `IntFromString()` - parse string to int
-- `DoubleFromString()`, `NumFromString()`, `BoolFromString()`
-- `ToStringFromInt()`, `ToStringFromDouble()`, `ToStringFromNum()`, `ToStringFromBool()`
-
-**Requirement:**
-- `Required()` - field must not be null
-
-**String rules:**
-- `MaxLength(n)`, `MinLength(n)`, `ExactLength(n)`
-- `Matches(string)`, `Contains(string)`, `StartsWith(string)`, `EndsWith(string)`
-- `IsNotEmpty()`, `IsAlpha()`, `IsAlphanumeric()`, `Trim()`
-- `IsEmail()`, `IsUrl()`, `IsUuid()`, `IsPhoneNumber()`
-- `MatchesPattern(r'regex')`, `MatchesRawPattern(r'regex')`
-
-**Numeric rules:**
-- `IsGreaterThan(n)`, `IsLessThan(n)`
-- `IsGreaterThanOrEqual(n)`, `IsLessThanOrEqual(n)`
-- `IsEqualTo(n)`, `IsNotEqualTo(n)`
-
-**Boolean rules:**
-- `IsTrue()`, `IsFalse()`
-
-**DateTime rules:**
-- `IsBefore(dateString)`, `IsAfter(dateString)` - supports `'now'`, `'today'`, `'today+N'`, `'today-N'`
-- `IsAtMoment(dateString)`, `IsSameDateAs(dateString)`
-
-**Enum/allowlist:**
-- `IsOneOf(['value1', 'value2', 'value3'])`
-
-**Collection rules (for List fields):**
-- `MinElements(n)`, `MaxElements(n)`
-- `UniqueElements()` - all elements must be distinct
-- `AnyElement([rules])` - at least one element must pass the nested rules
-
-### Advanced Patterns
-
-**Nested entities:**
-```dart
-@EndorseEntity()
-class Address {
-  @EndorseField(validate: [Required()])
-  late String street;
-  // ...
-  static final $endorse = _$AddressEndorse();
-}
-
-@EndorseEntity()
-class User {
-  @EndorseField(validate: [Required()])
-  late Address address;  // validates as nested map
-  // ...
-}
-```
-
-**Lists of primitives with item validation:**
-```dart
-@EndorseField(
-  validate: [Required()],
-  itemValidate: [MinLength(1)],  // each item must be non-empty
-)
-late List<String> tags;
-```
-
-**Lists of entities:**
-```dart
-@EndorseField(validate: [Required()])
-late List<Address> addresses;  // each element validated as Address
-```
-
-**Field renaming (map key differs from Dart field name):**
-```dart
-@EndorseField(name: 'email_address', validate: [Required(), IsEmail()])
-late String email;  // reads from input['email_address']
-```
-
-**Ignoring fields:**
-```dart
-@EndorseField(ignore: true)
-late String internalOnly;  // skipped in validation entirely
-```
-
-**Require all fields:**
-```dart
-@EndorseEntity(requireAll: true)
-class StrictEntity {
-  late String name;        // auto-required
-  String? description;     // also required despite being nullable
-}
-```
-
-**Custom error messages:**
-```dart
-@EndorseField(validate: [
-  Required(message: 'Please provide your name'),
-  MaxLength(100, message: 'Name must be 100 characters or fewer'),
-])
-late String name;
-```
-
-**Custom validators (codegen path):**
-```dart
-@EndorseEntity()
-class MyEntity {
-  @EndorseField(validate: [
-    Required(),
-    CustomValidation('isEven', 'Must be an even number'),
-  ])
-  late int count;
-
-  // Static method referenced by CustomValidation
-  static bool isEven(Object? value) => value is int && value.isEven;
-
-  // ...
-  static final $endorse = _$MyEntityEndorse();
-}
-```
-
-**Custom validators (programmatic path):**
-```dart
-final validator = ValidateValue()
-  ..isRequired()
-  ..isInt()
-  ..custom('isEven', (v) => v is int && v.isEven, 'Must be even');
-
-final result = validator.from(input, 'count');
-```
-
-**Conditional validation (When):**
-```dart
-@EndorseField(
-  validate: [Required()],
-  when: When('country', isEqualTo: 'US'),  // also: isNotNull, isOneOf
-)
-late String state;  // only validated when country == 'US'
-```
-
-**Cross-field validation (crossValidate):**
-```dart
-@EndorseEntity()
-class DateRange {
-  // ... fields ...
-  static List<ValidationError> crossValidate(Map<String, dynamic> input) {
-    // return list of ValidationError for cross-field violations
-    return [];
-  }
-}
-// Builder auto-detects the static method and calls it after field validation
-```
-
-**Mutual presence (Either):**
-```dart
-@EndorseEntity(either: [['email', 'phone']])
-class ContactInfo {
-  String? email;
-  String? phone;
-  // At least one must be non-null
-}
-```
-
-### Supported Field Types
-
-`String`, `int`, `double`, `num`, `bool`, `DateTime`, `List<T>` (where T is any of these or another `@EndorseEntity`), and nested `@EndorseEntity` classes (validated as maps).
-
-### Key Things to Know
-
-- The `part 'filename.g.dart';` directive and `static final $endorse = _$EntityEndorse();` line are both required
-- Nullable fields (`String?`) are optional by default - validation rules are skipped when null
-- Non-nullable fields (`late String`) automatically get `Required()` unless you explicitly omit it
-- `Trim()` is a transform rule, not a validation - it modifies the value before subsequent rules run
-- `entity()` on a valid result hydrates the entity object; it throws on invalid results. Use `entityOrNull()` for a safe alternative that returns null instead of throwing
-- After changing annotations, always re-run `dart run build_runner build --delete-conflicting-outputs`
+Active: `dev` (submodule in parent workspace)

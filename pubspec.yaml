@@ -1,16 +1,17 @@
 name: endorse
 homepage: "https://github.com/kirklink/endorse"
-description: "Library for validating arbitrary objects such as API responses."
-version: 0.1.0-nullsafety.2
+description: "AI-first validation library for Dart with code generation."
+version: 2.0.0-dev.1
+
 environment:
-  sdk: '>=3.0.0 <4.0.0'
+  sdk: ^3.0.0
+
 dependencies:
-  recase: ^4.0.0
-  source_gen: ^4.2.0
   analyzer: ^10.1.0
   build: ^4.0.0
+  source_gen: ^4.2.0
+
 dev_dependencies:
   build_runner: ^2.11.0
   lints: ^5.0.0
   test: ^1.25.0
-  
