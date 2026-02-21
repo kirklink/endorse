@@ -337,6 +337,14 @@ void main() {
       expect(const Min(1.5).check(1.5), isNull);
       expect(const Min(1.5).check(1.0), 'must be at least 1.5');
     });
+
+    test('fails on NaN', () {
+      expect(const Min(0).check(double.nan), 'must be at least 0');
+    });
+
+    test('fails on NaN with custom message', () {
+      expect(const Min(0, message: 'bad').check(double.nan), 'bad');
+    });
   });
 
   group('Max', () {
@@ -347,6 +355,14 @@ void main() {
 
     test('fails when > max', () {
       expect(const Max(100).check(101), 'must be at most 100');
+    });
+
+    test('fails on NaN', () {
+      expect(const Max(100).check(double.nan), 'must be at most 100');
+    });
+
+    test('fails on NaN with custom message', () {
+      expect(const Max(100, message: 'bad').check(double.nan), 'bad');
     });
   });
 
@@ -750,6 +766,86 @@ void main() {
     test('skips non-string', () {
       expect(rule.check(42), isNull);
       expect(rule.check(null), isNull);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // NoControlChars
+  // ---------------------------------------------------------------------------
+  group('NoControlChars', () {
+    const rule = NoControlChars();
+
+    test('passes clean text', () {
+      expect(rule.check('hello world'), isNull);
+      expect(rule.check('Hello, World! 123'), isNull);
+      expect(rule.check(''), isNull);
+    });
+
+    test('allows tabs, newlines, carriage returns', () {
+      expect(rule.check('line1\nline2'), isNull);
+      expect(rule.check('col1\tcol2'), isNull);
+      expect(rule.check('line1\r\nline2'), isNull);
+    });
+
+    test('fails for null byte', () {
+      expect(rule.check('hello\x00world'), isNotNull);
+    });
+
+    test('fails for C0 controls (except tab/LF/CR)', () {
+      expect(rule.check('abc\x01def'), isNotNull); // SOH
+      expect(rule.check('abc\x08def'), isNotNull); // BS
+      expect(rule.check('abc\x0Bdef'), isNotNull); // VT
+      expect(rule.check('abc\x0Cdef'), isNotNull); // FF
+      expect(rule.check('abc\x1Fdef'), isNotNull); // US
+    });
+
+    test('fails for DEL', () {
+      expect(rule.check('abc\x7Fdef'), isNotNull);
+    });
+
+    test('fails for C1 controls', () {
+      expect(rule.check('abc\x80def'), isNotNull);
+      expect(rule.check('abc\x9Fdef'), isNotNull);
+    });
+
+    test('fails for zero-width characters', () {
+      expect(rule.check('abc\u200Bdef'), isNotNull); // ZWSP
+      expect(rule.check('abc\u200Fdef'), isNotNull); // RLM
+    });
+
+    test('fails for directional formatting', () {
+      expect(rule.check('abc\u202Adef'), isNotNull); // LRE
+      expect(rule.check('abc\u202Edef'), isNotNull); // RLO
+    });
+
+    test('fails for directional isolates', () {
+      expect(rule.check('abc\u2066def'), isNotNull); // LRI
+      expect(rule.check('abc\u2069def'), isNotNull); // PDI
+    });
+
+    test('fails for object replacement', () {
+      expect(rule.check('abc\uFFFCdef'), isNotNull);
+    });
+
+    test('custom message', () {
+      const custom = NoControlChars(message: 'bad chars');
+      expect(custom.check('abc\x00def'), 'bad chars');
+    });
+
+    test('skips non-string', () {
+      expect(rule.check(42), isNull);
+      expect(rule.check(null), isNull);
+    });
+  });
+
+  group('NoControlChars.containsControlChars', () {
+    test('returns false for clean text', () {
+      expect(NoControlChars.containsControlChars('hello'), isFalse);
+    });
+
+    test('returns true for text with control chars', () {
+      expect(NoControlChars.containsControlChars('a\x00b'), isTrue);
+      expect(NoControlChars.containsControlChars('\u200B'), isTrue);
     });
   });
 

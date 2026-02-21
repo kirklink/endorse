@@ -375,6 +375,7 @@ class Min extends Rule {
   @override
   String? check(Object? value) {
     if (value is! num) return null;
+    if (value.isNaN) return message ?? 'must be at least $min';
     if (value < min) return message ?? 'must be at least $min';
     return null;
   }
@@ -394,6 +395,7 @@ class Max extends Rule {
   @override
   String? check(Object? value) {
     if (value is! num) return null;
+    if (value.isNaN) return message ?? 'must be at most $max';
     if (value > max) return message ?? 'must be at most $max';
     return null;
   }
@@ -757,6 +759,66 @@ class IpAddress extends Rule {
       }
     }
     return message ?? 'must be a valid IP address';
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Security rules
+// ---------------------------------------------------------------------------
+
+/// String must not contain control characters (null bytes, zero-width spaces,
+/// directional overrides, etc.).
+///
+/// Allows tab (0x09), newline (0x0A), and carriage return (0x0D) which are
+/// legitimate in text fields. Rejects all other C0/C1 controls, DEL,
+/// zero-width marks, directional formatting, and object replacement.
+class NoControlChars extends Rule {
+  /// Custom error message. Defaults to `'must not contain control characters'`.
+  final String? message;
+
+  /// Creates a control character rejection rule.
+  const NoControlChars({this.message});
+
+  /// Returns true if [codeUnit] is a rejected control character.
+  ///
+  /// Rejects: C0 controls (except tab/LF/CR), DEL, C1 controls,
+  /// zero-width/directional marks, directional formatting,
+  /// directional isolates, object replacement.
+  static bool isControlChar(int codeUnit) {
+    // C0 controls except HT (0x09), LF (0x0A), CR (0x0D).
+    if (codeUnit <= 0x08) return true;
+    if (codeUnit == 0x0B || codeUnit == 0x0C) return true;
+    if (codeUnit >= 0x0E && codeUnit <= 0x1F) return true;
+    // DEL.
+    if (codeUnit == 0x7F) return true;
+    // C1 controls.
+    if (codeUnit >= 0x80 && codeUnit <= 0x9F) return true;
+    // Zero-width and directional marks.
+    if (codeUnit >= 0x200B && codeUnit <= 0x200F) return true;
+    // Directional formatting.
+    if (codeUnit >= 0x202A && codeUnit <= 0x202E) return true;
+    // Directional isolates.
+    if (codeUnit >= 0x2066 && codeUnit <= 0x2069) return true;
+    // Object replacement.
+    if (codeUnit == 0xFFFC) return true;
+    return false;
+  }
+
+  /// Returns true if [value] contains any rejected control character.
+  static bool containsControlChars(String value) {
+    for (var i = 0; i < value.length; i++) {
+      if (isControlChar(value.codeUnitAt(i))) return true;
+    }
+    return false;
+  }
+
+  @override
+  String? check(Object? value) {
+    if (value is! String) return null;
+    if (containsControlChars(value)) {
+      return message ?? 'must not contain control characters';
+    }
+    return null;
   }
 }
 

@@ -259,6 +259,10 @@ class EndorseGenerator extends GeneratorForAnnotation<Endorse> {
         return _RuleInfo('IpAddress', {
           'message': ruleObj.getField('message')?.toStringValue(),
         });
+      case 'NoControlChars':
+        return _RuleInfo('NoControlChars', {
+          'message': ruleObj.getField('message')?.toStringValue(),
+        });
       default:
         return null;
     }
@@ -480,6 +484,12 @@ class EndorseGenerator extends GeneratorForAnnotation<Endorse> {
           return msg != null
               ? "const IpAddress(message: '$msg')"
               : 'const IpAddress()';
+        }(),
+      'NoControlChars' => () {
+          final msg = rule.params['message'];
+          return msg != null
+              ? "const NoControlChars(message: '$msg')"
+              : 'const NoControlChars()';
         }(),
       _ => throw ArgumentError('Unknown rule: ${rule.name}'),
     };
