@@ -420,3 +420,8 @@ void main() {
 | `InvalidResult<T>` | Contains `.fieldErrors` — `Map<String, List<String>>` |
 | `EndorseValidator<T>` | Interface: `validate()`, `validateField()`, `fieldNames` |
 | `EndorseRegistry` | Singleton registry mapping types to validators |
+
+## Documentation
+
+- **For contributors:** See [CLAUDE.md](CLAUDE.md) — internals, architecture, file map
+- **For AI consumers:** See [docs/guide.md](docs/guide.md) — complete self-contained API reference
