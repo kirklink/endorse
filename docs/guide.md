@@ -315,6 +315,14 @@ All type rules bail on failure.
 | `Url` | `Url({String? message})` | `'must be a valid URL'` |
 | `Uuid` | `Uuid({String? message})` | `'must be a valid UUID'` |
 | `IpAddress` | `IpAddress({String? message})` | `'must be a valid IP address'` |
+| `NoControlChars` | `NoControlChars({String? message})` | `'must not contain control characters'` |
+
+`NoControlChars` rejects null bytes, zero-width spaces, RTL/LTR overrides, C0/C1 controls, and object replacement characters. Allows tabs, newlines, and carriage returns. Also provides static helpers for framework-level scanning:
+
+```dart
+NoControlChars.containsControlChars('hello\x00')  // true
+NoControlChars.isControlChar(0x00)                 // true
+```
 
 ### Numeric Rules
 

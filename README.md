@@ -137,6 +137,7 @@ final String name;
 | `Url()` | Valid URL with scheme and authority |
 | `Uuid()` | Valid UUID (v1–v5) |
 | `IpAddress()` | Valid IPv4 or IPv6 address |
+| `NoControlChars()` | Rejects null bytes, zero-width spaces, RTL overrides, C0/C1 controls (allows tabs, newlines, carriage returns) |
 
 ### Numeric
 

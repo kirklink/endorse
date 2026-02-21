@@ -67,7 +67,7 @@ class MyRequest {
 
 All rules accept optional `{message: 'custom error'}` to override defaults.
 
-**String:** `MinLength(n)`, `MaxLength(n)`, `Matches(pattern)`, `Email()`, `Url()`, `Uuid()`, `IpAddress()`
+**String:** `MinLength(n)`, `MaxLength(n)`, `Matches(pattern)`, `Email()`, `Url()`, `Uuid()`, `IpAddress()`, `NoControlChars()`
 **Numeric:** `Min(n)`, `Max(n)`
 **Collection:** `MinElements(n)`, `MaxElements(n)`, `UniqueElements()`
 **Enum:** `OneOf([values])`
