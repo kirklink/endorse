@@ -227,6 +227,20 @@ class EndorseGenerator extends GeneratorForAnnotation<Endorse> {
         return _RuleInfo('LowerCase');
       case 'UpperCase':
         return _RuleInfo('UpperCase');
+      case 'StripHtml':
+        return _RuleInfo('StripHtml');
+      case 'CollapseWhitespace':
+        return _RuleInfo('CollapseWhitespace');
+      case 'NormalizeNewlines':
+        return _RuleInfo('NormalizeNewlines');
+      case 'Truncate':
+        return _RuleInfo('Truncate', {
+          'max': ruleObj.getField('max')?.toIntValue(),
+        });
+      case 'Transform':
+        return _RuleInfo('Transform', {
+          'methodName': ruleObj.getField('methodName')?.toStringValue(),
+        });
       case 'IsBeforeDate':
         return _RuleInfo('IsBeforeDate', {
           'date': ruleObj.getField('date')?.toStringValue(),
@@ -451,6 +465,10 @@ class EndorseGenerator extends GeneratorForAnnotation<Endorse> {
       'Trim' => 'const Trim()',
       'LowerCase' => 'const LowerCase()',
       'UpperCase' => 'const UpperCase()',
+      'StripHtml' => 'const StripHtml()',
+      'CollapseWhitespace' => 'const CollapseWhitespace()',
+      'NormalizeNewlines' => 'const NormalizeNewlines()',
+      'Truncate' => 'const Truncate(${rule.params['max']})',
       'IsBeforeDate' => () {
           final msg = rule.params['message'];
           return "const IsBeforeDate('${rule.params['date']}'${msgArg(msg)})";
@@ -547,9 +565,14 @@ class EndorseGenerator extends GeneratorForAnnotation<Endorse> {
     final typeRule = _typeRuleSource(field.typeKind);
     if (typeRule != null) rules.add(typeRule);
 
-    // User rules (skip Required — already handled above; skip Custom — handled below)
+    // User rules (skip Required — already handled above;
+    // skip Custom — handled below; Transform — inline as TransformRule)
     for (final rule in field.rules) {
       if (rule.name == 'Required' || rule.name == 'Custom') continue;
+      if (rule.name == 'Transform') {
+        rules.add('TransformRule($className.${rule.params['methodName']})');
+        continue;
+      }
       rules.add(_ruleToSource(rule));
     }
 

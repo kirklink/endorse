@@ -575,6 +575,180 @@ void main() {
   });
 
   // ---------------------------------------------------------------------------
+  // StripHtml
+  // ---------------------------------------------------------------------------
+  group('StripHtml', () {
+    const rule = StripHtml();
+
+    test('strips HTML tags from string', () {
+      expect(rule.coerce('<b>hello</b>'), 'hello');
+    });
+
+    test('strips nested and multiple tags', () {
+      expect(rule.coerce('<div><p>text</p></div>'), 'text');
+    });
+
+    test('strips self-closing tags', () {
+      expect(rule.coerce('line<br/>break'), 'linebreak');
+    });
+
+    test('strips tags with attributes', () {
+      expect(rule.coerce('<a href="#">link</a>'), 'link');
+    });
+
+    test('passes through plain text', () {
+      expect(rule.coerce('no tags here'), 'no tags here');
+    });
+
+    test('passes through non-string', () {
+      expect(rule.coerce(42), 42);
+    });
+
+    test('passes through null', () {
+      expect(rule.coerce(null), isNull);
+    });
+
+    test('check always returns null', () {
+      expect(rule.check('<b>anything</b>'), isNull);
+      expect(rule.check(null), isNull);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // CollapseWhitespace
+  // ---------------------------------------------------------------------------
+  group('CollapseWhitespace', () {
+    const rule = CollapseWhitespace();
+
+    test('collapses multiple spaces', () {
+      expect(rule.coerce('hello   world'), 'hello world');
+    });
+
+    test('collapses tabs and newlines', () {
+      expect(rule.coerce('hello\t\n  world'), 'hello world');
+    });
+
+    test('trims leading and trailing whitespace', () {
+      expect(rule.coerce('  hello  '), 'hello');
+    });
+
+    test('handles mixed whitespace', () {
+      expect(rule.coerce('  a  \n\n  b  \t  c  '), 'a b c');
+    });
+
+    test('passes through non-string', () {
+      expect(rule.coerce(42), 42);
+    });
+
+    test('passes through null', () {
+      expect(rule.coerce(null), isNull);
+    });
+
+    test('check always returns null', () {
+      expect(rule.check('anything'), isNull);
+      expect(rule.check(null), isNull);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // NormalizeNewlines
+  // ---------------------------------------------------------------------------
+  group('NormalizeNewlines', () {
+    const rule = NormalizeNewlines();
+
+    test('replaces \\r\\n with \\n', () {
+      expect(rule.coerce('line1\r\nline2'), 'line1\nline2');
+    });
+
+    test('replaces lone \\r with \\n', () {
+      expect(rule.coerce('line1\rline2'), 'line1\nline2');
+    });
+
+    test('preserves existing \\n', () {
+      expect(rule.coerce('line1\nline2'), 'line1\nline2');
+    });
+
+    test('handles mixed line endings', () {
+      expect(rule.coerce('a\r\nb\rc\nd'), 'a\nb\nc\nd');
+    });
+
+    test('passes through non-string', () {
+      expect(rule.coerce(42), 42);
+    });
+
+    test('passes through null', () {
+      expect(rule.coerce(null), isNull);
+    });
+
+    test('check always returns null', () {
+      expect(rule.check('anything'), isNull);
+      expect(rule.check(null), isNull);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Truncate
+  // ---------------------------------------------------------------------------
+  group('Truncate', () {
+    test('truncates string longer than max', () {
+      const rule = Truncate(5);
+      expect(rule.coerce('hello world'), 'hello');
+    });
+
+    test('preserves string at exact max', () {
+      const rule = Truncate(5);
+      expect(rule.coerce('hello'), 'hello');
+    });
+
+    test('preserves string shorter than max', () {
+      const rule = Truncate(10);
+      expect(rule.coerce('hello'), 'hello');
+    });
+
+    test('truncates to zero', () {
+      const rule = Truncate(0);
+      expect(rule.coerce('hello'), '');
+    });
+
+    test('passes through non-string', () {
+      const rule = Truncate(5);
+      expect(rule.coerce(42), 42);
+    });
+
+    test('passes through null', () {
+      const rule = Truncate(5);
+      expect(rule.coerce(null), isNull);
+    });
+
+    test('check always returns null', () {
+      const rule = Truncate(5);
+      expect(rule.check('anything'), isNull);
+      expect(rule.check(null), isNull);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // TransformRule (runtime wrapper)
+  // ---------------------------------------------------------------------------
+  group('TransformRule', () {
+    test('applies transform function', () {
+      final rule = TransformRule((v) => v is String ? v.toUpperCase() : v);
+      expect(rule.coerce('hello'), 'HELLO');
+    });
+
+    test('passes through null when transform allows it', () {
+      final rule = TransformRule((v) => v);
+      expect(rule.coerce(null), isNull);
+    });
+
+    test('check always returns null', () {
+      final rule = TransformRule((v) => v);
+      expect(rule.check('anything'), isNull);
+      expect(rule.check(null), isNull);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
   // DateTime rules — Date (day granularity)
   // ---------------------------------------------------------------------------
   group('IsBeforeDate', () {
