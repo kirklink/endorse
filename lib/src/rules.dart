@@ -5,6 +5,8 @@
 /// from the Dart field type — users only specify validation rules.
 library;
 
+import 'package:disinfect/disinfect.dart' as html_sanitizer;
+
 // ---------------------------------------------------------------------------
 // Base
 // ---------------------------------------------------------------------------
@@ -938,6 +940,62 @@ class NoControlChars extends Rule {
     }
     return null;
   }
+}
+
+// ---------------------------------------------------------------------------
+// Sanitization
+// ---------------------------------------------------------------------------
+
+/// Sanitizes string input by stripping or filtering HTML.
+///
+/// Uses `package:disinfect` for whitelist-based HTML sanitization.
+/// Runs as a coerce step — transforms the value, never fails.
+///
+/// Default constructor strips ALL HTML tags (for plain text fields like
+/// names, emails, subjects). Use [Sanitize.rich] to allow a safe HTML
+/// subset (for rich text fields like bios, comments).
+///
+/// ```dart
+/// @EndorseField(rules: [Sanitize(), MinLength(2)])
+/// final String name;           // All HTML stripped
+///
+/// @EndorseField(rules: [Sanitize.rich(), MinLength(10)])
+/// final String message;        // Safe HTML allowed
+/// ```
+class Sanitize extends Rule {
+  /// If true, allows a safe subset of HTML tags.
+  /// If false (default), strips all HTML tags.
+  final bool allowHtml;
+
+  /// Strips all HTML tags. Use for plain text fields.
+  const Sanitize() : allowHtml = false;
+
+  /// Allows a safe HTML subset (p, b, i, a, ul, ol, li, etc.).
+  /// Strips `<script>`, `<style>`, `<iframe>` and their contents.
+  /// Use for rich text fields.
+  const Sanitize.rich() : allowHtml = true;
+
+  @override
+  Object? coerce(Object? value) {
+    if (value is! String) return value;
+    if (allowHtml) {
+      return html_sanitizer.disinfect(
+        value,
+        stripIgnoreTagBody: ['script', 'style', 'iframe'],
+      );
+    }
+    // Empty whitelist + stripIgnoreTag removes all tags but keeps text content.
+    // stripIgnoreTagBody only for dangerous tags whose content is executable.
+    return html_sanitizer.disinfect(
+      value,
+      whiteList: {},
+      stripIgnoreTag: true,
+      stripIgnoreTagBody: ['script', 'style', 'iframe'],
+    );
+  }
+
+  @override
+  String? check(Object? value) => null;
 }
 
 // ---------------------------------------------------------------------------

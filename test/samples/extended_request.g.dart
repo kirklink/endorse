@@ -73,6 +73,32 @@ class _$EventRequestValidator implements EndorseValidator<EventRequest> {
       deadline: values['deadline'] as DateTime?,
     ));
   }
+
+  @override
+  Map<String, Map<String, String>> get html5Attrs => const {
+        'name': {'required': '', 'minlength': '1'},
+        'startDate': {'required': '', 'type': 'date'},
+        'deadline': {'type': 'date'},
+      };
+
+  @override
+  Map<String, List<Map<String, Object?>>> get clientRules => const {
+        'name': [
+          {'rule': 'Required'},
+          {'rule': 'MinLength', 'min': 1, 'message': 'event name is required'},
+        ],
+        'startDate': [
+          {'rule': 'Required'},
+          {
+            'rule': 'IsAfterDate',
+            'date': 'today',
+            'message': 'must be a future date'
+          },
+        ],
+        'deadline': [
+          {'rule': 'IsFutureDatetime'},
+        ],
+      };
 }
 
 Map<String, dynamic> _$EventRequestToJson(EventRequest instance) => {
@@ -150,6 +176,29 @@ class _$ServerConfigValidator implements EndorseValidator<ServerConfig> {
       callbackUrl: values['callbackUrl'] as String?,
     ));
   }
+
+  @override
+  Map<String, Map<String, String>> get html5Attrs => const {
+        'host': {'required': ''},
+        'port': {'required': '', 'type': 'number', 'min': '1', 'max': '65535'},
+        'callbackUrl': {'type': 'url'},
+      };
+
+  @override
+  Map<String, List<Map<String, Object?>>> get clientRules => const {
+        'host': [
+          {'rule': 'Required'},
+          {'rule': 'IpAddress', 'message': 'enter a valid IP'},
+        ],
+        'port': [
+          {'rule': 'Required'},
+          {'rule': 'Min', 'min': 1, 'message': 'port must be positive'},
+          {'rule': 'Max', 'max': 65535},
+        ],
+        'callbackUrl': [
+          {'rule': 'Url'},
+        ],
+      };
 }
 
 Map<String, dynamic> _$ServerConfigToJson(ServerConfig instance) => {
@@ -215,6 +264,27 @@ class _$NormalizedInputValidator implements EndorseValidator<NormalizedInput> {
       countryCode: values['countryCode'] as String,
     ));
   }
+
+  @override
+  Map<String, Map<String, String>> get html5Attrs => const {
+        'email': {'required': '', 'type': 'email'},
+        'countryCode': {'required': ''},
+      };
+
+  @override
+  Map<String, List<Map<String, Object?>>> get clientRules => const {
+        'email': [
+          {'rule': 'Required'},
+          {'rule': 'Email'},
+        ],
+        'countryCode': [
+          {'rule': 'Required'},
+          {
+            'rule': 'OneOf',
+            'allowed': ['US', 'CA', 'UK']
+          },
+        ],
+      };
 }
 
 Map<String, dynamic> _$NormalizedInputToJson(NormalizedInput instance) => {

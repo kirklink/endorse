@@ -277,6 +277,10 @@ class EndorseGenerator extends GeneratorForAnnotation<Endorse> {
         return _RuleInfo('NoControlChars', {
           'message': ruleObj.getField('message')?.toStringValue(),
         });
+      case 'Sanitize':
+        return _RuleInfo('Sanitize', {
+          'allowHtml': ruleObj.getField('allowHtml')?.toBoolValue() ?? false,
+        });
       default:
         return null;
     }
@@ -509,6 +513,10 @@ class EndorseGenerator extends GeneratorForAnnotation<Endorse> {
               ? "const NoControlChars(message: '$msg')"
               : 'const NoControlChars()';
         }(),
+      'Sanitize' => () {
+          final allowHtml = rule.params['allowHtml'] as bool? ?? false;
+          return allowHtml ? 'const Sanitize.rich()' : 'const Sanitize()';
+        }(),
       _ => throw ArgumentError('Unknown rule: ${rule.name}'),
     };
   }
@@ -547,6 +555,12 @@ class EndorseGenerator extends GeneratorForAnnotation<Endorse> {
     // validate
     _generateValidate(
         buf, className, fields, eitherGroups, hasCrossValidate);
+
+    // html5Attrs
+    _generateHtml5Attrs(buf, fields);
+
+    // clientRules
+    _generateClientRules(buf, fields);
 
     buf.writeln('}');
   }
@@ -992,6 +1006,201 @@ class EndorseGenerator extends GeneratorForAnnotation<Endorse> {
       }
     }
     buf.writeln('    };');
+  }
+
+  // ---------------------------------------------------------------------------
+  // Form metadata generation
+  // ---------------------------------------------------------------------------
+
+  /// Set of rule names that are validation checks (not transforms).
+  /// Only these produce clientRules entries.
+  static const _validationRuleNames = {
+    'Required',
+    'MinLength',
+    'MaxLength',
+    'Matches',
+    'Email',
+    'Url',
+    'Uuid',
+    'Min',
+    'Max',
+    'MinElements',
+    'MaxElements',
+    'UniqueElements',
+    'OneOf',
+    'IpAddress',
+    'NoControlChars',
+    'IsBeforeDate',
+    'IsAfterDate',
+    'IsSameDate',
+    'IsFutureDatetime',
+    'IsPastDatetime',
+    'IsSameDatetime',
+  };
+
+  void _generateHtml5Attrs(StringBuffer buf, List<_FieldInfo> fields) {
+    buf.writeln('  @override');
+    buf.writeln(
+        '  Map<String, Map<String, String>> get html5Attrs => const {');
+
+    for (final field in fields) {
+      if (field.isNested || field.isNestedList || field.isList) continue;
+
+      final attrs = <String, String>{};
+
+      // Required: non-nullable fields or explicit Required rule.
+      if (field.isRequired || field.rules.any((r) => r.name == 'Required')) {
+        attrs['required'] = '';
+      }
+
+      // Type-based attributes.
+      switch (field.typeKind) {
+        case _TypeKind.int_:
+        case _TypeKind.double_:
+        case _TypeKind.num_:
+          attrs['type'] = 'number';
+        case _TypeKind.dateTime:
+          attrs['type'] = 'date';
+        default:
+          break;
+      }
+
+      // Rule-based attributes.
+      for (final rule in field.rules) {
+        switch (rule.name) {
+          case 'Email':
+            attrs['type'] = 'email';
+          case 'Url':
+            attrs['type'] = 'url';
+          case 'MinLength':
+            final min = rule.params['min'];
+            if (min != null) attrs['minlength'] = '$min';
+          case 'MaxLength':
+            final max = rule.params['max'];
+            if (max != null) attrs['maxlength'] = '$max';
+          case 'Min':
+            final min = rule.params['min'];
+            if (min != null) attrs['min'] = '$min';
+          case 'Max':
+            final max = rule.params['max'];
+            if (max != null) attrs['max'] = '$max';
+          case 'Matches':
+            final pattern = rule.params['pattern'];
+            if (pattern != null) attrs['pattern'] = '$pattern';
+          default:
+            break;
+        }
+      }
+
+      if (attrs.isEmpty) continue;
+
+      final entries = attrs.entries
+          .map((e) => "'${e.key}': ${_dartStringLiteral(e.value)}")
+          .join(', ');
+      buf.writeln("    '${field.dartName}': {$entries},");
+    }
+
+    buf.writeln('  };');
+    buf.writeln();
+  }
+
+  void _generateClientRules(StringBuffer buf, List<_FieldInfo> fields) {
+    buf.writeln('  @override');
+    buf.writeln(
+        '  Map<String, List<Map<String, Object?>>> get clientRules => const {');
+
+    for (final field in fields) {
+      if (field.isNested || field.isNestedList || field.isList) continue;
+
+      final descriptors = <String>[];
+
+      // Add Required if field is required.
+      final hasExplicitRequired =
+          field.rules.any((r) => r.name == 'Required');
+      if (field.isRequired || hasExplicitRequired) {
+        final msg = hasExplicitRequired
+            ? field.rules
+                .firstWhere((r) => r.name == 'Required')
+                .params['message']
+            : null;
+        descriptors.add(_clientRuleDescriptor('Required', msg: msg));
+      }
+
+      // Add user-specified validation rules (skip Required — handled above).
+      for (final rule in field.rules) {
+        if (rule.name == 'Required') continue;
+        if (!_validationRuleNames.contains(rule.name)) continue;
+        descriptors.add(_clientRuleDescriptorFromRule(rule));
+      }
+
+      if (descriptors.isEmpty) continue;
+
+      buf.writeln("    '${field.dartName}': [");
+      for (final d in descriptors) {
+        buf.writeln('      $d,');
+      }
+      buf.writeln('    ],');
+    }
+
+    buf.writeln('  };');
+    buf.writeln();
+  }
+
+  String _clientRuleDescriptor(String rule, {Object? msg}) {
+    final parts = <String>["'rule': '$rule'"];
+    if (msg != null) parts.add("'message': ${_dartStringLiteral('$msg')}");
+    return '{${parts.join(', ')}}';
+  }
+
+  String _clientRuleDescriptorFromRule(_RuleInfo rule) {
+    final parts = <String>["'rule': '${rule.name}'"];
+
+    // Add rule-specific params (skip 'message').
+    for (final entry in rule.params.entries) {
+      if (entry.key == 'message') continue;
+      if (entry.value == null) continue;
+      final value = entry.value;
+      if (value is String) {
+        // Check if it's a numeric string from _readNum (Min/Max params).
+        if (num.tryParse(value) != null) {
+          parts.add("'${entry.key}': $value");
+        } else if (value.startsWith('[')) {
+          // Dart source list literal from _readObjectList (e.g. OneOf allowed).
+          parts.add("'${entry.key}': $value");
+        } else {
+          parts.add("'${entry.key}': ${_dartStringLiteral(value)}");
+        }
+      } else {
+        parts.add("'${entry.key}': $value");
+      }
+    }
+
+    // Add message last if present.
+    final msg = rule.params['message'];
+    if (msg != null) parts.add("'message': ${_dartStringLiteral(msg as String)}");
+
+    return '{${parts.join(', ')}}';
+  }
+
+  /// Produces a Dart string literal that is safe to embed in generated code.
+  ///
+  /// Uses a raw string (`r'...'`) when the value contains backslashes or
+  /// dollar signs (common in regex patterns) and no single quotes.
+  /// Otherwise uses a regular single-quoted string with escaping.
+  String _dartStringLiteral(String s) {
+    if (s.isEmpty) return "''";
+    final hasBackslashOrDollar =
+        s.contains(r'\') || s.contains(r'$');
+    final hasSingleQuote = s.contains("'");
+    if (hasBackslashOrDollar && !hasSingleQuote) {
+      return "r'$s'";
+    }
+    // Regular string: escape \ $ and '
+    final escaped = s
+        .replaceAll(r'\', r'\\')
+        .replaceAll(r'$', r'\$')
+        .replaceAll("'", r"\'");
+    return "'$escaped'";
   }
 
   // ---------------------------------------------------------------------------

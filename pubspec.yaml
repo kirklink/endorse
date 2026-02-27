@@ -2,6 +2,7 @@ name: endorse
 homepage: "https://github.com/kirklink/endorse"
 description: "AI-first validation library for Dart with code generation."
 version: 2.0.0-dev.1
+publish_to: none
 
 environment:
   sdk: ^3.0.0
@@ -9,6 +10,8 @@ environment:
 dependencies:
   analyzer: ^10.1.0
   build: ^4.0.0
+  disinfect:
+    path: ../disinfect
   source_gen: ^4.2.0
 
 dev_dependencies:

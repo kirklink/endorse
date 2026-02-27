@@ -72,6 +72,25 @@ class _$CreateItemRequestValidator
       description: values['description'] as String?,
     ));
   }
+
+  @override
+  Map<String, Map<String, String>> get html5Attrs => const {
+        'name': {'required': '', 'minlength': '1', 'maxlength': '100'},
+        'quantity': {'required': '', 'type': 'number', 'min': '0'},
+      };
+
+  @override
+  Map<String, List<Map<String, Object?>>> get clientRules => const {
+        'name': [
+          {'rule': 'Required'},
+          {'rule': 'MinLength', 'min': 1},
+          {'rule': 'MaxLength', 'max': 100},
+        ],
+        'quantity': [
+          {'rule': 'Required'},
+          {'rule': 'Min', 'min': 0},
+        ],
+      };
 }
 
 Map<String, dynamic> _$CreateItemRequestToJson(CreateItemRequest instance) => {
@@ -159,6 +178,34 @@ class _$UserProfileValidator implements EndorseValidator<UserProfile> {
       age: values['age'] as int?,
     ));
   }
+
+  @override
+  Map<String, Map<String, String>> get html5Attrs => const {
+        'displayName': {'required': '', 'minlength': '2', 'maxlength': '50'},
+        'email': {'required': '', 'type': 'email'},
+        'role': {'required': ''},
+        'age': {'type': 'number'},
+      };
+
+  @override
+  Map<String, List<Map<String, Object?>>> get clientRules => const {
+        'displayName': [
+          {'rule': 'Required'},
+          {'rule': 'MinLength', 'min': 2},
+          {'rule': 'MaxLength', 'max': 50},
+        ],
+        'email': [
+          {'rule': 'Required'},
+          {'rule': 'Email'},
+        ],
+        'role': [
+          {'rule': 'Required'},
+          {
+            'rule': 'OneOf',
+            'allowed': ['admin', 'user', 'guest']
+          },
+        ],
+      };
 }
 
 Map<String, dynamic> _$UserProfileToJson(UserProfile instance) => {

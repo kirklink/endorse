@@ -73,6 +73,33 @@ class _$AddressValidator implements EndorseValidator<Address> {
       zip: values['zip'] as String,
     ));
   }
+
+  @override
+  Map<String, Map<String, String>> get html5Attrs => const {
+        'street': {'required': '', 'minlength': '1'},
+        'city': {'required': '', 'minlength': '1'},
+        'zip': {'required': '', 'pattern': r'^\d{5}$'},
+      };
+
+  @override
+  Map<String, List<Map<String, Object?>>> get clientRules => const {
+        'street': [
+          {'rule': 'Required'},
+          {'rule': 'MinLength', 'min': 1},
+        ],
+        'city': [
+          {'rule': 'Required'},
+          {'rule': 'MinLength', 'min': 1},
+        ],
+        'zip': [
+          {'rule': 'Required'},
+          {
+            'rule': 'Matches',
+            'pattern': r'^\d{5}$',
+            'message': 'must be a 5-digit zip code'
+          },
+        ],
+      };
 }
 
 Map<String, dynamic> _$AddressToJson(Address instance) => {
@@ -130,6 +157,23 @@ class _$OrderLineValidator implements EndorseValidator<OrderLine> {
       quantity: values['quantity'] as int,
     ));
   }
+
+  @override
+  Map<String, Map<String, String>> get html5Attrs => const {
+        'productId': {'required': ''},
+        'quantity': {'required': '', 'type': 'number', 'min': '1'},
+      };
+
+  @override
+  Map<String, List<Map<String, Object?>>> get clientRules => const {
+        'productId': [
+          {'rule': 'Required'},
+        ],
+        'quantity': [
+          {'rule': 'Required'},
+          {'rule': 'Min', 'min': 1},
+        ],
+      };
 }
 
 Map<String, dynamic> _$OrderLineToJson(OrderLine instance) => {
@@ -265,6 +309,19 @@ class _$CreateOrderRequestValidator
       billingAddress: values['billingAddress'] as Address?,
     ));
   }
+
+  @override
+  Map<String, Map<String, String>> get html5Attrs => const {
+        'customerId': {'required': ''},
+      };
+
+  @override
+  Map<String, List<Map<String, Object?>>> get clientRules => const {
+        'customerId': [
+          {'rule': 'Required'},
+          {'rule': 'Uuid'},
+        ],
+      };
 }
 
 Map<String, dynamic> _$CreateOrderRequestToJson(CreateOrderRequest instance) =>

@@ -72,6 +72,31 @@ class _$ShippingFormValidator implements EndorseValidator<ShippingForm> {
       city: values['city'] as String,
     ));
   }
+
+  @override
+  Map<String, Map<String, String>> get html5Attrs => const {
+        'country': {'required': ''},
+        'state': {'minlength': '2'},
+        'city': {'required': '', 'minlength': '1'},
+      };
+
+  @override
+  Map<String, List<Map<String, Object?>>> get clientRules => const {
+        'country': [
+          {'rule': 'Required'},
+          {
+            'rule': 'OneOf',
+            'allowed': ['US', 'CA', 'UK']
+          },
+        ],
+        'state': [
+          {'rule': 'MinLength', 'min': 2},
+        ],
+        'city': [
+          {'rule': 'Required'},
+          {'rule': 'MinLength', 'min': 1},
+        ],
+      };
 }
 
 Map<String, dynamic> _$ShippingFormToJson(ShippingForm instance) => {
@@ -155,6 +180,27 @@ class _$ContactFormValidator implements EndorseValidator<ContactForm> {
       message: values['message'] as String,
     ));
   }
+
+  @override
+  Map<String, Map<String, String>> get html5Attrs => const {
+        'email': {'type': 'email'},
+        'phone': {'minlength': '7'},
+        'message': {'required': '', 'minlength': '1'},
+      };
+
+  @override
+  Map<String, List<Map<String, Object?>>> get clientRules => const {
+        'email': [
+          {'rule': 'Email'},
+        ],
+        'phone': [
+          {'rule': 'MinLength', 'min': 7},
+        ],
+        'message': [
+          {'rule': 'Required'},
+          {'rule': 'MinLength', 'min': 1},
+        ],
+      };
 }
 
 Map<String, dynamic> _$ContactFormToJson(ContactForm instance) => {
@@ -207,6 +253,19 @@ class _$NumberFormValidator implements EndorseValidator<NumberForm> {
       value: values['value'] as int,
     ));
   }
+
+  @override
+  Map<String, Map<String, String>> get html5Attrs => const {
+        'value': {'required': '', 'type': 'number', 'min': '0'},
+      };
+
+  @override
+  Map<String, List<Map<String, Object?>>> get clientRules => const {
+        'value': [
+          {'rule': 'Required'},
+          {'rule': 'Min', 'min': 0},
+        ],
+      };
 }
 
 Map<String, dynamic> _$NumberFormToJson(NumberForm instance) => {
@@ -260,6 +319,12 @@ class _$TagRequestValidator implements EndorseValidator<TagRequest> {
       tags: values['tags'] as List<String>,
     ));
   }
+
+  @override
+  Map<String, Map<String, String>> get html5Attrs => const {};
+
+  @override
+  Map<String, List<Map<String, Object?>>> get clientRules => const {};
 }
 
 Map<String, dynamic> _$TagRequestToJson(TagRequest instance) => {

@@ -231,6 +231,58 @@ final fields = CreateItemRequest.$endorse.fieldNames;
 // {'name', 'quantity', 'description'}
 ```
 
+#### `Map<String, Map<String, String>> get html5Attrs`
+
+HTML5 validation attributes per field. Keys are field names, values are attribute maps suitable for rendering on `<input>` elements. Only includes fields with rules mappable to HTML5 constraints.
+
+```dart
+final attrs = CreateItemRequest.$endorse.html5Attrs;
+// {
+//   'name': {'required': '', 'minlength': '1', 'maxlength': '100'},
+//   'quantity': {'required': '', 'type': 'number', 'min': '0'},
+// }
+```
+
+Rule-to-attribute mapping:
+
+| Rule | HTML5 attribute |
+|------|-----------------|
+| `Required()` | `required: ''` |
+| `Email()` | `type: 'email'` |
+| `Url()` | `type: 'url'` |
+| `MinLength(n)` | `minlength: '$n'` |
+| `MaxLength(n)` | `maxlength: '$n'` |
+| `Min(n)` | `min: '$n'` |
+| `Max(n)` | `max: '$n'` |
+| `Matches(p)` | `pattern: '$p'` |
+
+Field type also contributes: `int`/`double`/`num` fields add `type: 'number'`, `DateTime` fields add `type: 'date'`.
+
+Use with `swoop_pages` `validatedInput()` to render inputs with these attributes applied automatically. See the integration guide.
+
+#### `Map<String, List<Map<String, Object?>>> get clientRules`
+
+Client-side validation rule descriptors per field. JSON-serializable. Each descriptor has `'rule'` (type name), rule-specific params, and optional `'message'` (custom error text).
+
+```dart
+final rules = CreateItemRequest.$endorse.clientRules;
+// {
+//   'name': [
+//     {'rule': 'Required'},
+//     {'rule': 'MinLength', 'min': 1},
+//     {'rule': 'MaxLength', 'max': 100},
+//   ],
+//   'quantity': [
+//     {'rule': 'Required'},
+//     {'rule': 'Min', 'min': 0},
+//   ],
+// }
+```
+
+Rules included: `Required`, `MinLength`, `MaxLength`, `Matches`, `Email`, `Url`, `Uuid`, `Min`, `Max`, `OneOf`, `IpAddress`, `NoControlChars`. Transform-only rules (`Trim`, `LowerCase`, `Sanitize`, etc.) and `Custom`/`Transform` are excluded since they can't run client-side.
+
+Use with `swoop_pages` `formValidation()` to embed these rules as JSON for client-side form validation. See the integration guide.
+
 ---
 
 ## Registry
@@ -354,11 +406,35 @@ Transforms modify the value before subsequent rules. They never fail.
 | `Trim()` | Trims whitespace from both ends |
 | `LowerCase()` | Converts to lowercase |
 | `UpperCase()` | Converts to uppercase |
+| `Sanitize()` | Strips all HTML tags (plain text fields) |
+| `Sanitize.rich()` | Allows safe HTML subset, strips dangerous tags |
 
 ```dart
 @EndorseField(rules: [Trim(), LowerCase(), Email()])
 final String email;  // '  USER@EXAMPLE.COM  ' → 'user@example.com'
 ```
+
+### Sanitize Rule
+
+Server-side HTML sanitization using `package:disinfect`. Runs as a coerce step — transforms the value, never fails. Place before subsequent validation rules so they check the cleaned value.
+
+**`Sanitize()`** — strips ALL HTML tags. For plain text fields (names, emails, subjects):
+
+```dart
+@EndorseField(rules: [Required(), Sanitize(), MinLength(2)])
+final String name;
+// '<script>alert("xss")</script>Bob' → 'Bob'
+```
+
+**`Sanitize.rich()`** — allows a safe HTML subset (p, b, i, a, ul, ol, li, etc.). Strips `<script>`, `<style>`, `<iframe>` and their contents. For rich text fields (bios, comments):
+
+```dart
+@EndorseField(rules: [Required(), Sanitize.rich(), MinLength(10)])
+final String message;
+// '<p>Hello <b>world</b></p><script>bad()</script>' → '<p>Hello <b>world</b></p>'
+```
+
+Order matters — `Sanitize` runs as coerce before subsequent rules check the cleaned value. `Sanitize` is server-only and excluded from `clientRules` (see below).
 
 ### DateTime Rules — Day Granularity
 
@@ -701,4 +777,10 @@ void handleOrder(Map<String, Object?> body) {
 
 ## Framework Integration
 
-Endorse is the validation foundation for the framework. For how Swoop uses it for automatic request validation and how Trellis uses it for client-side form validation, see `docs/integration-guide.md` in the workspace root.
+Endorse is the validation foundation for the framework:
+
+- **Swoop** uses `EndorseRegistry` for automatic JSON and form-urlencoded request validation in the HTTP pipeline
+- **swoop_pages** uses `html5Attrs` and `clientRules` for server-rendered HTML forms with client-side validation
+- **Trellis** uses `validateField()` for SPA form validation
+
+For the full cross-package form validation story (three layers from a single source of truth), see `docs/integration-guide.md` in the workspace root.

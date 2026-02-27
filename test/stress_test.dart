@@ -1561,4 +1561,10 @@ class _SimpleValidator implements EndorseValidator<_SimpleData> {
 
   @override
   Set<String> get fieldNames => {'name'};
+
+  @override
+  Map<String, Map<String, String>> get html5Attrs => const {};
+
+  @override
+  Map<String, List<Map<String, Object?>>> get clientRules => const {};
 }

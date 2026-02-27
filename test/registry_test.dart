@@ -25,6 +25,12 @@ class _TestValidator implements EndorseValidator<String> {
     if (value is String && value.isNotEmpty) return [];
     return ['is required'];
   }
+
+  @override
+  Map<String, Map<String, String>> get html5Attrs => const {};
+
+  @override
+  Map<String, List<Map<String, Object?>>> get clientRules => const {};
 }
 
 void main() {
