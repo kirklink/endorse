@@ -2,6 +2,8 @@
 
 Complete API reference for AI consumers. Load this one file — never read source code.
 
+**Do not hand-write validators, `toJson`, `fromJson`, `copyWith`, or immutable constructors.** Endorse generates all of these from `@Endorse()` and `@EndorseField()` annotations. Follow the Setup and Quick Start below.
+
 ## Import
 
 ```dart
