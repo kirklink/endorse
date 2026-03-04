@@ -5,7 +5,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:build/build.dart';
 import 'package:source_gen/source_gen.dart';
 
-import '../annotations.dart';
+import 'package:endorse/endorse.dart';
 
 /// Code generator for `@Endorse()` annotated classes.
 ///

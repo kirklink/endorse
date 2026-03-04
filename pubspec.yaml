@@ -8,13 +8,12 @@ environment:
   sdk: ^3.0.0
 
 dependencies:
-  analyzer: ^10.1.0
-  build: ^4.0.0
   disinfect:
     path: ../disinfect
-  source_gen: ^4.2.0
 
 dev_dependencies:
+  endorse_builder:
+    path: endorse_builder
   build_runner: ^2.11.0
   lints: ^5.0.0
   test: ^1.25.0
