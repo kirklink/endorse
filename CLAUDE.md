@@ -198,7 +198,7 @@ dart analyze                                              # lint
 targets:
   $default:
     builders:
-      endorse|endorse:
+      endorse_builder|endorse:
         generate_for:
           - lib/**
 ```

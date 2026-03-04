@@ -31,7 +31,7 @@ dev_dependencies:
 targets:
   $default:
     builders:
-      endorse|endorse:
+      endorse_builder|endorse:
         generate_for:
           - lib/**
 ```
@@ -452,6 +452,8 @@ final String message;
 
 Order matters — `Sanitize` runs as coerce before subsequent rules check the cleaned value. `Sanitize` is server-only and excluded from `clientRules` (see below).
 
+> **`Sanitize()` vs the `disinfect` package:** `Sanitize()` strips ALL HTML tags — use it for plain text fields (names, emails, titles). For fields that should preserve safe HTML (rich text editors, formatted comments), skip `Sanitize()` and use the `disinfect` package directly on the server side. See the Disinfect guide for allowlist configuration.
+
 ### DateTime Rules — Day Granularity
 
 Compare at day granularity (time zeroed). Date specs: `'today'`, `'today+N'`, `'today-N'`, or ISO 8601 string.
@@ -528,11 +530,13 @@ class MyRequest {
 
 Key conventions:
 - `final` fields — immutable after construction
-- Private constructor (`._`) — instances only created through validation
+- Private constructor (`._`) — instances only created through validation. This prevents creating unvalidated instances — every instance of the class has passed through the validator.
 - Nullable fields (`String?`) are optional; non-nullable are required automatically
 - `part` directive required for the `.g.dart` file
 
 ### Auto-Inferred Rules
+
+Non-nullable fields are automatically required. Nullable (`T?`) fields are optional — null values skip all validation rules. When a nullable field has a `When` condition, it becomes conditionally required: the field is required when the condition is met, and optional when it is not.
 
 Codegen infers these automatically — don't add them manually:
 - `Required()` — for non-nullable fields
@@ -646,10 +650,25 @@ class DateRange {
 
 ### Field Name Mapping
 
+Use `@EndorseField(name:)` to map a Dart field name to a different JSON key. The two names are used in different contexts:
+
 ```dart
 @EndorseField(name: 'user_role', rules: [OneOf(['admin', 'user', 'guest'])])
-final String role;  // reads from input['user_role'], writes 'user_role' in toJson
+final String role;
 ```
+
+**Resolution rules:**
+
+| API | Uses | Example |
+|-----|------|---------|
+| `validate(input)` | JSON key (`name:` override) | Reads from `input['user_role']` |
+| `validateField(fieldName, value)` | Dart field name | `validateField('role', value)` |
+| `fieldNames` | Dart field names | Returns `{'role', ...}` |
+| `toJson()` | JSON key (`name:` override) | Writes `{'user_role': 'admin'}` |
+| `html5Attrs` | Dart field names | `html5Attrs['role']` |
+| `clientRules` | Dart field names | `clientRules['role']` |
+
+In short: `validate()` and `toJson()` use the JSON key for wire-format compatibility. All other APIs use the Dart field name, since they are used in application code (form fields, attribute lookups).
 
 ### Ignoring Fields
 

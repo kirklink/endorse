@@ -1,5 +1,5 @@
 ---
-name: endorse-guide
+name: endorse
 description: "Endorse consumer API reference — validation library with code generation. TRIGGER when: adding validation to a Dart application, using @Endorse/@EndorseField annotations, defining validation rules (StringMust, NumMust, When), working with EndorseResult/Valid/Invalid types, configuring the Endorse registry, or integrating endorse with Swoop request validation."
 ---
 
