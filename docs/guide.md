@@ -224,6 +224,20 @@ if (errors.isNotEmpty) {
 }
 ```
 
+#### `T unchecked({...})`
+
+Creates an instance without validation. Use this on the client side to construct request bodies where server-side validation will run on receipt.
+
+```dart
+final body = CreateItemRequest.$endorse.unchecked(
+  name: nameInput.value,
+  quantity: int.parse(qtyInput.value),
+);
+await api.createItem(body);
+```
+
+Required fields (those with the `Required()` rule) are `required` named parameters. Optional fields are nullable named parameters.
+
 #### `Set<String> get fieldNames`
 
 All field names this validator knows about (including remapped names).

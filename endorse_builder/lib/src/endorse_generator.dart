@@ -556,6 +556,9 @@ class EndorseGenerator extends GeneratorForAnnotation<Endorse> {
     _generateValidate(
         buf, className, fields, eitherGroups, hasCrossValidate);
 
+    // unchecked
+    _generateUnchecked(buf, className, fields);
+
     // html5Attrs
     _generateHtml5Attrs(buf, fields);
 
@@ -1041,6 +1044,37 @@ class EndorseGenerator extends GeneratorForAnnotation<Endorse> {
     'IsPastDatetime',
     'IsSameDatetime',
   };
+
+  void _generateUnchecked(
+      StringBuffer buf, String className, List<_FieldInfo> fields) {
+    buf.writeln();
+    buf.writeln('  /// Creates an instance of [$className] without validation.');
+    buf.writeln('  ///');
+    buf.writeln('  /// Use this on the client side where validation is not needed');
+    buf.writeln('  /// (e.g. constructing a request body to send to the server).');
+    buf.writeln('  $className unchecked({');
+    for (final field in fields) {
+      final type = field.dartType;
+      if (field.isList) {
+        final itemType = field.listItemType!;
+        if (field.isRequired) {
+          buf.writeln('    required List<$itemType> ${field.dartName},');
+        } else {
+          buf.writeln('    List<$itemType>? ${field.dartName},');
+        }
+      } else if (field.isRequired) {
+        buf.writeln('    required $type ${field.dartName},');
+      } else {
+        buf.writeln('    $type? ${field.dartName},');
+      }
+    }
+    buf.writeln('  }) => $className._(');
+    for (final field in fields) {
+      buf.writeln('    ${field.dartName}: ${field.dartName},');
+    }
+    buf.writeln('  );');
+    buf.writeln();
+  }
 
   void _generateHtml5Attrs(StringBuffer buf, List<_FieldInfo> fields) {
     buf.writeln('  @override');

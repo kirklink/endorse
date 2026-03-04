@@ -22,7 +22,7 @@ Full reference in [guide.md](guide.md). Key sections:
 - **Annotations** — @Endorse, @EndorseField, rule composition
 - **Validation Rules** — StringMust, NumMust, ListMust, DateTimeMust, When (conditional)
 - **Result Types** — EndorseResult, Valid, Invalid, field-level errors
-- **Validator Interface** — generated validator API, manual usage
+- **Validator Interface** — generated validator API, unchecked construction, manual usage
 - **Registry** — global validator lookup by type
 - **Patterns** — nested validation, cross-field rules, custom rules
 - **Framework Integration** — Swoop middleware, request validation hook
