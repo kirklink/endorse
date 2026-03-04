@@ -749,10 +749,14 @@ class EndorseGenerator extends GeneratorForAnnotation<Endorse> {
         buf.writeln(
             "      ${field.dartName}: values['${field.dartName}'] as ${field.dartType}${field.isNullable ? '?' : ''},");
       } else if (field.isList) {
-        final castType =
-            field.isNullable ? '${field.dartType}?' : field.dartType;
-        buf.writeln(
-            "      ${field.dartName}: values['${field.dartName}'] as $castType,");
+        final itemType = field.listItemType!;
+        if (field.isNullable) {
+          buf.writeln(
+              "      ${field.dartName}: (values['${field.dartName}'] as List?)?.cast<$itemType>(),");
+        } else {
+          buf.writeln(
+              "      ${field.dartName}: (values['${field.dartName}'] as List).cast<$itemType>(),");
+        }
       } else {
         final cast = _castExpression(field);
         buf.writeln("      ${field.dartName}: $cast,");

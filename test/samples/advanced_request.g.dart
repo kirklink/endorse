@@ -316,7 +316,7 @@ class _$TagRequestValidator implements EndorseValidator<TagRequest> {
     if (errors.isNotEmpty) return InvalidResult(errors);
 
     return ValidResult(TagRequest._(
-      tags: values['tags'] as List<String>,
+      tags: (values['tags'] as List).cast<String>(),
     ));
   }
 
