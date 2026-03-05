@@ -572,6 +572,20 @@ void main() {
       expect(json['startDate'], isA<String>());
       expect(json.containsKey('deadline'), isFalse);
     });
+
+    test('toJson serializes nullable DateTime as ISO string', () {
+      final tomorrow = DateTime.now().add(const Duration(days: 1));
+      final nextWeek = DateTime.now().add(const Duration(days: 7));
+      final result = EventRequest.$endorse.validate({
+        'name': 'Conference',
+        'startDate': tomorrow.toIso8601String(),
+        'deadline': nextWeek.toIso8601String(),
+      });
+      final json = (result as ValidResult<EventRequest>).value.toJson();
+      expect(json['startDate'], isA<String>());
+      expect(json['deadline'], isA<String>());
+      expect(json['deadline'], contains('T'));
+    });
   });
 
   // ===========================================================================

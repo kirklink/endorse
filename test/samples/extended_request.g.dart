@@ -74,6 +74,21 @@ class _$EventRequestValidator implements EndorseValidator<EventRequest> {
     ));
   }
 
+  /// Creates an instance of [EventRequest] without validation.
+  ///
+  /// Use this on the client side where validation is not needed
+  /// (e.g. constructing a request body to send to the server).
+  EventRequest unchecked({
+    required String name,
+    required DateTime startDate,
+    DateTime? deadline,
+  }) =>
+      EventRequest._(
+        name: name,
+        startDate: startDate,
+        deadline: deadline,
+      );
+
   @override
   Map<String, Map<String, String>> get html5Attrs => const {
         'name': {'required': '', 'minlength': '1'},
@@ -104,7 +119,8 @@ class _$EventRequestValidator implements EndorseValidator<EventRequest> {
 Map<String, dynamic> _$EventRequestToJson(EventRequest instance) => {
       'name': instance.name,
       'startDate': instance.startDate.toIso8601String(),
-      if (instance.deadline != null) 'deadline': instance.deadline,
+      if (instance.deadline != null)
+        'deadline': instance.deadline!.toIso8601String(),
     };
 
 // ignore_for_file: unnecessary_cast, prefer_is_empty, curly_braces_in_flow_control_structures
@@ -176,6 +192,21 @@ class _$ServerConfigValidator implements EndorseValidator<ServerConfig> {
       callbackUrl: values['callbackUrl'] as String?,
     ));
   }
+
+  /// Creates an instance of [ServerConfig] without validation.
+  ///
+  /// Use this on the client side where validation is not needed
+  /// (e.g. constructing a request body to send to the server).
+  ServerConfig unchecked({
+    required String host,
+    required int port,
+    String? callbackUrl,
+  }) =>
+      ServerConfig._(
+        host: host,
+        port: port,
+        callbackUrl: callbackUrl,
+      );
 
   @override
   Map<String, Map<String, String>> get html5Attrs => const {
@@ -264,6 +295,19 @@ class _$NormalizedInputValidator implements EndorseValidator<NormalizedInput> {
       countryCode: values['countryCode'] as String,
     ));
   }
+
+  /// Creates an instance of [NormalizedInput] without validation.
+  ///
+  /// Use this on the client side where validation is not needed
+  /// (e.g. constructing a request body to send to the server).
+  NormalizedInput unchecked({
+    required String email,
+    required String countryCode,
+  }) =>
+      NormalizedInput._(
+        email: email,
+        countryCode: countryCode,
+      );
 
   @override
   Map<String, Map<String, String>> get html5Attrs => const {

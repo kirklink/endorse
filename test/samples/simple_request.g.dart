@@ -73,6 +73,21 @@ class _$CreateItemRequestValidator
     ));
   }
 
+  /// Creates an instance of [CreateItemRequest] without validation.
+  ///
+  /// Use this on the client side where validation is not needed
+  /// (e.g. constructing a request body to send to the server).
+  CreateItemRequest unchecked({
+    required String name,
+    required int quantity,
+    String? description,
+  }) =>
+      CreateItemRequest._(
+        name: name,
+        quantity: quantity,
+        description: description,
+      );
+
   @override
   Map<String, Map<String, String>> get html5Attrs => const {
         'name': {'required': '', 'minlength': '1', 'maxlength': '100'},
@@ -178,6 +193,23 @@ class _$UserProfileValidator implements EndorseValidator<UserProfile> {
       age: values['age'] as int?,
     ));
   }
+
+  /// Creates an instance of [UserProfile] without validation.
+  ///
+  /// Use this on the client side where validation is not needed
+  /// (e.g. constructing a request body to send to the server).
+  UserProfile unchecked({
+    required String displayName,
+    required String email,
+    required String role,
+    int? age,
+  }) =>
+      UserProfile._(
+        displayName: displayName,
+        email: email,
+        role: role,
+        age: age,
+      );
 
   @override
   Map<String, Map<String, String>> get html5Attrs => const {

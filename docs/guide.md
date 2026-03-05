@@ -816,6 +816,8 @@ Endorse is the validation foundation for the framework:
 
 - **Swoop** uses `EndorseRegistry` for automatic JSON and form-urlencoded request validation in the HTTP pipeline
 - **swoop_pages** uses `html5Attrs` and `clientRules` for server-rendered HTML forms with client-side validation
-- **Trellis** uses `validateField()` for SPA form validation
+- **Trellis** uses `validateField()` for SPA form validation (see the Trellis guide's "Forms + Validation" section for wiring examples)
+
+> **Multi-annotation classes:** Entity classes often carry `@Endorse` alongside `@CellarEntity`, `@Chary`, and `@Dto`. Each builder runs independently on the same class. See [Integration Guide § Code Generation](../../docs/integration-guide.md#shared-pattern-code-generation-mandatory) for the full multi-annotation pattern.
 
 For the full cross-package form validation story (three layers from a single source of truth), see `docs/integration-guide.md` in the workspace root.

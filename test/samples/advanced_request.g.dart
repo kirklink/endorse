@@ -73,6 +73,21 @@ class _$ShippingFormValidator implements EndorseValidator<ShippingForm> {
     ));
   }
 
+  /// Creates an instance of [ShippingForm] without validation.
+  ///
+  /// Use this on the client side where validation is not needed
+  /// (e.g. constructing a request body to send to the server).
+  ShippingForm unchecked({
+    required String country,
+    String? state,
+    required String city,
+  }) =>
+      ShippingForm._(
+        country: country,
+        state: state,
+        city: city,
+      );
+
   @override
   Map<String, Map<String, String>> get html5Attrs => const {
         'country': {'required': ''},
@@ -181,6 +196,21 @@ class _$ContactFormValidator implements EndorseValidator<ContactForm> {
     ));
   }
 
+  /// Creates an instance of [ContactForm] without validation.
+  ///
+  /// Use this on the client side where validation is not needed
+  /// (e.g. constructing a request body to send to the server).
+  ContactForm unchecked({
+    String? email,
+    String? phone,
+    required String message,
+  }) =>
+      ContactForm._(
+        email: email,
+        phone: phone,
+        message: message,
+      );
+
   @override
   Map<String, Map<String, String>> get html5Attrs => const {
         'email': {'type': 'email'},
@@ -254,6 +284,17 @@ class _$NumberFormValidator implements EndorseValidator<NumberForm> {
     ));
   }
 
+  /// Creates an instance of [NumberForm] without validation.
+  ///
+  /// Use this on the client side where validation is not needed
+  /// (e.g. constructing a request body to send to the server).
+  NumberForm unchecked({
+    required int value,
+  }) =>
+      NumberForm._(
+        value: value,
+      );
+
   @override
   Map<String, Map<String, String>> get html5Attrs => const {
         'value': {'required': '', 'type': 'number', 'min': '0'},
@@ -319,6 +360,17 @@ class _$TagRequestValidator implements EndorseValidator<TagRequest> {
       tags: (values['tags'] as List).cast<String>(),
     ));
   }
+
+  /// Creates an instance of [TagRequest] without validation.
+  ///
+  /// Use this on the client side where validation is not needed
+  /// (e.g. constructing a request body to send to the server).
+  TagRequest unchecked({
+    required List<String> tags,
+  }) =>
+      TagRequest._(
+        tags: tags,
+      );
 
   @override
   Map<String, Map<String, String>> get html5Attrs => const {};

@@ -74,6 +74,21 @@ class _$AddressValidator implements EndorseValidator<Address> {
     ));
   }
 
+  /// Creates an instance of [Address] without validation.
+  ///
+  /// Use this on the client side where validation is not needed
+  /// (e.g. constructing a request body to send to the server).
+  Address unchecked({
+    required String street,
+    required String city,
+    required String zip,
+  }) =>
+      Address._(
+        street: street,
+        city: city,
+        zip: zip,
+      );
+
   @override
   Map<String, Map<String, String>> get html5Attrs => const {
         'street': {'required': '', 'minlength': '1'},
@@ -157,6 +172,19 @@ class _$OrderLineValidator implements EndorseValidator<OrderLine> {
       quantity: values['quantity'] as int,
     ));
   }
+
+  /// Creates an instance of [OrderLine] without validation.
+  ///
+  /// Use this on the client side where validation is not needed
+  /// (e.g. constructing a request body to send to the server).
+  OrderLine unchecked({
+    required String productId,
+    required int quantity,
+  }) =>
+      OrderLine._(
+        productId: productId,
+        quantity: quantity,
+      );
 
   @override
   Map<String, Map<String, String>> get html5Attrs => const {
@@ -309,6 +337,23 @@ class _$CreateOrderRequestValidator
       billingAddress: values['billingAddress'] as Address?,
     ));
   }
+
+  /// Creates an instance of [CreateOrderRequest] without validation.
+  ///
+  /// Use this on the client side where validation is not needed
+  /// (e.g. constructing a request body to send to the server).
+  CreateOrderRequest unchecked({
+    required String customerId,
+    required Address address,
+    required List<OrderLine> lines,
+    Address? billingAddress,
+  }) =>
+      CreateOrderRequest._(
+        customerId: customerId,
+        address: address,
+        lines: lines,
+        billingAddress: billingAddress,
+      );
 
   @override
   Map<String, Map<String, String>> get html5Attrs => const {

@@ -995,6 +995,9 @@ class EndorseGenerator extends GeneratorForAnnotation<Endorse> {
         } else if (field.isNestedList) {
           buf.writeln(
               "      if ($accessor != null) '$key': $accessor!.map((e) => _\$${field.listItemType}ToJson(e)).toList(),");
+        } else if (field.typeKind == _TypeKind.dateTime) {
+          buf.writeln(
+              "      if ($accessor != null) '$key': $accessor!.toIso8601String(),");
         } else {
           buf.writeln("      if ($accessor != null) '$key': $accessor,");
         }
